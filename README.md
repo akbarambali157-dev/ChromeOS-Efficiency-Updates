@@ -22,6 +22,10 @@ new tab needs.
 
 ## What's in it
 
+**Navigation** — a left sidebar with an icon and label for every page: Home,
+GitHub, Drive, Brewkeg, Sessions, Memory, Files and Claude. It collapses to
+icons alone under 820px wide.
+
 **Home page** — clock, weather, a command bar, and exactly four shortcut tiles
 in a 2×2 grid. Everything else lives behind *All shortcuts*, a rail that is
 built only the first time you open it. Below that: quick note, sessions,
@@ -31,8 +35,15 @@ recently closed tabs, and settings.
 `drive new sheet`, a tab name, or a shortcut name.
 
 **Themes** — 14 themes (10 dark, 4 light) each with a matching wallpaper, plus
-**Void**, a true-black night sky with white stars. *Day / night* mode switches
-between a light and a dark pair at 07:00 and 19:00. Animations can be turned off
+**Void**, a true-black night sky with sparse sharp stars. *Day / night* mode
+switches between a light and a dark pair at 07:00 and 19:00.
+
+**Wallpapers** — twelve scenes, each drawn from the same six-slot palette (sky,
+three depth layers, a light source, a shadow) so they stay readable in both
+light and dark themes. Light themes flip to dark silhouettes against a bright
+sky, which is what gives the mountains a lit face and a shadowed one instead of
+washing out. Waves roll sideways, embers rise, stars twinkle and drift, the
+aurora blooms move, and the neon floor scrolls. Animations can be turned off
 entirely for a lighter page.
 
 **Dark mode for websites** — on by default, and it leaves already-dark sites
@@ -95,7 +106,7 @@ and links to Cloudflare's own compatibility checker.
 new-tab-launcher/
   manifest.json        MV3 manifest, commands, permissions
   newtab.html/.js/.css home page
-  nav.js               shared nav registry (id -> page)
+  nav.js               left sidebar nav: registry of id -> page, with icons
   store.js             read-through cache over chrome.storage.local
   theme.js             themes, wallpapers, day/night
   background.js        service worker: dark mode, tab tools, chat relay

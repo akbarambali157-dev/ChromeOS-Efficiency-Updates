@@ -27,51 +27,93 @@
   var t = ls('theme'); if (t) de.setAttribute('data-theme', t);
   var m = ls('motion'); if (m === 'off') de.setAttribute('data-motion', 'off');
 
-  var MOUNTAINS =
-    '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
-    '<defs><radialGradient id="wsg"><stop offset="0" style="stop-color:var(--accent);stop-opacity:.85"/>' +
-    '<stop offset="1" style="stop-color:var(--accent);stop-opacity:0"/></radialGradient>' +
-    '<linearGradient id="wsk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--bg)"/>' +
-    '<stop offset="1" style="stop-color:var(--panel)"/></linearGradient></defs>' +
-    '<rect width="1440" height="800" fill="url(#wsk)"/>' +
-    '<circle class="sun" cx="1040" cy="380" r="200" fill="url(#wsg)"/>' +
-    '<path class="m1" d="M-60 560 L100 500 L230 548 L380 470 L520 540 L680 460 L820 538 L980 480 L1130 552 L1280 490 L1500 556 L1500 800 L-60 800Z"/>' +
-    '<path class="m2" d="M-60 640 L90 590 L240 640 L420 570 L580 650 L760 585 L930 655 L1100 600 L1260 660 L1500 610 L1500 800 L-60 800Z"/>' +
-    '<path class="m3" d="M-60 720 L140 680 L330 730 L520 690 L720 745 L900 700 L1090 750 L1280 705 L1500 745 L1500 800 L-60 800Z"/>' +
-    '</svg>';
+  /* Every scene is built from the same five palette slots, which each theme
+     defines in newtab.css. Light themes point them at dark slates so the
+     silhouettes stay readable against a bright sky. */
+  function sky(id) {
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0" style="stop-color:var(--w-sky)"/>' +
+      '<stop offset="1" style="stop-color:var(--w-far)"/></linearGradient>';
+  }
+  /* Lit on the left, shadowed on the right — this is what gives the ridges and
+     mountains a light source instead of a flat fill. */
+  function lit(id, base, hi, lo) {
+    return '<linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0" style="stop-color:var(--w-light);stop-opacity:' + hi + '"/>' +
+      '<stop offset=".45" style="stop-color:var(--w-' + base + ')"/>' +
+      '<stop offset="1" style="stop-color:var(--w-shadow);stop-opacity:' + lo + '"/></linearGradient>';
+  }
+  function glow(id, op) {
+    return '<radialGradient id="' + id + '">' +
+      '<stop offset="0" style="stop-color:var(--w-light);stop-opacity:' + op + '"/>' +
+      '<stop offset=".55" style="stop-color:var(--w-light);stop-opacity:' + (op * 0.3).toFixed(2) + '"/>' +
+      '<stop offset="1" style="stop-color:var(--w-light);stop-opacity:0"/></radialGradient>';
+  }
+  function svg(defs, body) {
+    return '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs>' + defs + '</defs>' + body + '</svg>';
+  }
 
-  /* Angular slate ridges — sharper than the mountains, three parallax layers. */
-  var RIDGES =
-    '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
-    '<path class="r1" d="M-60 520 L120 430 L260 500 L400 380 L560 470 L700 360 L860 460 L1010 390 L1170 480 L1320 400 L1500 470 L1500 800 L-60 800Z"/>' +
-    '<path class="r2" d="M-60 620 L140 540 L320 610 L500 500 L680 600 L860 520 L1040 620 L1220 540 L1400 610 L1500 560 L1500 800 L-60 800Z"/>' +
-    '<path class="r3" d="M-60 720 L160 660 L360 720 L560 670 L760 730 L960 680 L1160 740 L1360 690 L1500 730 L1500 800 L-60 800Z"/>' +
-    '</svg>';
+  /* Mountains — big peaks, a low sun, and a lit face against a shadowed one. */
+  var MOUNTAINS = svg(
+    sky('mtnSky') + glow('mtnSun', '.95') +
+    lit('mtnFar', 'far', '.55', '.85') + lit('mtnMid', 'mid', '.4', '.9') + lit('mtnNear', 'near', '.26', '.95'),
+    '<rect width="1440" height="800" fill="url(#mtnSky)"/>' +
+    '<circle class="sun" cx="330" cy="300" r="250" fill="url(#mtnSun)"/>' +
+    '<path class="m1" fill="url(#mtnFar)" d="M-60 800 L90 470 L210 560 L360 400 L500 560 L640 430 L790 570 L940 420 L1090 560 L1240 450 L1380 570 L1500 500 L1500 800Z"/>' +
+    '<path class="m2" fill="url(#mtnMid)" d="M-60 800 L120 600 L280 680 L430 540 L590 690 L740 570 L900 700 L1060 560 L1210 690 L1360 590 L1500 680 L1500 800Z"/>' +
+    '<path class="m3" fill="url(#mtnNear)" d="M-60 800 L160 700 L340 760 L520 680 L700 770 L880 700 L1060 780 L1240 710 L1400 770 L1500 730 L1500 800Z"/>'
+  );
 
-  /* Smooth warm dunes. */
-  var DUNES =
-    '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
-    '<path class="d1" d="M-60 560 C180 470 360 640 620 560 C880 480 1080 650 1500 540 L1500 800 L-60 800Z"/>' +
-    '<path class="d2" d="M-60 650 C220 580 420 720 700 640 C980 560 1200 720 1500 630 L1500 800 L-60 800Z"/>' +
-    '<path class="d3" d="M-60 730 C260 680 500 780 780 720 C1060 660 1280 770 1500 720 L1500 800 L-60 800Z"/>' +
-    '</svg>';
+  /* Ridges — sharp slate teeth, no sun, cooler and busier than the mountains. */
+  var RIDGES = svg(
+    sky('rdgSky') + lit('rdg1', 'far', '.5', '.8') + lit('rdg2', 'mid', '.34', '.9') + lit('rdg3', 'near', '.2', '.95'),
+    '<rect width="1440" height="800" fill="url(#rdgSky)"/>' +
+    '<path class="r1" fill="url(#rdg1)" d="M-60 800 L40 500 L120 590 L200 420 L280 560 L360 380 L440 540 L520 400 L610 570 L690 410 L780 550 L870 390 L960 560 L1050 420 L1140 580 L1230 440 L1320 570 L1410 470 L1500 560 L1500 800Z"/>' +
+    '<path class="r2" fill="url(#rdg2)" d="M-60 800 L60 640 L150 700 L240 580 L330 690 L420 560 L510 700 L600 590 L700 710 L790 570 L880 700 L970 600 L1060 720 L1150 610 L1240 710 L1330 620 L1420 720 L1500 660 L1500 800Z"/>' +
+    '<path class="r3" fill="url(#rdg3)" d="M-60 800 L100 740 L220 780 L340 720 L460 790 L580 730 L700 790 L820 740 L940 800 L1060 750 L1180 800 L1300 760 L1420 800 L1500 780 L1500 800Z"/>'
+  );
 
-  /* Four ocean bands, each drifting at its own speed. */
-  var WAVES =
-    '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
-    '<path class="w1" d="M-60 470 C160 420 320 520 520 470 C720 420 880 520 1080 470 C1280 420 1400 500 1500 470 L1500 800 L-60 800Z"/>' +
-    '<path class="w2" d="M-60 560 C180 510 340 610 560 560 C780 510 940 610 1160 560 C1340 520 1440 590 1500 560 L1500 800 L-60 800Z"/>' +
-    '<path class="w3" d="M-60 650 C200 600 380 700 600 650 C820 600 1000 700 1220 650 C1380 615 1460 680 1500 650 L1500 800 L-60 800Z"/>' +
-    '<path class="w4" d="M-60 730 C220 690 420 780 660 730 C900 680 1100 780 1340 730 L1500 745 L1500 800 L-60 800Z"/>' +
-    '</svg>';
+  /* Dunes — long smooth curves and a big low sun. */
+  var DUNES = svg(
+    sky('dnSky') + glow('dnSun', '.9') +
+    lit('dn1', 'far', '.5', '.8') + lit('dn2', 'mid', '.34', '.9') + lit('dn3', 'near', '.2', '.95'),
+    '<rect width="1440" height="800" fill="url(#dnSky)"/>' +
+    '<circle class="sun" cx="1080" cy="430" r="280" fill="url(#dnSun)"/>' +
+    '<path class="d1" fill="url(#dn1)" d="M-60 800 C180 500 380 700 640 590 C900 480 1100 700 1500 540 L1500 800Z"/>' +
+    '<path class="d2" fill="url(#dn2)" d="M-60 800 C220 620 440 760 720 660 C1000 560 1220 740 1500 640 L1500 800Z"/>' +
+    '<path class="d3" fill="url(#dn3)" d="M-60 800 C260 720 520 800 800 740 C1080 680 1300 790 1500 730 L1500 800Z"/>'
+  );
 
-  /* Layered tree silhouettes. */
-  var CANOPY =
-    '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
-    '<path class="c1" d="M-60 800 L-60 520 L60 400 L180 520 L300 380 L420 520 L540 420 L660 540 L780 400 L900 530 L1020 410 L1140 540 L1260 430 L1380 540 L1500 450 L1500 800Z"/>' +
-    '<path class="c2" d="M-60 800 L-60 620 L80 520 L220 640 L360 500 L500 650 L640 530 L780 660 L920 520 L1060 650 L1200 540 L1340 660 L1500 560 L1500 800Z"/>' +
-    '<path class="c3" d="M-60 800 L-60 720 L100 660 L260 740 L420 660 L580 750 L740 670 L900 760 L1060 680 L1220 760 L1380 690 L1500 740 L1500 800Z"/>' +
-    '</svg>';
+  /* Waves — four crests that actually roll. Each band is drawn twice as wide as
+     the viewBox and slides by half its own width, so the loop is seamless. */
+  function wavePath(y, amp) {
+    var d = 'M0 ' + y + ' q90 -' + amp + ' 180 0';
+    for (var i = 0; i < 15; i++) d += ' t180 0';
+    return d + ' V800 H0 Z';
+  }
+  var WAVES = svg(
+    sky('wvSky') + glow('wvSun', '.55') +
+    lit('wv1', 'far', '.6', '.7') + lit('wv2', 'far', '.45', '.8') +
+    lit('wv3', 'mid', '.3', '.9') + lit('wv4', 'near', '.18', '.95'),
+    '<rect width="1440" height="800" fill="url(#wvSky)"/>' +
+    '<circle class="sun" cx="1120" cy="250" r="200" fill="url(#wvSun)"/>' +
+    '<g class="w1g"><path class="w1" fill="url(#wv1)" d="' + wavePath(430, 34) + '"/></g>' +
+    '<g class="w2g"><path class="w2" fill="url(#wv2)" d="' + wavePath(520, 42) + '"/></g>' +
+    '<g class="w3g"><path class="w3" fill="url(#wv3)" d="' + wavePath(620, 50) + '"/></g>' +
+    '<g class="w4g"><path class="w4" fill="url(#wv4)" d="' + wavePath(720, 58) + '"/></g>'
+  );
+
+  /* Canopy — layered tree lines under a moon. */
+  var CANOPY = svg(
+    sky('cpSky') + glow('cpMoon', '.85') +
+    lit('cp1', 'far', '.4', '.8') + lit('cp2', 'mid', '.28', '.9') + lit('cp3', 'near', '.16', '.95'),
+    '<rect width="1440" height="800" fill="url(#cpSky)"/>' +
+    '<circle class="moon" cx="1120" cy="210" r="110" fill="url(#cpMoon)"/>' +
+    '<path class="c1" fill="url(#cp1)" d="M-60 800 L-60 520 L60 400 L180 520 L300 380 L420 520 L540 420 L660 540 L780 400 L900 530 L1020 410 L1140 540 L1260 430 L1380 540 L1500 450 L1500 800Z"/>' +
+    '<path class="c2" fill="url(#cp2)" d="M-60 800 L-60 620 L80 520 L220 640 L360 500 L500 650 L640 530 L780 660 L920 520 L1060 650 L1200 540 L1340 660 L1500 560 L1500 800Z"/>' +
+    '<path class="c3" fill="url(#cp3)" d="M-60 800 L-60 720 L100 660 L260 740 L420 660 L580 750 L740 670 L900 760 L1060 680 L1220 760 L1380 690 L1500 740 L1500 800Z"/>'
+  );
 
   function setWall(mode) {
     var body = document.body;
@@ -94,8 +136,19 @@
     w.removeAttribute('style');
     w.textContent = '';
     body.classList.add('has-wall');
-    if (mode === 'aurora' || mode === 'bloom') {
-      w.innerHTML = '<i></i><i></i><i></i>';
+
+    if (mode === 'aurora') {
+      w.innerHTML = '<i></i><i></i><i></i><i></i>';
+    } else if (mode === 'bloom') {
+      /* Bokeh: many small soft discs rather than three huge blooms. */
+      for (var b = 0; b < 14; b++) {
+        var o = document.createElement('i');
+        var sz = 6 + Math.random() * 16;
+        o.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;top:' + (Math.random() * 100).toFixed(1) +
+          '%;width:' + sz.toFixed(1) + 'vmax;height:' + sz.toFixed(1) + 'vmax;' +
+          'animation-delay:-' + (Math.random() * 24).toFixed(1) + 's;animation-duration:' + (18 + Math.random() * 16).toFixed(1) + 's';
+        w.appendChild(o);
+      }
     } else if (mode === 'mountains') {
       w.innerHTML = MOUNTAINS;
     } else if (mode === 'ridges') {
@@ -107,26 +160,30 @@
     } else if (mode === 'canopy') {
       w.innerHTML = CANOPY;
     } else if (mode === 'grid') {
-      w.innerHTML = '<i></i>';
+      w.innerHTML = '<i></i><b></b>';
     } else if (mode === 'stars' || mode === 'void') {
-      /* 28 stars, not 55: each was an infinitely animating layer on a 2 GB
-         machine, and every star cost a repaint in every open tab. Void gets a
-         few more because it has no colour to carry the scene. */
-      var n = mode === 'void' ? 34 : 28;
+      /* Stars live in a wrapper so the whole field can drift as one animation
+         instead of one per star. Void gets fewer, sharper points and no
+         shooting star, so it reads as deep space rather than a copy of stars. */
+      var field = document.createElement('div');
+      field.className = 'sky';
+      var n = mode === 'void' ? 46 : 34;
       for (var i = 0; i < n; i++) {
         var s = document.createElement('i');
-        var sz = 1 + Math.random() * 2;
+        var sz = mode === 'void' ? 1 + Math.random() * 1.4 : 1 + Math.random() * 2;
         s.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;top:' + (Math.random() * 100).toFixed(1) +
           '%;width:' + sz.toFixed(1) + 'px;height:' + sz.toFixed(1) + 'px;animation-delay:-' + (Math.random() * 6).toFixed(1) +
           's;animation-duration:' + (3 + Math.random() * 4).toFixed(1) + 's';
-        w.appendChild(s);
+        field.appendChild(s);
       }
-      w.appendChild(document.createElement('b'));
+      w.appendChild(field);
+      if (mode === 'stars') w.appendChild(document.createElement('b'));
     } else if (mode === 'embers') {
-      for (var j = 0; j < 18; j++) {
+      for (var j = 0; j < 26; j++) {
         var e = document.createElement('i');
-        e.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;animation-delay:-' + (Math.random() * 9).toFixed(1) +
-          's;animation-duration:' + (7 + Math.random() * 6).toFixed(1) + 's';
+        var es = 2 + Math.random() * 3;
+        e.style.cssText = 'left:' + (Math.random() * 100).toFixed(1) + '%;width:' + es.toFixed(1) + 'px;height:' + es.toFixed(1) +
+          'px;animation-delay:-' + (Math.random() * 9).toFixed(1) + 's;animation-duration:' + (7 + Math.random() * 6).toFixed(1) + 's';
         w.appendChild(e);
       }
     } else if (mode === 'custom') {
