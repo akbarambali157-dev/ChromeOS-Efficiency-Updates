@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Claude Code sessions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<script src="theme.js"></script></head>
+<body data-app="sessions"><main class="wrap">
+  <nav class="nav"></nav>
+  <h1 class="page-title">Claude Code sessions</h1>
+  <p class="page-sub">Token totals per session, read from Claude Code's own log files. Files are read in this browser and never uploaded.</p>
+
+  <div class="btnrow">
+    <label class="filebtn main">Choose logs folder<input id="pickDir" type="file" webkitdirectory multiple></label>
+    <label class="filebtn">Choose files<input id="pickFiles" type="file" accept=".jsonl" multiple></label>
+  </div>
+  <div id="status" class="status"></div>
+
+  <div id="stats" class="stats" hidden>
+    <div class="stat"><b id="sN">0</b><span>sessions</span></div>
+    <div class="stat"><b id="sIO">0</b><span>input + output tokens</span></div>
+    <div class="stat"><b id="sC">0</b><span>cache tokens (read + write)</span></div>
+  </div>
+  <div id="list" class="cs-list" style="margin-top:16px"></div>
+  <button id="clear" class="linkbtn" type="button" hidden>Clear saved totals</button>
+
+  <details class="connect">
+    <summary>How do I get the log files?</summary>
+    <p class="hint">Claude Code saves each session as a .jsonl file in ~/.claude/projects on the machine it runs on. In your Codespace terminal, copy them into the workspace so you can download them:</p>
+    <pre class="code">mkdir -p claude-logs && cp -r ~/.claude/projects/* claude-logs/
+echo "claude-logs/" >> .gitignore</pre>
+    <p class="hint">In the file explorer, right-click the claude-logs folder and choose Download, then pick it here. Delete the folder afterwards. The logs contain your prompts and code, so never commit them.</p>
+    <p class="hint">Totals are what Claude Code logged. Brewkeg may count cached tokens differently, so use its Requests page for billing.</p>
+  </details>
+</main>
+<script src="nav.js"></script>
+<script src="sessions-page.js"></script></body></html>

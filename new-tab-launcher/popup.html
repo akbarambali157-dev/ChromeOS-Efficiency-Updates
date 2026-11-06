@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Launcher</title>
+<link rel="stylesheet" href="newtab.css">
+<link rel="stylesheet" href="popup.css">
+<script src="theme.js"></script></head>
+<body class="pop" data-nowall>
+  <h1>Launcher</h1>
+  <label class="sw-row"><span>Dark mode for websites</span><span class="switch"><input type="checkbox" id="gDark"><span></span></span></label>
+  <label class="sw-row" id="siteRow"><span><span id="siteTxt">This site</span><small id="siteSub"></small></span><span class="switch"><input type="checkbox" id="sDark"><span></span></span></label>
+  <div class="popbtns">
+    <button type="button" id="pDupes">Close duplicate tabs</button>
+    <button type="button" id="pMem">Free up memory</button>
+    <button type="button" id="pOpen">Open memory monitor</button>
+  </div>
+  <div id="pStatus" class="status"></div>
+  <button type="button" id="pTs" class="tslink">Cloudflare check not passing?</button>
+  <div id="tsBox" class="tsbox" hidden>
+    <p id="tsText" class="tshint"></p>
+    <button type="button" id="tsFix" class="tsfix" hidden>Turn off all injection on this site</button>
+    <a class="tsgo" href="https://browser-compat.turnstile.workers.dev/" target="_blank" rel="noopener">Run Cloudflare's own compatibility check →</a>
+  </div>
+<script src="tools.js"></script>
+<script src="popup.js"></script></body></html>

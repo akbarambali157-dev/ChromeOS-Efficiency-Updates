@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Assistant</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<link rel="stylesheet" href="assistant.css">
+<script src="theme.js"></script></head>
+<body data-app="assistant"><main class="wrap">
+  <nav class="nav"></nav>
+
+  <section class="stage">
+    <div class="orb idle" id="orb">
+      <div class="orb-glow"></div>
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs><radialGradient id="orbCore"><stop offset="0" style="stop-color:var(--accent);stop-opacity:.6"/><stop offset="1" style="stop-color:var(--accent2);stop-opacity:0"/></radialGradient></defs>
+        <circle class="core" cx="100" cy="100" r="50" fill="url(#orbCore)"/>
+        <g class="r r1"><circle cx="100" cy="100" r="94" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="1.5 7"/></g>
+        <g class="r r2"><circle cx="100" cy="100" r="84" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="90 438" stroke-linecap="round"/><circle cx="100" cy="100" r="84" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="40 488" stroke-dashoffset="-264" stroke-linecap="round"/></g>
+        <g class="r r3"><circle cx="100" cy="100" r="70" fill="none" stroke="var(--accent)" stroke-width="5" stroke-dasharray="170 270" stroke-linecap="round"/></g>
+        <circle cx="100" cy="100" r="55" fill="none" stroke="var(--accent)" stroke-width="1.2" opacity=".55"/>
+        <text id="orbName" x="100" y="106" class="orb-name">NOVA</text>
+      </svg>
+    </div>
+    <div id="stateTxt" class="statetxt">Ready</div>
+    <div id="interim" class="interim"></div>
+  </section>
+
+  <div id="panels" class="panels"></div>
+  <div id="log" class="log"></div>
+  <div id="chips" class="chips2"></div>
+
+  <form id="askForm" class="ask" autocomplete="off">
+    <button type="button" id="mic" class="micbtn" aria-label="Talk">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2z"/></svg>
+    </button>
+    <input id="askIn" type="text" placeholder="Ask or give a command" maxlength="400">
+    <button type="submit" class="primary">Send</button>
+  </form>
+
+  <details class="connect" id="aiSettings">
+    <summary>Assistant settings</summary>
+    <label class="sw-row"><span>Speak replies out loud</span><span class="switch"><input type="checkbox" id="cSpeak"><span></span></span></label>
+    <label class="sw-row"><span>Always listen for my name<small class="hint" style="display:block">Only works while this tab is open. Voice goes to Chrome's speech service.</small></span><span class="switch"><input type="checkbox" id="cWake"><span></span></span></label>
+    <p class="hint">Name</p>
+    <input id="cName" type="text" maxlength="20" placeholder="Nova">
+    <p class="hint">Brewkeg API key (for general questions)</p>
+    <input id="cKey" type="password" placeholder="bk_live_..." autocomplete="off">
+    <p class="hint">Model</p>
+    <input id="cModel" type="text" maxlength="60" placeholder="claude-haiku-4-5">
+    <p class="hint">The key stays in this browser. Your questions go to brewkeg.dev and cost tokens on your balance. Commands like weather, tabs, codespaces and opening sites run in the launcher and cost nothing.</p>
+    <div class="btns"><button type="button" class="primary" id="cSave">Save</button><button type="button" class="ghost" id="cClearKey">Remove key</button><button type="button" class="ghost" id="cTest">Test connection</button></div>
+    <div id="cStatus" class="status"></div>
+  </details>
+</main>
+<script src="nav.js"></script>
+<script src="tools.js"></script>
+<script src="gauge.js"></script>
+<script src="assistant-intents.js"></script>
+<script src="assistant-core.js"></script>
+<script src="assistant.js"></script></body></html>

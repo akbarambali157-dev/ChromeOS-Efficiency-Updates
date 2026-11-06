@@ -1,0 +1,13 @@
+.fgroup{background:var(--panel);border-radius:14px;padding:14px 16px;margin-bottom:12px}
+.fgroup header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fgroup h4{margin:0;font-size:15px;font-weight:600}
+.fgroup .why{margin:4px 0 8px;color:var(--muted);font-size:13px}
+.fgroup .tot{color:var(--accent);font-size:14px;white-space:nowrap}
+.frow{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.06);font-size:14px;cursor:pointer}
+.frow input{flex-shrink:0;width:18px;height:18px;accent-color:var(--accent)}
+.frow .fn{flex:1;min-width:0}
+.frow .fn b{display:block;font-weight:400;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .fn small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .fs{color:var(--muted);font-size:13px;white-space:nowrap}
+.more{margin-top:8px;color:var(--muted);font-size:13px}
+.selall{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer}

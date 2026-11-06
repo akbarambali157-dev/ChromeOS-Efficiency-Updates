@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>GitHub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<script src="theme.js"></script></head>
+<body data-app="github"><main class="wrap">
+  <nav class="nav"></nav>
+  <h1 class="page-title">GitHub</h1>
+  <p class="page-sub">If you're signed out, GitHub will ask you to sign in. Chrome can fill in your saved password.</p>
+  <a class="hero-btn" href="https://github.com">Open GitHub</a>
+
+  <div class="links">
+    <a href="https://github.com/pulls">Pull requests</a>
+    <a href="https://github.com/issues">Issues</a>
+    <a href="https://github.com?tab=repositories" id="repoLink">Your repositories</a>
+    <a href="https://github.com/notifications">Notifications</a>
+    <a href="https://github.com/codespaces">Codespaces site</a>
+  </div>
+
+  <h3 class="sec">Your codespaces</h3>
+  <div id="csList" class="cs-list"></div>
+  <div id="csStatus" class="status"></div>
+
+  <h3 class="sec">Open pull requests</h3>
+  <div id="prList" class="cs-list"></div>
+  <div id="prStatus" class="status"></div>
+
+  <h3 class="sec">Recent commits</h3>
+  <div id="cmList" class="cs-list"></div>
+  <div id="cmStatus" class="status"></div>
+
+  <h3 class="sec">Latest builds</h3>
+  <div id="bdList" class="cs-list"></div>
+  <div id="bdStatus" class="status"></div>
+
+  <details class="connect" id="connect">
+    <summary>Connect your account to see codespaces here</summary>
+    <p class="hint">Create a classic token at github.com/settings/tokens with the <b>codespace</b> scope to see codespaces, and also <b>repo</b> to see pull requests, commits and builds, then paste it below. It is saved only in this browser on this Chromebook. Remove it any time.</p>
+    <input id="tok" type="password" placeholder="ghp_..." autocomplete="off">
+    <div class="btns">
+      <button class="primary" id="saveTok" type="button">Save and load</button>
+      <button class="ghost" id="rmTok" type="button">Remove token</button>
+    </div>
+  </details>
+</main>
+<script src="nav.js"></script>
+<script src="github.js"></script></body></html>

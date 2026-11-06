@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Claude Code</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<link rel="stylesheet" href="claude-app.css">
+<script src="theme.js"></script></head>
+<body class="cc" data-app="claude" data-nowall>
+<div class="shell">
+
+  <nav class="act" aria-label="Sections">
+    <button type="button" class="actbtn on" id="paneFiles" title="Files" aria-label="Files">▤</button>
+    <button type="button" class="actbtn" id="paneChat" title="Chat" aria-label="Chat">✎</button>
+    <button type="button" class="actbtn" id="paneGit" title="Push to GitHub" aria-label="Push to GitHub">⑂</button>
+    <button type="button" class="actbtn" id="paneSet" title="Settings" aria-label="Settings">⚙</button>
+    <a class="actbtn home" href="newtab.html" title="Back to the launcher" aria-label="Back to the launcher">⌂</a>
+  </nav>
+
+  <aside class="side">
+    <div class="sidehead"><span>Files</span><button type="button" class="mini" id="newFile" title="New file">+</button></div>
+    <div id="fileList" class="filelist"></div>
+  </aside>
+
+  <section class="main">
+    <div class="limits">
+      <span>VS Code extensions and Claude Code plugins can't be installed here. This is an editor, a chat and a push button.</span>
+      <a href="https://github.com/codespaces" target="_blank" rel="noopener">Open a real Codespace →</a>
+    </div>
+    <div class="tabs">
+      <span id="tabName" class="tab">untitled</span>
+      <span id="dirty" class="dirty" hidden>●</span>
+    </div>
+    <textarea id="editor" class="editor" spellcheck="false" placeholder="Start typing, or pick a file on the left."></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <span class="ptitle">Chat</span>
+      <select id="logSel" class="logsel" title="Conversations"></select>
+      <button type="button" class="mini" id="newLog">New</button>
+      <button type="button" class="mini" id="delLog">Delete</button>
+    </div>
+    <div id="chatLog" class="chatlog"></div>
+    <form id="chatForm" class="chatrow" autocomplete="off">
+      <input id="chatIn" type="text" placeholder="Ask about the code, or say what to change" maxlength="2000">
+      <button type="submit" class="primary" id="sendBtn">Send</button>
+    </form>
+  </section>
+
+</div>
+
+<dialog id="dlgSet">
+  <form id="setForm" method="dialog">
+    <h2>Claude Code settings</h2>
+    <p class="hintline">This key is separate from the assistant's key and is never included in a backup export.</p>
+    <label>brewkeg key <input id="ccKeyIn" type="password" placeholder="paste your key" autocomplete="off"></label>
+    <label>Model
+      <select id="ccModel">
+        <option value="claude-sonnet-5-5">claude-sonnet-5-5</option>
+        <option value="claude-opus-5-5">claude-opus-5-5</option>
+        <option value="claude-haiku-5-5">claude-haiku-5-5</option>
+      </select>
+    </label>
+    <div id="setStatus" class="status"></div>
+    <div class="row">
+      <button type="button" class="ghost" id="setCancel">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dlgPush">
+  <form id="pushForm" method="dialog">
+    <h2>Push to GitHub</h2>
+    <p class="hintline">Writes the file in the editor to a repo. You'll see the change before anything is sent.</p>
+    <label>Repository <input id="pushRepo" type="text" placeholder="owner/repo" maxlength="120"></label>
+    <label>Path <input id="pushPath" type="text" placeholder="src/example.js" maxlength="200"></label>
+    <label>Commit message <input id="pushMsg" type="text" maxlength="120"></label>
+    <div id="pushStatus" class="status"></div>
+    <div id="pushDiff" class="diffbox" hidden></div>
+    <div class="row">
+      <button type="button" class="ghost" id="pushCancel">Cancel</button>
+      <button type="button" class="ghost" id="pushReview">Review</button>
+      <button type="button" class="primary" id="pushGo" disabled>Push</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="claude-app.js"></script>
+</body></html>

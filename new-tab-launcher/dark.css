@@ -1,0 +1,2 @@
+html:not([data-nodark]){background:#fff!important;filter:invert(1) hue-rotate(180deg)!important}
+html:not([data-nodark]) :is(img,picture,video,canvas,svg image,iframe,embed,object,source,[style*="background-image"]){filter:invert(1) hue-rotate(180deg)!important}

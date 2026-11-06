@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Brewkeg</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<script src="theme.js"></script></head>
+<body data-app="brewkeg"><main class="wrap">
+  <nav class="nav"></nav>
+  <h1 class="page-title">Brewkeg</h1>
+  <p class="page-sub">Quick links to your brewkeg account. Brewkeg will ask you to sign in if needed.</p>
+  <a class="hero-btn" href="https://brewkeg.dev/dashboard">Open dashboard</a>
+
+  <div class="links">
+    <a href="https://brewkeg.dev/dashboard/requests">Requests<small>Per-request usage</small></a>
+    <a href="https://brewkeg.dev/dashboard/keys">API keys</a>
+    <a href="https://brewkeg.dev/pricing">Pricing and plans</a>
+    <a href="https://brewkeg.dev/models">Models</a>
+    <a href="https://brewkeg.dev/coding/claude-code">Claude Code guide</a>
+    <a href="https://brewkeg.dev/docs">Docs</a>
+    <a href="https://brewkeg.dev/status">Service status</a>
+    <a href="https://brewkeg.dev/support">Support</a>
+  </div>
+
+  <h3 class="sec">Commands for your Codespace</h3>
+  <p class="hint">These come from brewkeg's own site. Run them in the terminal where Claude Code runs.</p>
+  <pre class="code">brewkeg status      # shows what is connected
+brewkeg restore     # undo the most recent change
+brewkeg reset       # disconnect everything</pre>
+
+  <h3 class="sec">Live balance and usage</h3>
+  <p class="hint">Not connected yet. Brewkeg doesn't publish a usage API, so for now open the Requests page above. For token totals per Claude Code session, use the Sessions tab.</p>
+</main>
+<script src="nav.js"></script></body></html>

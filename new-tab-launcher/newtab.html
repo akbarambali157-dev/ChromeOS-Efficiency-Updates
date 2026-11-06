@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New Tab</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<link rel="stylesheet" href="files.css">
+<script src="theme.js"></script>
+</head>
+<body data-app="home">
+<main class="wrap">
+  <nav class="nav"></nav>
+  <div id="homeView">
+  <header class="top">
+    <div id="time" class="time">00:00</div>
+    <div id="date" class="date"></div>
+    <div id="greeting" class="greeting"></div>
+    <div id="weather" class="weather"></div>
+    <div id="clock2" class="date" hidden></div>
+  </header>
+
+  <form id="searchForm" class="search" autocomplete="off">
+    <input id="q" type="text" placeholder="Search, or try &quot;gh prs&quot; or &quot;drive new sheet&quot;" autofocus>
+    <ul id="sugg" class="sugg" hidden></ul>
+  </form>
+
+  <section>
+    <div id="grid" class="grid"></div>
+    <div class="railbtns">
+      <button type="button" id="addBtn" class="railbtn">+ Add shortcut</button>
+      <button type="button" id="railBtn" class="railbtn" hidden>All shortcuts</button>
+    </div>
+    <div id="railPanel" class="railpanel" hidden></div>
+  </section>
+
+  <section>
+    <h3 class="sec">Tools</h3>
+    <div class="links">
+      <button type="button" class="tool" id="tDupes">Close duplicate tabs<small>Alt+Shift+X</small></button>
+      <button type="button" class="tool" id="tMem">Free up memory<small>Alt+Shift+F</small></button>
+    </div>
+    <p class="hint tip">Dark mode for any site: press Alt+Shift+D on it. Press again to turn it off.</p>
+    <div id="toast" class="status"></div>
+  </section>
+
+  <section>
+    <h3 class="sec">Sessions</h3>
+    <div class="links">
+      <button type="button" class="tool" id="sSave">Save open tabs<small>Keep them open and name the session</small></button>
+      <button type="button" class="tool" id="sSaveClose">Save and close tabs<small>Frees memory, restore any time</small></button>
+    </div>
+    <div id="sessList" class="cs-list sess"></div>
+    <div id="sStatus" class="status"></div>
+  </section>
+
+  <section id="closedWrap" hidden>
+    <h3 class="sec">Recently closed</h3>
+    <div id="closed" class="links"></div>
+  </section>
+
+  <section class="notes">
+    <label for="note">Quick note</label>
+    <textarea id="note" rows="4" placeholder="Jot something down. It saves automatically."></textarea>
+  </section>
+  <section>
+    <h3 class="sec">Settings</h3>
+
+    <h4 class="sub">Look</h4>
+    <div id="swatches" class="swatches"></div>
+    <label class="setrow" style="margin-top:10px">Theme timing
+      <select id="themeModeSel"><option value="fixed">Fixed</option><option value="auto">Day / night</option></select>
+    </label>
+    <div id="wallModes" class="btnrow" style="margin-top:14px">
+      <label class="filebtn">Your photo<input id="wallPick" type="file" accept="image/*"></label>
+    </div>
+    <label class="setrow" style="margin-top:4px">Animations
+      <select id="motionSel"><option value="on">Lively</option><option value="off">Off (lighter)</option></select>
+    </label>
+    <div id="lookStatus" class="status"></div>
+
+    <h4 class="sub">Dark mode for websites</h4>
+    <label class="sw-row"><span>Dark mode on all sites</span><span class="switch"><input type="checkbox" id="dmOn"><span></span></span></label>
+    <p class="hint tip">Sites that are already dark are left alone. If a site looks wrong, add it below to skip it. You can also use the launcher button in the toolbar.</p>
+    <div class="setrow" style="margin-top:10px">
+      <input id="dmHost" type="text" placeholder="example.com" maxlength="80">
+      <button type="button" class="filebtn" id="dmAdd">Skip this site</button>
+    </div>
+    <div id="dmChips" class="chips"></div>
+    <div id="dmStatus" class="status"></div>
+
+    <h4 class="sub">Weather and clocks</h4>
+    <div class="setrow">
+      <input id="wCity" type="text" placeholder="Your city" maxlength="60">
+      <button type="button" class="filebtn" id="wSet">Set city</button>
+      <select id="wUnit"><option value="c">°C</option><option value="f">°F</option></select>
+    </div>
+    <div id="wStatus" class="status"></div>
+    <div class="setrow" style="margin-top:12px">
+      <input id="c2City" type="text" placeholder="Second clock city" maxlength="60">
+      <button type="button" class="filebtn" id="c2Set">Set clock</button>
+      <button type="button" class="linkbtn" id="c2Clear">Clear</button>
+    </div>
+    <div id="c2Status" class="status"></div>
+
+    <h4 class="sub">Memory and tabs</h4>
+    <div id="memGauge"></div>
+    <div id="memSub" class="memsum"></div>
+    <p class="memsum"><a href="memory.html" style="color:var(--accent)">See which sites are using memory →</a></p>
+    <label class="setrow" style="margin-top:6px"><input type="checkbox" id="asOn"> Suspend tabs I haven't used for
+      <select id="asMin">
+        <option value="10">10 minutes</option>
+        <option value="20">20 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="60">1 hour</option>
+      </select>
+    </label>
+    <p class="hint tip">Suspended tabs reload when you click them, so unsaved typing in them can be lost. Pinned tabs, tabs playing audio and GitHub Codespaces tabs are never suspended.</p>
+
+    <h4 class="sub">Backup</h4>
+    <div class="links">
+      <button type="button" class="tool" id="bkExport">Export backup<small>Shortcuts, notes, sessions, settings. No GitHub token.</small></button>
+      <label class="tool">Import backup<small>Replaces your current data</small><input id="bkImport" type="file" accept=".json,application/json" hidden></label>
+    </div>
+    <div id="bkStatus" class="status"></div>
+  </section>
+  </div>
+</main>
+
+<button type="button" class="orb-fab" id="orbFab" title="Talk to your assistant" aria-label="Assistant" aria-expanded="false">
+  <svg viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="6" fill="var(--accent)" opacity=".85"/>
+    <g class="rr"><circle cx="20" cy="20" r="14" fill="none" stroke="var(--accent2)" stroke-width="2.5" stroke-dasharray="30 58" stroke-linecap="round"/></g>
+  </svg>
+</button>
+
+<section class="orb-panel" id="orbPanel" hidden aria-label="Assistant">
+  <div class="orb-head">
+    <span class="orb-name" id="orbName">NOVA</span>
+    <span class="orb-state" id="orbState">Ready</span>
+    <button type="button" class="orb-x" id="orbClose" aria-label="Close">×</button>
+  </div>
+  <div class="orb-log" id="orbLog"></div>
+  <form class="orb-ask" id="orbForm" autocomplete="off">
+    <input id="orbIn" type="text" placeholder="Ask or give a command" maxlength="400">
+    <button type="submit" class="primary">Send</button>
+  </form>
+</section>
+<dialog id="dlg">
+  <form id="dlgForm" method="dialog">
+    <h2 id="dlgTitle">Add shortcut</h2>
+    <label>Name <input id="fName" type="text" required maxlength="24"></label>
+    <label>Address <input id="fUrl" type="text" required placeholder="example.com"></label>
+    <div class="row">
+      <button type="button" id="cancel" class="ghost">Cancel</button>
+      <button type="submit" class="primary">Save shortcut</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="dlgS">
+  <form id="dlgSForm" method="dialog">
+    <h2>Save session</h2>
+    <label>Name <input id="sName" type="text" required maxlength="40" placeholder="e.g. School project"></label>
+    <div class="row">
+      <button type="button" id="sCancel" class="ghost">Cancel</button>
+      <button type="submit" class="primary">Save session</button>
+    </div>
+  </form>
+</dialog>
+<script src="nav.js"></script>
+<script src="store.js"></script>
+<script src="tools.js"></script>
+<script src="newtab.js"></script>
+<script src="home-tools.js"></script>
+<script src="sessions.js"></script>
+<script src="gauge.js"></script>
+<script src="home-settings.js"></script>
+<script src="home-dark.js"></script>
+<script src="home-look.js"></script>
+<script src="assistant-intents.js"></script>
+<script src="assistant-core.js"></script>
+<script src="orb.js"></script>
+<script src="defer.js"></script>
+</body>
+</html>
