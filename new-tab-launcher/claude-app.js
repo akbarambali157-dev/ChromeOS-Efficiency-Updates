@@ -13,8 +13,17 @@
   var MAX_FILES = 40;
 
   var files = [], logs = [], activeFile = null, activeLog = null;
-  var ccKey = '', model = 'claude-sonnet-5-5', ghToken = '';
+  var ccKey = '', model = 'claude-sonnet-5-5', ghToken = '', pcKey = '';
+  var webOn = false, chatH = 250;
   var dirty = false, saveTimer = null, busy = false;
+
+  /* Context limits. The chat used to send only the open file, trimmed to 6000
+     characters, and ten messages of history. That is why long answers looked
+     cut off: the tail of the conversation fell out of the request. */
+  var MAX_TOKENS = 4096;
+  var FILE_BUDGET = 24000;   /* characters of file text across all open files */
+  var HISTORY = 24;          /* messages of conversation sent back */
+  var HISTORY_CHARS = 12000; /* per-message cap when replaying history */
 
   /* ---------- small helpers ---------- */
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -52,6 +61,19 @@
     }
     files.forEach(function (f) {
       var row = el('div', 'filerow' + (activeFile && f.id === activeFile.id ? ' on' : ''));
+      /* attach toggle: a file that is not attached stays private to the app and
+         never travels with a message */
+      var att = el('button', 'fatt' + (f.attached !== false ? ' on' : ''), f.attached !== false ? '◉' : '○');
+      att.type = 'button';
+      att.title = (f.attached !== false ? 'Included in chat — click to detach' : 'Not sent to the model — click to include');
+      att.setAttribute('aria-pressed', f.attached !== false ? 'true' : 'false');
+      att.addEventListener('click', function (e) {
+        e.stopPropagation();
+        f.attached = f.attached === false;
+        persistFiles();
+        renderFiles();
+      });
+      row.appendChild(att);
       row.appendChild(el('span', 'fname', f.name));
       var del = el('button', 'fdel', '×');
       del.type = 'button';
@@ -87,7 +109,7 @@
 
   function persistFiles() {
     var out = files.slice(0, MAX_FILES).map(function (f) {
-      return { id: f.id, name: f.name, content: f.content };
+      return { id: f.id, name: f.name, content: f.content, attached: f.attached !== false };
     });
     chrome.storage.local.set({ ccFiles: out });
   }
@@ -183,6 +205,77 @@
     });
   }
 
+  /* ---------- Parallel web search ---------- */
+  function cstat(msg, err) {
+    var s = $('chatStatus');
+    if (!s) return;
+    s.textContent = msg || '';
+    s.className = 'chatstatus' + (err ? ' err' : '');
+  }
+
+  var STOP = {
+    the: 1, and: 1, for: 1, with: 1, that: 1, this: 1, what: 1, when: 1, why: 1,
+    how: 1, does: 1, can: 1, could: 1, you: 1, your: 1, are: 1, was: 1, were: 1,
+    have: 1, has: 1, from: 1, into: 1, about: 1, tell: 1, want: 1, need: 1,
+    please: 1, make: 1, give: 1, show: 1, some: 1, there: 1, then: 1, than: 1,
+    is: 1, it: 1, my: 1, me: 1, we: 1, to: 1, of: 1, in: 1, on: 1, at: 1,
+    a: 1, an: 1, i: 1, do: 1, not: 1, but: 1, or: 1, if: 1, so: 1
+  };
+  /* Two or three short keyword probes, which is what the search backend wants —
+     not the whole conversational prompt. */
+  function queriesFor(q) {
+    var words = String(q).toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g, ' ').split(/\s+/)
+      .filter(function (w) { return w.length > 2 && !STOP[w]; });
+    var out = [];
+    var head = words.slice(0, 6).join(' ');
+    if (head) out.push(head.slice(0, 200));
+    if (words.length > 6) out.push((words.slice(0, 3).join(' ') + ' ' + words[words.length - 1]).slice(0, 200));
+    if (!out.length) out.push(String(q).slice(0, 200));
+    return out.slice(0, 3);
+  }
+
+  function parallelSearch(q) {
+    return new Promise(function (resolve, reject) {
+      try {
+        chrome.runtime.sendMessage({
+          type: 'search', key: pcKey, body: {
+            objective: String(q).slice(0, 1500),
+            search_queries: queriesFor(q),
+            mode: 'basic',
+            max_chars_total: 6000,
+            advanced_settings: { max_results: 6 }
+          }
+        }, function (res) {
+          if (chrome.runtime.lastError || !res) {
+            reject(new Error('net:' + ((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no response')));
+            return;
+          }
+          if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
+          if (res.status === 401 || res.status === 403) { reject(new Error('Parallel rejected that key.')); return; }
+          if (res.status >= 300) { reject(new Error('Parallel returned ' + res.status + '.')); return; }
+          try { resolve(JSON.parse(res.text) || {}); } catch (e) { reject(new Error('Parallel sent something unreadable.')); }
+        });
+      } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
+    });
+  }
+
+  /* Turn Parallel's results into a compact system block. Excerpts come back as
+     plain strings (with objects tolerated in case the shape changes). */
+  function searchContext(res) {
+    var rs = (res && res.results) || [], lines = [];
+    for (var i = 0; i < rs.length && i < 6; i++) {
+      var r = rs[i] || {};
+      var ex = Array.isArray(r.excerpts) ? r.excerpts : (typeof r.excerpts === 'string' ? [r.excerpts] : []);
+      var text = ex.map(function (e) { return typeof e === 'string' ? e : ((e && e.text) || ''); })
+        .join(' ').replace(/\s+/g, ' ').slice(0, 800);
+      lines.push((i + 1) + '. ' + (r.title || r.url || 'result') + ' — ' + (r.url || '') +
+        (r.publish_date ? ' (' + r.publish_date + ')' : '') + (text ? '\n' + text : ''));
+    }
+    if (!lines.length) return '';
+    return 'Web results fetched just now (Parallel Search). These are real pages. Cite the URL when you ' +
+      'rely on one, and say so plainly when they do not answer the question.\n\n' + lines.join('\n\n');
+  }
+
   function send(text) {
     if (busy) return;
     if (!ccKey) {
@@ -191,18 +284,68 @@
     }
     busy = true;
     $('sendBtn').disabled = true;
+    cstat('');
     pushMessage('user', text);
 
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
       'Answer with short, concrete code and plain explanation. No emoji. ' +
-      'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything.';
+      'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
+      'You can see every file the user has attached in this app; only the open one is shown in the editor.';
     var msgs = [{ role: 'system', content: sys }];
-    if (activeFile && activeFile.content) {
-      msgs.push({ role: 'system', content: 'The file open in the editor is ' + activeFile.name + ':\n\n' + activeFile.content.slice(0, 6000) });
-    }
-    activeLog.messages.slice(-10).forEach(function (m) { msgs.push({ role: m.role, content: m.content }); });
 
-    chatPost({ model: model, messages: msgs, max_tokens: 1500 }).then(function (res) {
+    /* Every attached file travels with the message, open file first, under one
+       shared character budget so a pile of files cannot blow past the request. */
+    var attached = files.filter(function (f) { return f.attached !== false && f.content; });
+    if (attached.length) {
+      var parts = [], used = 0;
+      attached.sort(function (a, b) {
+        return (activeFile && a.id === activeFile.id ? 0 : 1) - (activeFile && b.id === activeFile.id ? 0 : 1);
+      });
+      attached.forEach(function (f) {
+        var room = FILE_BUDGET - used;
+        if (room <= 0) return;
+        var body = f.content.length > room
+          ? f.content.slice(0, room) + '\n… (cut at ' + room + ' characters)'
+          : f.content;
+        used += body.length;
+        parts.push('--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (open in the editor)' : '') + ' ---\n' + body);
+      });
+      if (parts.length) {
+        msgs.push({
+          role: 'system',
+          content: 'Files in this app — ' + attached.length + ' attached, ' + used + ' characters:\n\n' + parts.join('\n\n')
+        });
+      }
+    }
+
+    activeLog.messages.slice(-HISTORY).forEach(function (m) {
+      if (m.role !== 'user' && m.role !== 'assistant') return;
+      msgs.push({ role: m.role, content: String(m.content || '').slice(0, HISTORY_CHARS) });
+    });
+
+    var pre = Promise.resolve('');
+    if (webOn) {
+      if (!pcKey) {
+        cstat('Web is on, but no Parallel key is saved — replying without search.', true);
+      } else {
+        cstat('Searching the web…');
+        pre = parallelSearch(text).then(function (r) {
+          var n = (r.results || []).length;
+          cstat(n ? 'Web: ' + n + ' result' + (n === 1 ? '' : 's') : 'Web: nothing found');
+          return searchContext(r);
+        }).catch(function (e) {
+          var m = (e && e.message) || 'Web search failed';
+          if (m.indexOf('net:') === 0) m = 'Web search could not reach api.parallel.ai';
+          cstat(m, true);
+          return '';
+        });
+      }
+    }
+
+    pre.then(function (ctx) {
+      if (ctx) msgs.splice(1, 0, { role: 'system', content: ctx });
+      return chatPost({ model: model, messages: msgs, max_tokens: MAX_TOKENS });
+    }).then(function (res) {
       if (res.status === 401 || res.status === 403) throw new Error('That key was rejected. Check it in Settings.');
       if (res.status === 402) throw new Error('That key is out of balance.');
       if (res.status === 429) throw new Error('Too many requests just now. Wait a moment and try again.');
@@ -379,17 +522,77 @@
   $('paneGit').addEventListener('click', function () { $('dlgPush').showModal(); });
   $('paneSet').addEventListener('click', function () {
     $('ccKeyIn').value = ccKey;
+    $('pcKeyIn').value = pcKey;
     $('ccModel').value = model;
     say('setStatus', '');
     $('dlgSet').showModal();
   });
 
+  /* ---------- chat size ---------- */
+  /* The chat row is whatever height the user drags it to (remembered), and ⤢
+     hands it the whole column when a reply needs room. */
+  function applyChatH() {
+    document.documentElement.style.setProperty('--chat-h', chatH + 'px');
+  }
+  var grip = $('chatGrip');
+  if (grip) {
+    var drag = null;
+    grip.addEventListener('pointerdown', function (e) {
+      if (document.body.classList.contains('chatmax')) return;
+      drag = { y: e.clientY, h: $('chatPanel').getBoundingClientRect().height };
+      try { grip.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    grip.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var max = Math.max(180, window.innerHeight - 170);
+      chatH = Math.max(120, Math.min(max, drag.h + (drag.y - e.clientY)));
+      applyChatH();
+    });
+    function endDrag() {
+      if (!drag) return;
+      drag = null;
+      chrome.storage.local.set({ ccChatH: chatH });
+    }
+    grip.addEventListener('pointerup', endDrag);
+    grip.addEventListener('pointercancel', endDrag);
+    /* keyboard: arrow keys nudge, Home/End jump */
+    grip.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        chatH = Math.max(120, chatH + (e.key === 'ArrowUp' ? 40 : -40));
+        applyChatH();
+        chrome.storage.local.set({ ccChatH: chatH });
+        e.preventDefault();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        toggleChatMax();
+        e.preventDefault();
+      }
+    });
+    grip.addEventListener('dblclick', toggleChatMax);
+  }
+  function toggleChatMax() {
+    var on = document.body.classList.toggle('chatmax');
+    var b = $('chatGrow');
+    if (b) { b.textContent = on ? '⤡' : '⤢'; b.title = on ? 'Restore the editor' : 'Expand chat'; }
+  }
+  if ($('chatGrow')) $('chatGrow').addEventListener('click', toggleChatMax);
+
+  /* ---------- web search toggle ---------- */
+  if ($('webOn')) {
+    $('webOn').addEventListener('change', function () {
+      webOn = $('webOn').checked;
+      chrome.storage.local.set({ ccWeb: webOn });
+      cstat(webOn ? (pcKey ? 'Web search on' : 'Add a Parallel key in Settings') : '');
+    });
+  }
+
   $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
+    pcKey = $('pcKeyIn').value.trim();
     model = $('ccModel').value;
-    chrome.storage.local.set({ ccKey: ccKey, ccModel: model }, function () {
+    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccModel: model }, function () {
       say('setStatus', ccKey ? 'Saved.' : 'Key cleared.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
     });
@@ -400,12 +603,18 @@
   $('pushGo').addEventListener('click', doPush);
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ghToken'], function (d) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
     files = Array.isArray(d.ccFiles) ? d.ccFiles : [];
     logs = Array.isArray(d.ccLogs) ? d.ccLogs : [];
     ccKey = d.ccKey || '';
     model = d.ccModel || 'claude-sonnet-5-5';
     ghToken = d.ghToken || '';
+    pcKey = d.pcKey || '';
+    webOn = !!d.ccWeb;
+    chatH = parseInt(d.ccChatH, 10) || 250;
+    applyChatH();
+    if ($('webOn')) $('webOn').checked = webOn;
+    if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
     activeFile = files[0] || null;
     activeLog = logs[0] || null;

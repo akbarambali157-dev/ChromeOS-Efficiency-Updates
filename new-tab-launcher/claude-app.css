@@ -7,7 +7,8 @@ body.cc{height:100vh;overflow:hidden;background:#0d1117}
 .shell{
   display:grid;
   grid-template-columns:48px 210px minmax(0,1fr);
-  grid-template-rows:minmax(0,1fr) 250px;
+  /* The chat row is user-sized: drag the grip, or expand it with ⤢. */
+  grid-template-rows:minmax(0,1fr) var(--chat-h,250px);
   height:100vh;
 }
 
@@ -78,8 +79,26 @@ body.cc{height:100vh;overflow:hidden;background:#0d1117}
 .panel{
   grid-column:3;grid-row:2;
   display:flex;flex-direction:column;min-height:0;
-  background:#0b0f14;border-top:1px solid #1c2530;
+  background:#0b0f14;border-top:0;
 }
+/* drag handle sitting on the seam between editor and chat */
+.grip{
+  height:7px;flex-shrink:0;cursor:row-resize;background:#0b0f14;
+  border-top:1px solid #1c2530;position:relative;touch-action:none;
+}
+.grip::after{
+  content:"";position:absolute;left:50%;top:2px;width:44px;height:3px;margin-left:-22px;
+  border-radius:2px;background:#243040;
+}
+.grip:hover::after,.grip:focus-visible::after{background:#7fd1b9}
+.grip:focus-visible{outline:none}
+
+/* expanded: the chat takes the whole right column and the editor steps aside */
+body.chatmax .shell{grid-template-rows:minmax(0,0fr) minmax(0,1fr)}
+body.chatmax .main{overflow:hidden}
+body.chatmax .main>*{display:none}
+body.chatmax .msg{max-width:min(94%,1100px)}
+body.chatmax .grip{cursor:default;opacity:.4}
 .panelhead{
   display:flex;align-items:center;gap:8px;padding:6px 12px;
   border-bottom:1px solid #1c2530;flex-shrink:0;
@@ -94,9 +113,28 @@ body.cc{height:100vh;overflow:hidden;background:#0d1117}
   display:flex;flex-direction:column;gap:8px;
 }
 .msg{
-  max-width:80%;padding:8px 11px;border-radius:10px;
-  font-size:13px;line-height:1.5;white-space:pre-wrap;word-break:break-word;
+  /* long answers get the full width of the pane instead of a narrow column */
+  max-width:min(92%,900px);padding:9px 12px;border-radius:10px;
+  font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;
 }
+.chatstatus{
+  flex:1 1 auto;min-width:0;font-size:11px;color:#6b7c90;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.chatstatus.err{color:#f08a7e}
+.webchk{
+  display:flex;align-items:center;gap:4px;font-size:11px;color:#8b9bb0;
+  letter-spacing:.04em;text-transform:uppercase;cursor:pointer;user-select:none;
+}
+.webchk input{accent-color:#7fd1b9;margin:0}
+.webchk:hover{color:#c6d2e0}
+/* per-file "include in chat" toggle in the file list */
+.filerow .fatt{
+  border:0;background:transparent;color:#6b7c90;font-size:12px;line-height:1;
+  cursor:pointer;padding:0 2px;border-radius:4px;
+}
+.filerow .fatt.on{color:#7fd1b9}
+.filerow .fatt:hover{background:#1b2430}
 .msg.me{align-self:flex-end;background:#1b2430;color:#e6edf5}
 .msg.ai{align-self:flex-start;background:#121a23;color:#c6d2e0;border:1px solid #1c2530}
 .msg.sys{align-self:center;color:#8b9bb0;font-size:12px;background:transparent;text-align:center}

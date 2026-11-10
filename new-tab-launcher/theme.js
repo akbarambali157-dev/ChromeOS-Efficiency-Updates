@@ -1,7 +1,15 @@
 (function () {
   'use strict';
   var de = document.documentElement;
-  var MODES = ['none', 'aurora', 'mountains', 'stars', 'ridges', 'dunes', 'waves', 'grid', 'canopy', 'bloom', 'embers', 'void', 'custom'];
+  var MODES = [
+    'none', 'aurora', 'mountains', 'stars', 'ridges', 'dunes', 'waves', 'grid',
+    'canopy', 'bloom', 'embers', 'void',
+    /* texture wallpapers — all drawn from CSS gradients, one SVG or one small
+       canvas, so the extension still ships no image assets */
+    'felt', 'fluted', 'thermal', 'ripple', 'speckle', 'monohue', 'blueprint',
+    'halftone', 'grass', 'dither', 'paper', 'contour', 'clouds',
+    'custom'
+  ];
   /* Each theme owns a wallpaper. Picking a theme picks its wallpaper; the user
      can still override it afterwards. */
   var THEME_WALL = {
@@ -115,6 +123,110 @@
     '<path class="c3" fill="url(#cp3)" d="M-60 800 L-60 720 L100 660 L260 740 L420 660 L580 750 L740 670 L900 760 L1060 680 L1220 760 L1380 690 L1500 740 L1500 800Z"/>'
   );
 
+  /* Monohue — a whole landscape in one hue. Every layer is the same accent
+     colour at a different opacity over the theme's sky, so it reads as depth
+     without ever introducing a second colour. */
+  function monoLayer(d, op) {
+    return '<path style="fill:var(--accent);fill-opacity:' + op + '" d="' + d + '"/>';
+  }
+  var MONOHUE = '<svg viewBox="0 0 1440 800" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">' +
+    '<rect width="1440" height="800" style="fill:var(--w-sky)"/>' +
+    '<circle class="sun" cx="1030" cy="270" r="132" style="fill:var(--accent);fill-opacity:.45"/>' +
+    monoLayer('M-60 800 C200 500 420 690 700 560 C980 430 1180 690 1500 520 L1500 800Z', '.10') +
+    monoLayer('M-60 800 C240 620 470 750 760 640 C1050 530 1240 720 1500 610 L1500 800Z', '.18') +
+    monoLayer('M-60 800 C280 710 540 790 830 720 C1120 650 1320 770 1500 710 L1500 800Z', '.32') +
+    monoLayer('M-60 800 C120 760 300 800 520 780 C760 758 900 800 1500 772 L1500 800Z', '.50') +
+    '</svg>';
+
+  /* Ordered dithering needs per-pixel maths, so this one is a small canvas
+     painted at 240×150 and scaled up with image-rendering:pixelated. That keeps
+     the chunky look and costs one paint instead of a filter on every frame. */
+  function rgbOf(v) {
+    var m = /(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/.exec(String(v || ''));
+    if (m) return [+m[1], +m[2], +m[3]];
+    var h = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(v || '').trim());
+    if (!h) return null;
+    var s = h[1];
+    if (s.length === 3) s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+    return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+  }
+  function mix(a, b, t) {
+    return [
+      Math.round(a[0] + (b[0] - a[0]) * t),
+      Math.round(a[1] + (b[1] - a[1]) * t),
+      Math.round(a[2] + (b[2] - a[2]) * t)
+    ];
+  }
+  var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  function buildDither(w) {
+    var cv = document.createElement('canvas');
+    var W = 240, H = 150, levels = 5;
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+    if (!ctx) return;
+    var cs = getComputedStyle(de);
+    var A = rgbOf(cs.getPropertyValue('--accent-rgb')) || [127, 209, 185];
+    var B = rgbOf(cs.getPropertyValue('--accent2-rgb')) || [90, 169, 255];
+    var BASE = rgbOf(cs.getPropertyValue('--w-sky')) || [11, 22, 32];
+    var img = ctx.createImageData(W, H);
+    var p = img.data, i = 0;
+    for (var y = 0; y < H; y++) {
+      for (var x = 0; x < W; x++) {
+        /* off-centre radial falloff so the dither reads as an image, not a
+           flat wash: bright core, dark corners */
+        var dx = x / W - 0.42, dy = y / H - 0.55;
+        var v = 1 - Math.sqrt(dx * dx * 1.05 + dy * dy * 1.55);
+        v = v * 1.45 + 0.06;
+        if (v < 0) v = 0; if (v > 1) v = 1;
+        var q = v * (levels - 1) + (BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.47);
+        var qi = Math.round(q);
+        if (qi < 0) qi = 0; if (qi > levels - 1) qi = levels - 1;
+        var t = qi / (levels - 1);
+        var c = t <= 0.5 ? mix(BASE, A, t * 2) : mix(A, B, (t - 0.5) * 2);
+        p[i++] = c[0]; p[i++] = c[1]; p[i++] = c[2]; p[i++] = 255;
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+    try {
+      w.style.backgroundImage = 'url("' + cv.toDataURL('image/png') + '")';
+      w.style.backgroundSize = 'cover';
+      w.style.backgroundPosition = 'center';
+      w.style.imageRendering = 'pixelated';
+    } catch (e) {}
+  }
+
+  /* Cloud sky — soft puffs painted as a mask over a solid light layer. The
+     palette slot for "light" is a solid colour with no alpha, so masking is how
+     it gets softness. Each mask is generated twice across a 200%-wide element,
+     so translating by -50% loops seamlessly. */
+  function cloudMask() {
+    var out = [], stops = ',#000 0,#000 40%,rgba(0,0,0,.55) 62%,transparent 78%';
+    for (var i = 0; i < 14; i++) {
+      var x = +(Math.random() * 50).toFixed(1);
+      var y = +(12 + Math.random() * 56).toFixed(1);
+      var rx = +(9 + Math.random() * 11).toFixed(1);
+      var ry = +(3 + Math.random() * 4.5).toFixed(1);
+      out.push('radial-gradient(ellipse ' + rx + 'vmax ' + ry + 'vmax at ' + x + '% ' + y + '%' + stops + ')');
+      out.push('radial-gradient(ellipse ' + rx + 'vmax ' + ry + 'vmax at ' + (x + 50) + '% ' + y + '%' + stops + ')');
+    }
+    return out.join(',');
+  }
+  function buildClouds(w) {
+    var opac = ['.10', '.15', '.21'], speed = [280, 190, 130], delay = [40, 110, 10];
+    for (var i = 0; i < 3; i++) {
+      var layer = document.createElement('i');
+      var mask = cloudMask();
+      layer.style.cssText = 'position:absolute;left:0;top:0;width:200%;height:100%;' +
+        'background:var(--w-light);opacity:' + opac[i] + ';' +
+        '-webkit-mask-image:' + mask + ';mask-image:' + mask + ';' +
+        '-webkit-mask-size:100% 100%;mask-size:100% 100%;' +
+        '-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;' +
+        'animation:cloudDrift ' + speed[i] + 's linear infinite;' +
+        'animation-delay:-' + delay[i] + 's;';
+      w.appendChild(layer);
+    }
+  }
+
   function setWall(mode) {
     var body = document.body;
     if (!body || body.hasAttribute('data-nowall')) return;
@@ -186,9 +298,19 @@
           'px;animation-delay:-' + (Math.random() * 9).toFixed(1) + 's;animation-duration:' + (7 + Math.random() * 6).toFixed(1) + 's';
         w.appendChild(e);
       }
+    } else if (mode === 'monohue') {
+      w.innerHTML = MONOHUE;
+    } else if (mode === 'ripple') {
+      w.innerHTML = '<i></i><i></i><i></i>';
+    } else if (mode === 'clouds') {
+      buildClouds(w);
+    } else if (mode === 'dither') {
+      buildDither(w);
     } else if (mode === 'custom') {
       w.style.backgroundImage = 'linear-gradient(rgba(10,16,22,.5),rgba(10,16,22,.5)),url("' + custom + '")';
     }
+    /* felt, fluted, thermal, speckle, blueprint, halftone, grass, paper and
+       contour are pure CSS: the class name is all they need. */
   }
   window.setWall = setWall;
   window.setCustomWall = function (url) { custom = url || ''; };

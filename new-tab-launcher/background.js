@@ -106,6 +106,22 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     });
     return true;
   }
+  /* Parallel web search relay. Same reason as the chat relay: the request is
+     made from the worker so the page never has to satisfy CORS. The key comes
+     from extension storage, is passed through and is never logged. */
+  if (msg.type === 'search') {
+    if (!msg.key) { sendResponse({ status: 401, text: 'No Parallel API key saved.' }); return; }
+    fetch('https://api.parallel.ai/v1/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key },
+      body: JSON.stringify(msg.body || {})
+    }).then(function (r) {
+      return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
+    }).catch(function (e) {
+      sendResponse({ status: 0, text: String((e && e.message) || e) });
+    });
+    return true;
+  }
 });
 
 /* ---------- Shortcuts ---------- */

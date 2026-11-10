@@ -1,6 +1,15 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
+  /* Every wallpaper the engine can draw. Kept in sync with theme.js MODES; a
+     backup that carries an unknown mode falls back rather than restoring a
+     blank wall. */
+  var WALL_IDS = [
+    'none', 'aurora', 'mountains', 'stars', 'ridges', 'dunes', 'waves', 'grid',
+    'canopy', 'bloom', 'embers', 'void', 'felt', 'fluted', 'thermal', 'ripple',
+    'speckle', 'monohue', 'blueprint', 'halftone', 'grass', 'dither', 'paper',
+    'contour', 'clouds'
+  ];
 
   /* ---------- Memory gauge ---------- */
   var gauge = makeGauge($('memGauge'));
@@ -46,7 +55,12 @@
 
   /* ---------- Backup ---------- */
   var KEYS = ['shortcuts', 'note', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
-  var THEMES = ['slate', 'aurora', 'sunset', 'ocean', 'neon', 'midnight', 'forest', 'plum', 'ember'];
+  /* All fourteen themes, day pair included: a backup used to silently drop a
+     day theme because only the nine night ones were listed here. */
+  var THEMES = [
+    'slate', 'aurora', 'sunset', 'ocean', 'neon', 'midnight', 'forest', 'plum', 'ember',
+    'void', 'dayblue', 'daygold', 'dayamber', 'dayviolet'
+  ];
   function say(msg, err) { var s = $('bkStatus'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
   function isWeb(u) { return typeof u === 'string' && /^https?:\/\//i.test(u); }
 
@@ -102,7 +116,7 @@
     if (Array.isArray(d.darkSkip)) {
       out.darkSkip = d.darkSkip.filter(function (h) { return typeof h === 'string' && /^[a-z0-9.-]+$/i.test(h); });
     }
-    if (['none', 'aurora', 'mountains', 'stars'].indexOf(d.wallMode) >= 0) out.wallMode = d.wallMode;
+    if (WALL_IDS.indexOf(d.wallMode) >= 0) out.wallMode = d.wallMode;
     else if (d.wallMode === 'custom') out.wallMode = 'aurora';
     if (d.motion === 'on' || d.motion === 'off') out.motion = d.motion;
     if (d.assistant && typeof d.assistant === 'object') {

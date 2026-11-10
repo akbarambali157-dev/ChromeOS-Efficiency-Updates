@@ -32,12 +32,19 @@
     <textarea id="editor" class="editor" spellcheck="false" placeholder="Start typing, or pick a file on the left."></textarea>
   </section>
 
-  <section class="panel">
+  <section class="panel" id="chatPanel">
+    <div class="grip" id="chatGrip" role="separator" aria-orientation="horizontal"
+         tabindex="0" title="Drag to resize the chat, double-click to expand"></div>
     <div class="panelhead">
       <span class="ptitle">Chat</span>
+      <span id="chatStatus" class="chatstatus"></span>
       <select id="logSel" class="logsel" title="Conversations"></select>
+      <label class="webchk" title="Search the web with Parallel before each reply">
+        <input type="checkbox" id="webOn"> Web
+      </label>
       <button type="button" class="mini" id="newLog">New</button>
       <button type="button" class="mini" id="delLog">Delete</button>
+      <button type="button" class="mini" id="chatGrow" title="Expand chat" aria-label="Expand chat">⤢</button>
     </div>
     <div id="chatLog" class="chatlog"></div>
     <form id="chatForm" class="chatrow" autocomplete="off">
@@ -53,6 +60,9 @@
     <h2>Claude Code settings</h2>
     <p class="hintline">This key is separate from the assistant's key and is never included in a backup export.</p>
     <label>brewkeg key <input id="ccKeyIn" type="password" placeholder="paste your key" autocomplete="off"></label>
+    <label>Parallel API key <input id="pcKeyIn" type="password" placeholder="only needed for web search" autocomplete="off"></label>
+    <p class="hintline">The Parallel key powers the <b>Web</b> toggle in the chat: each message is searched on
+      api.parallel.ai before the reply is written. It is stored locally and never exported.</p>
     <label>Model
       <select id="ccModel">
         <option value="claude-sonnet-5-5">claude-sonnet-5-5</option>

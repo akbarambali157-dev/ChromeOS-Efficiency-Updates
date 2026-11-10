@@ -27,6 +27,15 @@ Themes
   pair at 07:00 and 19:00.
   Animations can be turned off entirely for a lighter page.
 
+Wallpapers
+  Scenes: Aurora, Ridges, Dunes, Waves, Grid, Stars, Canopy, Bloom, Embers,
+  Mountains, Void.
+  Textures, all drawn from gradients rather than image files, so they cost nothing
+  to ship: Felt, Fluted Glass, Thermal, Ripples, Speckle, Single Hue, Blueprint,
+  Halftone, Grass, Dither, Paper, Contour and Cloud Sky.
+  Only Ripples and Cloud Sky move, and both animate on the compositor, so a
+  wallpaper stays cheap even with several new tabs open.
+
 Dark mode for websites
   On for all websites by default. Sites that are already dark are left alone.
   If a site looks wrong, add it to the skip list in Settings, or use the toolbar
@@ -42,6 +51,14 @@ Claude Code
   A separate tab with a VS Code style shell: file list, editor, chat and a GitHub
   push button. It uses its own brewkeg key, kept apart from the assistant's key and
   never included in a backup export. Default model is claude-sonnet-5-5.
+  The chat sees the files in the app: every file marked ◉ travels with each
+  message (the open file first), up to a shared budget, and ○ keeps one private.
+  Drag the bar above the chat to resize it, double-click it or press the arrow
+  button to give the chat the whole column, so long answers are readable.
+  Web search: paste a Parallel API key in Settings and switch on "Web". Each
+  message is searched on api.parallel.ai before the reply is written, and the
+  model is told to cite the URLs it used. The search runs from the background
+  worker, so it is not blocked by CORS.
   Push writes the file in the editor to a repo you name, after showing you the
   change. It needs the GitHub token from the GitHub tab.
   Honest limits: VS Code extensions and Claude Code plugins cannot be installed

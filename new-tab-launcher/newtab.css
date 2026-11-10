@@ -388,6 +388,159 @@ h3.sec::before{content:"";width:4px;height:16px;border-radius:2px;background:lin
 
 #wall.custom{background-size:cover;background-position:center;background-repeat:no-repeat}
 
+/* ===== texture wallpapers =====
+   Every texture here is painted with gradients on the one fixed layer: a single
+   paint, no filters, no per-element animation. Only ripple and clouds move, and
+   both do it with transform so the compositor handles them. That matters on a
+   2GB Chromebook where several new tabs may be open at once. */
+
+/* felt — fine diagonal weave over soft mottling */
+#wall.felt{
+  background-color:var(--w-sky);
+  background-image:
+    radial-gradient(ellipse 62% 46% at 22% 18%,rgba(var(--accent-rgb),.11),transparent 70%),
+    radial-gradient(ellipse 54% 42% at 82% 76%,rgba(var(--accent2-rgb),.09),transparent 70%),
+    repeating-linear-gradient(52deg,rgba(255,255,255,.032) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(-38deg,rgba(0,0,0,.06) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(52deg,rgba(255,255,255,.022) 0 2px,transparent 2px 7px);
+}
+
+/* fluted — vertical glass ridges catching a light from the upper left */
+#wall.fluted{
+  background-color:var(--w-sky);
+  background-image:
+    linear-gradient(104deg,rgba(255,255,255,.07),transparent 32%,rgba(0,0,0,.12) 82%,transparent),
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,.06) 0 2px,
+      rgba(var(--accent-rgb),.05) 2px 7px,
+      rgba(0,0,0,.11) 7px 9px,
+      rgba(var(--accent2-rgb),.04) 9px 21px,
+      transparent 21px 34px);
+}
+
+/* thermal — heat-camera blobs with faint scanlines */
+#wall.thermal{
+  background-color:#05060f;
+  background-image:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 2px),
+    radial-gradient(ellipse 46% 42% at 74% 24%,rgba(255,86,180,.44),transparent 68%),
+    radial-gradient(ellipse 54% 48% at 26% 66%,rgba(255,138,42,.46),transparent 66%),
+    radial-gradient(ellipse 42% 36% at 52% 94%,rgba(58,226,255,.34),transparent 70%),
+    radial-gradient(ellipse 36% 32% at 12% 12%,rgba(96,112,255,.36),transparent 70%),
+    linear-gradient(160deg,#0a0a22,#1a0b2e 45%,#2b0a1c);
+}
+
+/* ripple — concentric rings spreading out from below the fold */
+#wall.ripple{
+  background:
+    radial-gradient(ellipse at 50% 118%,rgba(var(--accent-rgb),.16),transparent 62%),
+    var(--w-sky);
+}
+#wall.ripple i{
+  position:absolute;left:50%;bottom:-24vmax;width:120vmax;height:120vmax;margin-left:-60vmax;
+  border-radius:50%;will-change:transform;
+  background:repeating-radial-gradient(circle at 50% 50%,
+    transparent 0 16px,
+    rgba(var(--accent-rgb),.17) 16px 18px,
+    transparent 18px 34px,
+    rgba(var(--accent2-rgb),.11) 34px 35px,
+    transparent 35px 52px);
+  transform:scale(.55);
+  animation:rippleSpread 26s ease-out infinite;
+}
+#wall.ripple i:nth-child(2){animation-duration:19s;animation-delay:-7s;opacity:.75}
+#wall.ripple i:nth-child(3){animation-duration:33s;animation-delay:-16s;opacity:.55}
+@keyframes rippleSpread{
+  0%{transform:scale(.55);opacity:0}
+  16%{opacity:.9}
+  100%{transform:scale(1.4);opacity:0}
+}
+
+/* speckle — a field of dots in four tiled scales, offset so it never reads as a grid */
+#wall.speckle{
+  background-color:var(--w-sky);
+  background-image:
+    radial-gradient(circle,rgba(var(--accent-rgb),.5) 0 1px,transparent 1.7px),
+    radial-gradient(circle,rgba(var(--accent2-rgb),.42) 0 1.3px,transparent 2px),
+    radial-gradient(circle,rgba(var(--accent-rgb),.26) 0 2px,transparent 2.9px),
+    radial-gradient(circle,rgba(255,255,255,.16) 0 1px,transparent 1.5px),
+    radial-gradient(ellipse 70% 60% at 40% 30%,rgba(var(--accent-rgb),.12),transparent 70%);
+  background-size:37px 41px,53px 59px,71px 83px,29px 31px,100% 100%;
+  background-position:0 0,17px 9px,33px 41px,7px 23px,0 0;
+  background-repeat:repeat,repeat,repeat,repeat,no-repeat;
+}
+
+/* monohue — one colour, four depths */
+#wall.monohue .sun{animation:pulse 9s ease-in-out infinite}
+
+/* blueprint — fine graph paper over a heavier 120px grid, with hatching */
+#wall.blueprint{
+  background-color:var(--w-sky);
+  background-image:
+    repeating-linear-gradient(45deg,rgba(var(--accent2-rgb),.05) 0 1px,transparent 1px 10px),
+    linear-gradient(rgba(var(--accent2-rgb),.24) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--accent2-rgb),.24) 1px,transparent 1px),
+    linear-gradient(rgba(var(--accent2-rgb),.10) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--accent2-rgb),.10) 1px,transparent 1px),
+    linear-gradient(180deg,rgba(var(--accent2-rgb),.16),transparent 55%);
+  background-size:100% 100%,120px 120px,120px 120px,24px 24px,24px 24px,100% 100%;
+}
+
+/* halftone — dot screen fading out toward the edges like a printed gradient */
+#wall.halftone{
+  background-image:
+    radial-gradient(circle,rgba(var(--accent-rgb),.8) 0 2px,transparent 2.8px),
+    radial-gradient(circle,rgba(var(--accent2-rgb),.55) 0 1.4px,transparent 2.1px);
+  background-size:10px 10px,10px 10px;
+  background-position:0 0,5px 5px;
+  -webkit-mask-image:radial-gradient(ellipse 72% 64% at 38% 34%,#000 0,#000 24%,rgba(0,0,0,.45) 58%,transparent 84%);
+  mask-image:radial-gradient(ellipse 72% 64% at 38% 34%,#000 0,#000 24%,rgba(0,0,0,.45) 58%,transparent 84%);
+  -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+  -webkit-mask-size:100% 100%;mask-size:100% 100%;
+}
+
+/* grass — crossed blade hatching, darker toward the bottom, with mown stripes */
+#wall.grass{
+  background-color:var(--w-near);
+  background-image:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.028) 0 64px,rgba(0,0,0,.05) 64px 128px),
+    linear-gradient(180deg,transparent 26%,rgba(0,0,0,.38)),
+    repeating-linear-gradient(84deg,rgba(var(--accent-rgb),.30) 0 1px,transparent 1px 6px),
+    repeating-linear-gradient(96deg,rgba(0,0,0,.30) 0 1px,transparent 1px 7px),
+    repeating-linear-gradient(79deg,rgba(var(--accent2-rgb),.18) 0 1px,transparent 1px 11px),
+    linear-gradient(180deg,var(--w-sky),var(--w-far));
+}
+
+/* dither — the canvas paints the pattern; pixelated upscaling keeps it chunky */
+#wall.dither{background-color:var(--w-sky);image-rendering:pixelated;background-position:center;background-size:cover}
+
+/* paper — fibre grain, blotches, a centre fold and a vignette */
+#wall.paper{
+  background-color:var(--w-far);
+  background-image:
+    radial-gradient(ellipse at 50% 48%,transparent 52%,rgba(0,0,0,.26)),
+    radial-gradient(circle at 24% 70%,rgba(0,0,0,.11),transparent 38%),
+    radial-gradient(circle at 78% 26%,rgba(0,0,0,.09),transparent 34%),
+    repeating-linear-gradient(46deg,rgba(255,255,255,.038) 0 1px,transparent 1px 4px),
+    repeating-linear-gradient(-44deg,rgba(0,0,0,.05) 0 1px,transparent 1px 5px),
+    linear-gradient(90deg,transparent 49.6%,rgba(0,0,0,.10) 49.8% 50.2%,transparent 50.4%),
+    linear-gradient(180deg,var(--w-sky),var(--w-far));
+}
+
+/* contour — two sets of nested rings at different centres */
+#wall.contour{
+  background-color:var(--w-sky);
+  background-image:
+    repeating-radial-gradient(ellipse 42vmax 28vmax at 30% 62%,transparent 0 21px,rgba(var(--accent-rgb),.20) 21px 22px,transparent 22px 44px),
+    repeating-radial-gradient(ellipse 38vmax 32vmax at 74% 28%,transparent 0 26px,rgba(var(--accent2-rgb),.16) 26px 27px,transparent 27px 52px),
+    radial-gradient(ellipse at 30% 62%,rgba(var(--accent-rgb),.10),transparent 62%);
+}
+
+/* clouds — three masked puff layers drifting at different speeds */
+#wall.clouds{background:linear-gradient(180deg,var(--w-sky),var(--w-far))}
+#wall.clouds i{will-change:transform}
+@keyframes cloudDrift{to{transform:translateX(-50%)}}
+
 /* ===== life: entrance and hover motion ===== */
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.94)}to{opacity:1;transform:none}}

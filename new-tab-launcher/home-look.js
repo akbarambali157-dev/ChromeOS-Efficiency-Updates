@@ -20,7 +20,13 @@
   var WALLS = [
     ['none', 'None'], ['aurora', 'Aurora'], ['ridges', 'Ridges'], ['dunes', 'Dunes'],
     ['waves', 'Waves'], ['grid', 'Grid'], ['stars', 'Stars'], ['canopy', 'Canopy'],
-    ['bloom', 'Bloom'], ['embers', 'Embers'], ['mountains', 'Mountains'], ['void', 'Void']
+    ['bloom', 'Bloom'], ['embers', 'Embers'], ['mountains', 'Mountains'], ['void', 'Void'],
+    /* texture set — procedural, so they cost nothing to ship */
+    ['felt', 'Felt'], ['fluted', 'Fluted Glass'], ['thermal', 'Thermal'],
+    ['ripple', 'Ripples'], ['speckle', 'Speckle'], ['monohue', 'Single Hue'],
+    ['blueprint', 'Blueprint'], ['halftone', 'Halftone'], ['grass', 'Grass'],
+    ['dither', 'Dither'], ['paper', 'Paper'], ['contour', 'Contour'],
+    ['clouds', 'Cloud Sky']
   ];
   function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lset(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
