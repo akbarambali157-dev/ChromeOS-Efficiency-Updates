@@ -57,7 +57,73 @@
   $('asMin').addEventListener('change', saveAS);
 
   /* ---------- Backup ---------- */
-  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'themeMode', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
+  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'themeMode', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs', 'launcherMarketplaceInstalled', 'launcherMarketplaceFavourites', 'launcherMarketplaceProfile'];
+  var MINI_APP_VERSIONS = {
+    'research-library':'1.0.0','pdf-reader':'1.0.0','citation-manager':'1.0.0',
+    'focus-timer':'1.0.0','markdown-editor':'1.0.0','json-studio':'1.0.0',
+    'quick-notes':'1.0.0','mini-kanban':'1.0.0','study-planner':'1.0.0',
+    'flashcard-studio':'1.0.0','advanced-calculator':'1.0.0','colour-studio':'1.0.0'
+  };
+  var MINI_APP_LIMITS = {
+    'research-library':262144,'pdf-reader':65536,'citation-manager':262144,
+    'focus-timer':65536,'markdown-editor':262144,'json-studio':65536,
+    'quick-notes':262144,'mini-kanban':131072,'study-planner':131072,
+    'flashcard-studio':262144,'advanced-calculator':16384,'colour-studio':16384
+  };
+  function openMiniAppDb() {
+    return new Promise(function (resolve, reject) {
+      var req = indexedDB.open('my-launcher-miniapps', 1);
+      req.onupgradeneeded = function () {
+        if (!req.result.objectStoreNames.contains('apps')) req.result.createObjectStore('apps', { keyPath: 'appId' });
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error || Error('Mini-app data database unavailable.')); };
+    });
+  }
+  function readMiniAppData() {
+    return openMiniAppDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        if (!db.objectStoreNames.contains('apps')) { db.close(); resolve([]); return; }
+        var tx = db.transaction('apps', 'readonly'), req = tx.objectStore('apps').getAll();
+        req.onsuccess = function () { db.close(); resolve(Array.isArray(req.result) ? req.result : []); };
+        req.onerror = function () { db.close(); reject(req.error || Error('Could not read mini-app data.')); };
+      });
+    }).catch(function (e) {
+      if (e && e.name === 'NotFoundError') return [];
+      throw e;
+    });
+  }
+  function cleanMiniAppData(raw) {
+    if (!Array.isArray(raw) || raw.length > 12) throw Error('Mini-app backup contains an invalid number of app records.');
+    var seen = {}, out = [], total = 0;
+    raw.forEach(function (record) {
+      if (!record || typeof record.appId !== 'string' || !Object.prototype.hasOwnProperty.call(MINI_APP_LIMITS, record.appId) ||
+          seen[record.appId] || !record.value || typeof record.value !== 'object' || Array.isArray(record.value)) {
+        throw Error('Mini-app backup contains an invalid or duplicate app record.');
+      }
+      var json;
+      try { json = JSON.stringify(record.value); } catch (e) { throw Error('Mini-app backup data is not valid JSON.'); }
+      var bytes = new Blob([json]).size;
+      if (bytes > MINI_APP_LIMITS[record.appId]) throw Error('Mini-app data for ' + record.appId + ' exceeds its size limit.');
+      total += bytes;
+      if (total > 1572864) throw Error('Mini-app backup data exceeds the 1.5 MB total limit.');
+      seen[record.appId] = true;
+      out.push({ appId: record.appId, value: record.value, updatedAt: isFinite(+record.updatedAt) ? +record.updatedAt : Date.now() });
+    });
+    return out;
+  }
+  function replaceMiniAppData(records) {
+    return openMiniAppDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction('apps', 'readwrite'), store = tx.objectStore('apps');
+        store.clear();
+        records.forEach(function (record) { store.put(record); });
+        tx.oncomplete = function () { db.close(); resolve(); };
+        tx.onerror = function () { db.close(); reject(tx.error || Error('Could not restore mini-app data.')); };
+        tx.onabort = function () { db.close(); reject(tx.error || Error('Mini-app data restore was cancelled.')); };
+      });
+    });
+  }
   function say(msg, err) { var s = $('bkStatus'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
   function isWeb(u) { return typeof u === 'string' && /^https?:\/\//i.test(u); }
   function isDateKey(v) {
@@ -68,13 +134,16 @@
 
   $('bkExport').addEventListener('click', function () {
     chrome.storage.local.get(KEYS, function (data) {
-      var blob = new Blob([JSON.stringify({ app: 'my-launcher', v: 1, data: data }, null, 2)], { type: 'application/json' });
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'launcher-backup-' + new Date().toISOString().slice(0, 10) + '.json';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
-      say('Backup downloaded. Your GitHub token and Claude Code key are not included.');
+      readMiniAppData().then(function (records) {
+        data.miniAppData = cleanMiniAppData(records);
+        var blob = new Blob([JSON.stringify({ app: 'my-launcher', v: 1, data: data }, null, 2)], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'launcher-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+        say('Backup downloaded, including installed mini-apps and their local data. Credentials are excluded.');
+      }).catch(function () { say('Could not read mini-app data, so no incomplete backup was created.', true); });
     });
   });
 
@@ -257,6 +326,26 @@
         ? { name: c2.name.slice(0, 80), tz: c2.tz.slice(0, 60) } : null;
       out.weather = ok;
     }
+    if (d.launcherMarketplaceInstalled && typeof d.launcherMarketplaceInstalled === 'object' && !Array.isArray(d.launcherMarketplaceInstalled)) {
+      var installed = {};
+      Object.keys(d.launcherMarketplaceInstalled).slice(0, 12).forEach(function (id) {
+        var r = d.launcherMarketplaceInstalled[id];
+        if (Object.prototype.hasOwnProperty.call(MINI_APP_VERSIONS, id) && r && r.version === MINI_APP_VERSIONS[id] &&
+            r.runtime === 'bundled' && isFinite(+r.installedAt)) {
+          installed[id] = { version: r.version, runtime: 'bundled', installedAt: +r.installedAt };
+        }
+      });
+      out.launcherMarketplaceInstalled = installed;
+    }
+    if (Array.isArray(d.launcherMarketplaceFavourites)) {
+      out.launcherMarketplaceFavourites = d.launcherMarketplaceFavourites.filter(function (id, i, a) {
+        return Object.prototype.hasOwnProperty.call(MINI_APP_VERSIONS, id) && a.indexOf(id) === i;
+      }).slice(0, 12);
+    }
+    if (['conservative', 'balanced', 'unrestricted'].indexOf(d.launcherMarketplaceProfile) >= 0) {
+      out.launcherMarketplaceProfile = d.launcherMarketplaceProfile;
+    }
+    if (Object.prototype.hasOwnProperty.call(d, 'miniAppData')) out.miniAppData = cleanMiniAppData(d.miniAppData);
     return out;
   }
 
@@ -274,25 +363,37 @@
           (obj.v != null && obj.v !== 1)) {
         say('That file is not a supported launcher backup.', true); return;
       }
-      if (!window.confirm('This replaces your current shortcuts, notes, sessions and settings with the backup. Continue?')) return;
-      var data = clean(obj.data);
-      /* Write validated data first. Only after that succeeds do we update the
-         local theme cache and remove omitted keys. */
+      var data;
+      try { data = clean(obj.data); } catch (err) { say('Backup validation failed: ' + err.message, true); return; }
+      var appData = Object.prototype.hasOwnProperty.call(data, 'miniAppData') ? data.miniAppData : null;
+      delete data.miniAppData;
+      if (!window.confirm('This replaces your current launcher settings and app registrations. ' +
+          (appData ? 'It also replaces local data for the bundled mini-apps. ' : '') + 'Continue?')) return;
+      /* Validate first, write extension settings, then replace IndexedDB app
+         records in one transaction. Older backups without miniAppData preserve
+         current app data rather than silently erasing it. */
       chrome.storage.local.set(data, function () {
         if (chrome.runtime.lastError) { say('Could not restore the backup: ' + chrome.runtime.lastError.message, true); return; }
-        try {
-          ['theme', 'themeMode', 'wallMode', 'motion'].forEach(function (k) {
-            if (data[k]) localStorage.setItem(k, data[k]); else localStorage.removeItem(k);
+        function finishRestore() {
+          try {
+            ['theme', 'themeMode', 'wallMode', 'motion'].forEach(function (k) {
+              if (data[k]) localStorage.setItem(k, data[k]); else localStorage.removeItem(k);
+            });
+          } catch (e) {}
+          var remove = KEYS.filter(function (k) { return !Object.prototype.hasOwnProperty.call(data, k); });
+          chrome.storage.local.remove(remove, function () {
+            if (chrome.runtime.lastError) { say('Backup data was restored, but some old settings could not be cleared.', true); return; }
+            chrome.runtime.sendMessage({ type: 'reregister' }, function () {
+              void chrome.runtime.lastError;
+              location.reload();
+            });
           });
-        } catch (e) {}
-        var remove = KEYS.filter(function (k) { return !Object.prototype.hasOwnProperty.call(data, k); });
-        chrome.storage.local.remove(remove, function () {
-          if (chrome.runtime.lastError) { say('Backup data was restored, but some old settings could not be cleared.', true); return; }
-          chrome.runtime.sendMessage({ type: 'reregister' }, function () {
-            void chrome.runtime.lastError;
-            location.reload();
+        }
+        if (appData) {
+          replaceMiniAppData(appData).then(finishRestore).catch(function (err) {
+            say('Launcher settings were restored, but mini-app data could not be restored: ' + err.message, true);
           });
-        });
+        } else finishRestore();
       });
     }).catch(function () { say('Could not read that file.', true); });
   });
