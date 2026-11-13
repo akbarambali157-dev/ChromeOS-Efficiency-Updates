@@ -68,4 +68,4 @@ Small install records and preferences remain in Chrome extension storage. App-sp
 
 ## Planned catalogue
 
-The target is 40 apps across eight categories. Only entries with a working local implementation and passing tests may be marked installable. The current local registry contains six apps; the remaining catalogue and staged additions are tracked in `MINI-APP-3.5.0-AUDIT.md` and the release roadmap.
+The target is 40 apps across eight categories. The current local registry contains twelve first-party implementations. Only entries with a working local implementation and passing tests may be marked installable; future entries remain catalogue-only until implemented. The staged 40-app target is tracked in `MINI-APP-3.5.0-AUDIT.md`.
