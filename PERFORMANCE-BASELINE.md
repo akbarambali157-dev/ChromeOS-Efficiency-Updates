@@ -62,3 +62,7 @@ For a useful comparison, take three runs and keep the median for each condition.
 | 3.0.0 | Assistant panel open | 1 | | | | | |
 | 3.0.0 | Settings / wallpaper interaction | 1 | | | | | |
 | 3.0.0 | Several launcher tabs | | | | | |
+| 3.2.0 | Idle, 60 seconds | 1 | | | | |
+| 3.2.0 | Assistant panel open | 1 | | | | |
+| 3.2.0 | Editor / GitHub review | 1 | | | | |
+| 3.2.0 | Files scan / session import | 1 | | | | |
