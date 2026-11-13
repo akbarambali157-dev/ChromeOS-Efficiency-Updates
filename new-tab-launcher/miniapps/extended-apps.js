@@ -23,7 +23,7 @@ function cleanupUrl(url){if(url)URL.revokeObjectURL(url);}
 if(id==='calendar-mini'){
 var p=card('Add an event'),title=textField(p,'Event title','',100),date=field(p,'Date');date.type='date';var time=field(p,'Time (optional)');time.type='time';var note=textField(p,'Note (optional)','',180);
 var out=card('Upcoming events');
-function draw(){out.textContent='';var arr=(d.events||[]).slice().sort(function(a,b){return(a.date+a.time).localeCompare(b.date+b.time);});list(out,arr,function(r,x,i){r.appendChild(node('span',x.date+' '+(x.time||'')+' · '+x.title));var del=node('button','Remove','secondary');del.addEventListener('click',function(){d.events.splice(i,1);save();draw();});r.appendChild(del);});}
+function draw(){out.textContent='';var arr=(d.events||[]).slice().sort(function(a,b){return(a.date+a.time).localeCompare(b.date+b.time);});list(out,arr,function(r,x,i){r.appendChild(node('span',x.date+' '+(x.time||'')+' · '+x.title));var del=node('button','Remove','secondary');del.addEventListener('click',function(){var at=d.events.indexOf(x);if(at>=0)d.events.splice(at,1);save();draw();});r.appendChild(del);});}
 action(p,'Save event',function(){var t=safeName(title.value);if(!t||!dateOk(date.value)||!date.value)return setStatus('Enter a title and valid date.',true);d.events=(d.events||[]).slice(-199).concat([{title:t,date:date.value,time:time.value,note:note.value.slice(0,180)}]);save();title.value='';note.value='';draw();setStatus('Event saved.');});action(out,'Export calendar JSON',function(){download('calendar-events.json',JSON.stringify(d.events||[],null,2),'application/json');},true);draw();return true;
 }
 if(id==='habit-tracker'){
