@@ -11,7 +11,9 @@
     return String(n);
   }
   function dur(a, b) {
-    var m = Math.round((new Date(b) - new Date(a)) / 60000);
+    var start = Date.parse(a), end = Date.parse(b);
+    if (!isFinite(start) || !isFinite(end)) return 'unknown duration';
+    var m = Math.round((end - start) / 60000);
     if (!(m > 0)) return 'under a minute';
     if (m < 60) return m + ' min';
     return Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
@@ -174,8 +176,8 @@
       }
       saved[id] = {
         id: id, project: typeof s.project === 'string' ? s.project.slice(0, 120) : '',
-        first: typeof s.first === 'string' ? s.first.slice(0, 40) : null,
-        last: typeof s.last === 'string' ? s.last.slice(0, 40) : null,
+        first: typeof s.first === 'string' && !isNaN(Date.parse(s.first)) ? s.first.slice(0, 40) : null,
+        last: typeof s.last === 'string' && !isNaN(Date.parse(s.last)) ? s.last.slice(0, 40) : null,
         input: safeCount(s.input), output: safeCount(s.output), cacheW: safeCount(s.cacheW),
         cacheR: safeCount(s.cacheR), turns: safeCount(s.turns), models: models
       };
