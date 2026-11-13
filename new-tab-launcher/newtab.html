@@ -63,6 +63,25 @@
     <label for="note">Quick note</label>
     <textarea id="note" rows="4" placeholder="Jot something down. It saves automatically."></textarea>
   </section>
+  <section class="tasks" aria-labelledby="tasksHeading">
+    <div class="task-heading">
+      <div>
+        <h3 class="sec" id="tasksHeading">Tasks</h3>
+        <p class="hint" id="taskSummary">A small list that stays saved on this device.</p>
+      </div>
+      <span class="task-count" id="taskCount" aria-live="polite">0 open</span>
+    </div>
+    <form id="taskForm" class="task-form">
+      <label class="sr-only" for="taskTitle">New task</label>
+      <input id="taskTitle" type="text" maxlength="160" placeholder="What needs doing?" required>
+      <label class="sr-only" for="taskDue">Due date (optional)</label>
+      <input id="taskDue" type="date" aria-label="Due date (optional)">
+      <button type="submit" class="primary">Add task</button>
+    </form>
+    <div id="taskList" class="task-list" aria-live="polite">
+      <p class="task-empty">Your task list is empty.</p>
+    </div>
+  </section>
   <section>
     <h3 class="sec">Settings</h3>
 
@@ -171,6 +190,7 @@
 <script src="store.js"></script>
 <script src="tools.js"></script>
 <script src="newtab.js"></script>
+<script src="tasks.js"></script>
 <script src="home-tools.js"></script>
 <script src="sessions.js"></script>
 <script src="gauge.js"></script>
