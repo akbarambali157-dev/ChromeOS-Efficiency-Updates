@@ -92,8 +92,8 @@ Architecture: see ARCHITECTURE.md in the repository root for module boundaries, 
 Performance: see PERFORMANCE-BASELINE.md for a repeatable Chrome Task Manager
 memory and CPU measurement process.
 
-Backup: Settings -> Export backup saves shortcuts, workspaces, notes, tasks, sessions, settings and
-Claude Code files and conversations. Theme timing and per-file chat attachment preferences are preserved. Your GitHub token and brewkeg keys are never
+Backup: Settings -> Export backup saves shortcuts, workspaces, notes, tasks, sessions, settings,
+mini-app install records and bounded app-specific IndexedDB data, plus Claude Code files and conversations. Theme timing and per-file chat attachment preferences are preserved. Your GitHub token and brewkeg keys are never
 included.
 
 Cloudflare verification (Turnstile / challenge pages)
