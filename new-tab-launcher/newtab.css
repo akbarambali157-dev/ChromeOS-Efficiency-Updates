@@ -737,3 +737,10 @@ dialog[open]{animation:pop .22s ease-out}
 :root[data-contrast="high"] .hint,
 :root[data-contrast="high"] .date,
 :root[data-contrast="high"] .desc{color:var(--text)}
+
+/* Wallpaper collections and lightweight startup rotation (2.5.1) */
+.wall-collections{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+.wall-collections input,.wall-collections select{flex:1;min-width:140px;padding:9px 11px;border:1px solid var(--panel-hi);border-radius:9px;background:var(--panel);color:var(--text);font:inherit}
+.wall-collections button{white-space:nowrap}
+.wall-collections button:disabled{opacity:.4;cursor:not-allowed}
+.wall-rotate{margin-top:12px}
