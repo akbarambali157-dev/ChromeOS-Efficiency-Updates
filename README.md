@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: nothing polls
 in a hidden tab, nothing animates off screen, and a new tab does only the work a
 new tab needs.
 
-**Version 2.2.0** · Manifest V3 · minimum Chrome 103
+**Version 2.3.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -25,6 +25,8 @@ new tab needs.
 **Navigation** — a left sidebar with an icon and label for every page: Home,
 GitHub, Drive, Brewkeg, Sessions, Memory, Files and Claude. It collapses to
 icons alone under 820px wide.
+
+**Workspaces** — save up to eight separate shortcut collections (for example, Study, Personal and Research) and switch between them without losing the others.
 
 **Home page** — clock, weather, a command bar, and exactly four shortcut tiles
 in a 2×2 grid. Everything else lives behind *All shortcuts*, a rail that is
