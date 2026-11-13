@@ -37,10 +37,7 @@
   });
 
   /* ---------- Shortcuts ---------- */
-  function normalizeUrl(u) {
-    u = u.trim();
-    return /^https?:\/\//i.test(u) ? u : 'https://' + u;
-  }
+  var normalizeUrl = window.LauncherUtils.normalizeUrl;
   function hostOf(u) {
     try { return new URL(u).hostname; } catch (e) { return ''; }
   }
