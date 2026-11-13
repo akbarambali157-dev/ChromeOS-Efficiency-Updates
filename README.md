@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 3.0.0** · Manifest V3 · minimum Chrome 103
+**Version 3.2.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -66,16 +66,19 @@ or credentials.
 
 **Claude Code** — a VS Code style shell with a file list, editor, chat and a
 GitHub push button. It uses its own brewkeg key, kept apart from the assistant's
-and never included in a backup export. Pushing shows you the diff before
-anything is written.
+and never included in a backup export. Pushing shows you the diff before anything is written, and the push is bound
+to the exact file contents and destination reviewed.
 
 **Mini apps** — GitHub, Drive, Brewkeg, Sessions, Memory and Files, each its own
-page so a new tab never parses markup it does not need.
+page so a new tab never parses markup it does not need. The GitHub dashboard and
+editor share one REST client. Session imports are bounded and validated before saving.
 
 **Tab tools** — close duplicate tabs, suspend background tabs to free memory,
 and a memory monitor that shows which sites are using the most.
 
-**Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions and supported settings as JSON, then import a validated backup. API credentials and GitHub tokens are excluded.
+**Files** — duplicate candidates are confirmed with a full-file SHA-256 digest for files up to 16 MB, and are not selected automatically. Moves to `_Review` use collision-safe names and verify the copied bytes before removing the original.
+
+**Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions and supported settings as JSON, then import a validated backup. Theme timing and editor attachment preferences are preserved. API credentials and GitHub tokens are excluded.
 
 ## Credential handling
 
@@ -134,7 +137,7 @@ new-tab-launcher/
   assistant-*.js       shared assistant core, intents, full page
   orb.js               floating assistant panel
   claude-app.*         Claude Code editor, chat and GitHub push
-  github/drive/brewkeg/sessions/memory/files  mini app pages
+  github-api.js         shared GitHub REST request and error handling\n  github/drive/brewkeg/sessions/memory/files  mini app pages
   popup.*              toolbar popup
 ```
 
