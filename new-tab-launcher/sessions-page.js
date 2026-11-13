@@ -155,7 +155,6 @@
   $('pickDir').addEventListener('change', function (e) { importFiles(e.target.files); e.target.value = ''; });
   $('pickFiles').addEventListener('change', function (e) { importFiles(e.target.files); e.target.value = ''; });
   $('clear').addEventListener('click', function () {
-    var previous = saved;
     chrome.storage.local.remove('ccSessions', function () {
       if (chrome.runtime.lastError) { say('Could not clear saved totals.', true); return; }
       saved = Object.create(null); say('Saved totals cleared.'); render();
