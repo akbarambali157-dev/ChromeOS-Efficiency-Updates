@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 3.4.0** · Manifest V3 · minimum Chrome 103
+**Version 3.4.1** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -69,7 +69,7 @@ GitHub push button. It uses its own brewkeg key, kept apart from the assistant's
 and never included in a backup export. Pushing shows you the diff before anything is written, and the push is bound
 to the exact file contents and destination reviewed.
 
-**Mini-app Store** — a remote catalogue backed by GitHub Pages. Install saves a small, version-specific launch record; the six hosted apps (Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor and JSON Studio) open in separate tabs, outside the extension origin. RAM/CPU figures are estimates with Conservative (20 MB), Balanced (35 MB) and Unrestricted profiles. Closed apps use no app runtime RAM. App site data is separate from extension storage. Enable GitHub Pages for this repository (main branch, root folder) to serve the hosted marketplace. Research discovery links only to legitimate open-access records.
+**Mini-app Store** — a remote catalogue whose metadata remains in GitHub and whose storefront and six versioned apps are hosted on Vercel. Install saves a small launch record; apps open in separate tabs, outside the extension origin. RAM/CPU figures are estimates with Conservative (20 MB), Balanced (35 MB) and Unrestricted profiles. Closed apps use no app runtime RAM. App site data is separate from extension storage. The Vercel project deploys the `marketplace/` directory from `main`. Data saved on the former GitHub Pages origin is not migrated automatically. Research discovery links only to legitimate open-access records.
 
 **Tab tools** — close duplicate tabs, suspend background tabs to free memory,
 and a memory monitor that shows which sites are using the most.
