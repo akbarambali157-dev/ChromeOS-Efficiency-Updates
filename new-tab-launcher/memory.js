@@ -164,6 +164,11 @@
     });
   });
   refresh();
-  setInterval(function () { if (!document.hidden) refresh(); }, 15000);
-  setInterval(sys, 4000);
+  /* One refresh already includes the system-memory reading. Avoid a second
+     4-second timer; keep the detailed tab scan to a 30-second visible-page
+     cadence and refresh promptly when the user returns to this page. */
+  setInterval(function () { if (!document.hidden) refresh(); }, 30000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) refresh();
+  });
 })();
