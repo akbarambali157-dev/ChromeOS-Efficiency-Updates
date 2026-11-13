@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 3.2.0** · Manifest V3 · minimum Chrome 103
+**Version 3.3.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -69,9 +69,7 @@ GitHub push button. It uses its own brewkeg key, kept apart from the assistant's
 and never included in a backup export. Pushing shows you the diff before anything is written, and the push is bound
 to the exact file contents and destination reviewed.
 
-**Mini apps** — GitHub, Drive, Brewkeg, Sessions, Memory and Files, each its own
-page so a new tab never parses markup it does not need. The GitHub dashboard and
-editor share one REST client. Session imports are bounded and validated before saving.
+**Mini apps** — the Mini-app Store adds an on-demand app hub with Research Library (open-access discovery via OpenAlex), a local PDF reader, APA-style citation manager, focus timer, Markdown editor and JSON Studio. GitHub, Drive, Brewkeg, Sessions, Memory and Files remain separate pages. App tools load only when opened; research results link to legitimate open-access landing pages and no pirated-copy service is provided.
 
 **Tab tools** — close duplicate tabs, suspend background tabs to free memory,
 and a memory monitor that shows which sites are using the most.
