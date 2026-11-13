@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data: blob:; connect-src https://api.openalex.org; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Mini-app</title>
+<link rel="stylesheet" href="app-frame.css">
+</head>
+<body>
+<main class="frame-app">
+  <header><div><p class="eyebrow">MY LAUNCHER · LOCAL MINI-APP</p><h1 id="appTitle">Loading…</h1><p id="appDescription" class="muted"></p></div><span id="offlineLabel" class="offline-pill">Offline ready</span></header>
+  <section id="appRoot" class="app-root" aria-live="polite"></section>
+  <p id="appStatus" class="status" role="status"></p>
+</main>
+<script src="app-frame.js"></script>
+</body>
+</html>
