@@ -8,7 +8,7 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { t.textContent = ''; }, 3500);
   }
-  function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+  var plural = window.LauncherUtils.plural;
 
   $('tDupes').addEventListener('click', function () {
     closeDupes().then(function (n) {
