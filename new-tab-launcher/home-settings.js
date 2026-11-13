@@ -54,7 +54,7 @@
   $('asMin').addEventListener('change', saveAS);
 
   /* ---------- Backup ---------- */
-  var KEYS = ['shortcuts', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
+  var KEYS = ['shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
   /* All fourteen themes, day pair included: a backup used to silently drop a
      day theme because only the nine night ones were listed here. */
   var THEMES = [
@@ -87,13 +87,38 @@
       out.shortcuts = d.shortcuts.filter(function (s) { return s && typeof s.name === 'string' && isWeb(s.url); })
         .map(function (s) { return { name: s.name.slice(0, 24), url: s.url }; });
     }
+    if (Array.isArray(d.workspaces)) {
+      var seenWorkspaceNames = {};
+      out.workspaces = d.workspaces.filter(function (w) {
+        if (!w || typeof w.name !== 'string' || !w.name.trim() || !Array.isArray(w.shortcuts)) return false;
+        var key = w.name.trim().toLowerCase();
+        if (seenWorkspaceNames[key]) return false;
+        seenWorkspaceNames[key] = true;
+        return true;
+      }).slice(0, 8).map(function (w) {
+        return {
+          name: w.name.trim().slice(0, 24),
+          shortcuts: w.shortcuts.filter(function (s) {
+            return s && typeof s.name === 'string' && s.name.trim() && isWeb(s.url);
+          }).slice(0, 80).map(function (s) { return { name: s.name.trim().slice(0, 24), url: s.url }; })
+        };
+      });
+      if (typeof d.activeWorkspace === 'string' &&
+          out.workspaces.some(function (w) { return w.name === d.activeWorkspace; })) {
+        out.activeWorkspace = d.activeWorkspace;
+        var active = out.workspaces.find(function (w) { return w.name === d.activeWorkspace; });
+        out.shortcuts = active.shortcuts;
+      } else if (out.workspaces.length) {
+        out.activeWorkspace = out.workspaces[0].name;
+        out.shortcuts = out.workspaces[0].shortcuts;
+      }
+    }
     if (typeof d.note === 'string') out.note = d.note;
     if (Array.isArray(d.tasks)) {
       out.tasks = d.tasks.filter(function (t) {
         return t && typeof t.title === 'string' && t.title.trim() && t.title.length <= 160;
       }).slice(0, 100).map(function (t, i) {
         var due = isDateKey(t.due) ? t.due : '';
-          !isNaN(Date.parse(t.due + 'T00:00:00')) ? t.due : '';
         return {
           id: String(t.id || ('restored-' + i)).slice(0, 80),
           title: t.title.trim().slice(0, 160),
