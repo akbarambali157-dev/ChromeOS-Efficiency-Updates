@@ -76,7 +76,7 @@ and a memory monitor that shows which sites are using the most.
 
 **Files** — duplicate candidates are confirmed with a full-file SHA-256 digest for files up to 16 MB, and are not selected automatically. Moves to `_Review` use collision-safe names and verify the copied bytes before removing the original.
 
-**Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions and supported settings as JSON, then import a validated backup. Theme timing and editor attachment preferences are preserved. API credentials and GitHub tokens are excluded.
+**Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions, supported settings, mini-app install registrations, favourites and bounded app-scoped data as JSON. Import validates each app ID and per-app size limit before restoring IndexedDB. Older backups without mini-app data preserve existing app data. Theme timing and editor attachment preferences are preserved. API credentials and GitHub tokens are excluded.
 
 ## Credential handling
 
