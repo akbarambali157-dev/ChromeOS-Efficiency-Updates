@@ -54,7 +54,7 @@
   $('asMin').addEventListener('change', saveAS);
 
   /* ---------- Backup ---------- */
-  var KEYS = ['shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
+  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
   /* All fourteen themes, day pair included: a backup used to silently drop a
      day theme because only the nine night ones were listed here. */
   var THEMES = [
@@ -112,6 +112,27 @@
         out.activeWorkspace = out.workspaces[0].name;
         out.shortcuts = out.workspaces[0].shortcuts;
       }
+    }
+    if (d.layoutPrefs && typeof d.layoutPrefs === 'object' && Array.isArray(d.layoutPrefs.hidden)) {
+      var allowedHidden = ['layout-tools', 'layout-sessions', 'layout-notes', 'layout-tasks'];
+      out.layoutPrefs = { hidden: d.layoutPrefs.hidden.filter(function (id, i, a) {
+        return allowedHidden.indexOf(id) >= 0 && a.indexOf(id) === i;
+      }) };
+    }
+    if (d.accessibilityPrefs && typeof d.accessibilityPrefs === 'object') {
+      var ap = d.accessibilityPrefs;
+      out.accessibilityPrefs = {
+        textSize: ['small', 'normal', 'large'].indexOf(ap.textSize) >= 0 ? ap.textSize : 'normal',
+        density: ap.density === 'compact' ? 'compact' : 'comfortable',
+        highContrast: !!ap.highContrast
+      };
+    }
+    if (d.customPalette && typeof d.customPalette === 'object') {
+      var cp = d.customPalette, hex = /^#[0-9a-f]{6}$/i;
+      out.customPalette = {};
+      if (hex.test(cp.accent || '')) out.customPalette.accent = cp.accent;
+      if (hex.test(cp.accent2 || '')) out.customPalette.accent2 = cp.accent2;
+      if (!Object.keys(out.customPalette).length) delete out.customPalette;
     }
     if (typeof d.note === 'string') out.note = d.note;
     if (Array.isArray(d.tasks)) {
