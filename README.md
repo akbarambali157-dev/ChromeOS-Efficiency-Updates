@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 2.9.0** · Manifest V3 · minimum Chrome 103
+**Version 3.0.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -126,8 +126,7 @@ new-tab-launcher/
   manifest.json        MV3 manifest, commands, permissions
   newtab.html/.js/.css home page
   nav.js               left sidebar nav: registry of id -> page, with icons
-  store.js             read-through cache over chrome.storage.local
-  theme.js             themes, wallpapers, day/night
+  theme.js             theme and wallpaper engine + shared identifier catalog
   customization.js     dashboard layout, colour and accessibility preferences
   background.js        service worker: dark mode, tab tools, chat relay
   dark-*.js/.css       dark mode injection and detection
@@ -138,9 +137,11 @@ new-tab-launcher/
   popup.*              toolbar popup
 ```
 
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for page/module boundaries, storage ownership, background message contracts, and the rules used to keep shared logic genuinely shared without adding unnecessary global dependencies.
+
 ## Notes
 
 - Backup export covers shortcuts, notes, tasks, sessions, settings, and Claude Code
   files and conversations. **GitHub tokens and brewkeg keys are never included.**
-- `new-tab-launcher (2).zip` in the repo root is the original upload and
-  duplicates the source folder.
