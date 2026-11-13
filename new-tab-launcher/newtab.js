@@ -49,7 +49,6 @@
     if (current) current.shortcuts = shortcuts.map(function (s) { return { name: s.name, url: s.url }; });
     chrome.storage.local.set({ shortcuts: shortcuts, workspaces: workspaces, activeWorkspace: activeWorkspace });
   }
-  function save() { persistWorkspace(); }
   function renderWorkspaceControls() {
     var select = $('workspaceSelect');
     select.textContent = '';
@@ -131,7 +130,7 @@
     del.type = 'button'; del.className = 'del'; del.title = 'Remove'; del.setAttribute('aria-label', 'Remove ' + shortcuts[i].name); del.textContent = '\u00D7';
     del.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation();
-      shortcuts.splice(i, 1); save(); render();
+      shortcuts.splice(i, 1); persistWorkspace(); render();
     });
     tools.appendChild(ed); tools.appendChild(del);
     return tools;
@@ -220,7 +219,7 @@
     var item = { name: $('fName').value.trim(), url: normalizeUrl($('fUrl').value) };
     if (!item.name || !$('fUrl').value.trim()) return;
     if (editIndex < 0) shortcuts.push(item); else shortcuts[editIndex] = item;
-    save(); render();
+    persistWorkspace(); render();
   });
 
   /* ---------- Notes ---------- */
