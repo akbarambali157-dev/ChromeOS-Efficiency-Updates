@@ -47,7 +47,7 @@ The mini-app platform is the active priority. Claude upgrades are deliberately s
 
 - Audit all twelve current apps for broken controls, data persistence, keyboard/touch usability, empty states, export/import and theme integration.
 - Fix the existing workspace/runtime issues before adding more surface area.
-- Implement: Calendar Mini, Habit Tracker, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester? 
+- Implement the eight additions: Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester. 
 
 **Correction:** the eight additions in this milestone are Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester. Habit Tracker remains in the 3.7.0 wave with the final personal-organisation group so the published catalogue count remains consistent.
 
