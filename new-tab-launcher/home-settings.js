@@ -57,7 +57,7 @@
   $('asMin').addEventListener('change', saveAS);
 
   /* ---------- Backup ---------- */
-  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
+  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'themeMode', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
   function say(msg, err) { var s = $('bkStatus'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
   function isWeb(u) { return typeof u === 'string' && /^https?:\/\//i.test(u); }
   function isDateKey(v) {
@@ -245,6 +245,7 @@
       out.autoSuspend = { on: !!d.autoSuspend.on, minutes: mins };
     }
     if (typeof d.theme === 'string' && THEMES.indexOf(d.theme) >= 0) out.theme = d.theme;
+    if (d.themeMode === 'auto' || d.themeMode === 'fixed') out.themeMode = d.themeMode;
     if (d.weather && typeof d.weather === 'object') {
       var w = d.weather, ok = {};
       ok.unit = w.unit === 'f' ? 'f' : 'c';
@@ -275,15 +276,15 @@
       }
       if (!window.confirm('This replaces your current shortcuts, notes, sessions and settings with the backup. Continue?')) return;
       var data = clean(obj.data);
-      try {
-        ['theme', 'wallMode', 'motion'].forEach(function (k) {
-          if (data[k]) localStorage.setItem(k, data[k]); else localStorage.removeItem(k);
-        });
-      } catch (e) {}
-      /* Write validated data first. Only after that succeeds do we remove
-         omitted backup keys, avoiding the old remove-then-set data-loss window. */
+      /* Write validated data first. Only after that succeeds do we update the
+         local theme cache and remove omitted keys. */
       chrome.storage.local.set(data, function () {
         if (chrome.runtime.lastError) { say('Could not restore the backup: ' + chrome.runtime.lastError.message, true); return; }
+        try {
+          ['theme', 'themeMode', 'wallMode', 'motion'].forEach(function (k) {
+            if (data[k]) localStorage.setItem(k, data[k]); else localStorage.removeItem(k);
+          });
+        } catch (e) {}
         var remove = KEYS.filter(function (k) { return !Object.prototype.hasOwnProperty.call(data, k); });
         chrome.storage.local.remove(remove, function () {
           if (chrome.runtime.lastError) { say('Backup data was restored, but some old settings could not be cleared.', true); return; }
