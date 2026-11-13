@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: nothing polls
 in a hidden tab, nothing animates off screen, and a new tab does only the work a
 new tab needs.
 
-**Version 2.3.0** · Manifest V3 · minimum Chrome 103
+**Version 2.4.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -55,7 +55,10 @@ Skip a site from the toolbar button or from Settings.
 **Assistant** — the round orb at the bottom right opens a small panel with a
 short conversation log; the Assistant tab keeps the full log. Weather, tabs,
 memory and codespaces commands work without a key. General questions need a
-[brewkeg](https://brewkeg.dev) key.
+[brewkeg](https://brewkeg.dev) key. An optional, off-by-default context switch
+can share the active workspace name, shortcut labels, task titles and aggregate
+file-scan totals with general AI questions. It never shares file contents, notes
+or credentials.
 
 **Claude Code** — a VS Code style shell with a file list, editor, chat and a
 GitHub push button. It uses its own brewkeg key, kept apart from the assistant's
