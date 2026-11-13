@@ -17,17 +17,15 @@
     { id: 'dayamber', name: 'Day Amber', a: '#d2691e', b: '#f0913f', bg: '#fdf0e4' },
     { id: 'dayviolet', name: 'Day Violet', a: '#7b5cd6', b: '#a98cf0', bg: '#f2eefb' }
   ];
-  var WALLS = [
-    ['none', 'None'], ['aurora', 'Aurora'], ['ridges', 'Ridges'], ['dunes', 'Dunes'],
-    ['waves', 'Waves'], ['grid', 'Grid'], ['stars', 'Stars'], ['canopy', 'Canopy'],
-    ['bloom', 'Bloom'], ['embers', 'Embers'], ['mountains', 'Mountains'], ['void', 'Void'],
-    /* texture set — procedural, so they cost nothing to ship */
-    ['felt', 'Felt'], ['fluted', 'Fluted Glass'], ['thermal', 'Thermal'],
-    ['ripple', 'Ripples'], ['speckle', 'Speckle'], ['monohue', 'Single Hue'],
-    ['blueprint', 'Blueprint'], ['halftone', 'Halftone'], ['grass', 'Grass'],
-    ['dither', 'Dither'], ['paper', 'Paper'], ['contour', 'Contour'],
-    ['clouds', 'Cloud Sky']
-  ];
+  var WALL_LABELS = {
+    none: 'None', aurora: 'Aurora', ridges: 'Ridges', dunes: 'Dunes', waves: 'Waves',
+    grid: 'Grid', stars: 'Stars', canopy: 'Canopy', bloom: 'Bloom', embers: 'Embers',
+    mountains: 'Mountains', void: 'Void', felt: 'Felt', fluted: 'Fluted Glass',
+    thermal: 'Thermal', ripple: 'Ripples', speckle: 'Speckle', monohue: 'Single Hue',
+    blueprint: 'Blueprint', halftone: 'Halftone', grass: 'Grass', dither: 'Dither',
+    paper: 'Paper', contour: 'Contour', clouds: 'Cloud Sky'
+  };
+  var WALLS = window.WALLPAPER_MODES.map(function (id) { return [id, WALL_LABELS[id] || id]; });
   function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function lset(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   function say(msg, err) { var s = $('lookStatus'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
