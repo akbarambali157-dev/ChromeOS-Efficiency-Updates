@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: nothing polls
 in a hidden tab, nothing animates off screen, and a new tab does only the work a
 new tab needs.
 
-**Version 2.5.0** · Manifest V3 · minimum Chrome 103
+**Version 2.5.1** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -42,13 +42,15 @@ recently closed tabs, and settings.
 **Void**, a true-black night sky with sparse sharp stars. *Day / night* mode
 switches between a light and a dark pair at 07:00 and 19:00.
 
-**Wallpapers** — twelve scenes, each drawn from the same six-slot palette (sky,
+**Wallpapers** — built-in scenes and procedural textures, each drawn from the same six-slot palette (sky,
 three depth layers, a light source, a shadow) so they stay readable in both
 light and dark themes. Light themes flip to dark silhouettes against a bright
 sky, which is what gives the mountains a lit face and a shadowed one instead of
 washing out. Waves roll sideways, embers rise, stars twinkle and drift, the
 aurora blooms move, and the neon floor scrolls. Animations can be turned off
-entirely for a lighter page.
+entirely for a lighter page. Save up to eight named collections of up to 20 built-in
+wallpapers each, then apply them manually or enable rotation on each new-tab
+opening. Rotation uses no timer or background polling.
 
 **Dark mode for websites** — on by default, and it leaves already-dark sites
 alone. Photos, video, SVG and iframes are re-inverted so they keep true colour.
