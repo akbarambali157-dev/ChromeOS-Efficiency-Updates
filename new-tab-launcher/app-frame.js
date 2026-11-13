@@ -3,7 +3,7 @@
 var params=new URLSearchParams(location.search),id=params.get('id'),nonce=params.get('nonce');
 var $=function(x){return document.getElementById(x);},root=$('appRoot'),status=$('appStatus'),data={};
 var registry={
-'research-library':{name:'Research Library',desc:'Discover scholarly records. Saved search notes remain on this device.',network:true},
+'research-library':{name:'Research Library',desc:'Discover scholarly records. Fresh searches require an internet connection.',network:true},
 'pdf-reader':{name:'PDF Reader',desc:'Read a PDF selected locally from your device.',network:false},
 'citation-manager':{name:'Citation Manager',desc:'Build and save a small local bibliography.',network:false},
 'focus-timer':{name:'Focus Timer',desc:'A lightweight focus timer that pauses when hidden.',network:false},
