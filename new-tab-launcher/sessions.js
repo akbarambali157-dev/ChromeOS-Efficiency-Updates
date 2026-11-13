@@ -123,7 +123,7 @@
     }).map(function (s, i) {
       return {
         id: String(s.id || ('session-' + i)), name: s.name.trim().slice(0, 40),
-        saved: typeof s.saved === 'string' ? s.saved : new Date(0).toISOString(),
+        saved: typeof s.saved === 'string' && !isNaN(Date.parse(s.saved)) ? s.saved : new Date(0).toISOString(),
         tabs: s.tabs.filter(function (t) { return t && typeof t.url === 'string' && /^https?:\/\//i.test(t.url); })
           .map(function (t) { return { title: String(t.title || t.url).slice(0, 300), url: t.url }; })
       };
