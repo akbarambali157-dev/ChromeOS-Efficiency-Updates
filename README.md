@@ -5,9 +5,9 @@ with, without pretending it is something it is not.
 
 Developed on an **Acer Chromebook 15 CB3-532** (board `banon`): Intel Celeron
 N3060, **2 GB RAM**, 16 GB eMMC, 1366×768, **ChromeOS 103 — end of life, no
-further updates**. Every decision here is made for that machine: nothing polls
-in a hidden tab, nothing animates off screen, and a new tab does only the work a
-new tab needs.
+further updates**. Every decision here is made for that machine: dashboard pages
+stop their own polling when hidden, off-screen animation is avoided, and the
+optional background auto-suspend alarm exists only when that feature is enabled.
 
 **Version 2.6.0** · Manifest V3 · minimum Chrome 103
 
