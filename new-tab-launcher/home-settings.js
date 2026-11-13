@@ -54,7 +54,7 @@
   $('asMin').addEventListener('change', saveAS);
 
   /* ---------- Backup ---------- */
-  var KEYS = ['shortcuts', 'note', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
+  var KEYS = ['shortcuts', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
   /* All fourteen themes, day pair included: a backup used to silently drop a
      day theme because only the nine night ones were listed here. */
   var THEMES = [
@@ -83,6 +83,21 @@
         .map(function (s) { return { name: s.name.slice(0, 24), url: s.url }; });
     }
     if (typeof d.note === 'string') out.note = d.note;
+    if (Array.isArray(d.tasks)) {
+      out.tasks = d.tasks.filter(function (t) {
+        return t && typeof t.title === 'string' && t.title.trim() && t.title.length <= 160;
+      }).slice(0, 100).map(function (t, i) {
+        var due = typeof t.due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.due) &&
+          !isNaN(Date.parse(t.due + 'T00:00:00')) ? t.due : '';
+        return {
+          id: String(t.id || ('restored-' + i)).slice(0, 80),
+          title: t.title.trim().slice(0, 160),
+          due: due,
+          done: !!t.done,
+          created: isFinite(+t.created) ? +t.created : Date.now()
+        };
+      });
+    }
     if (Array.isArray(d.sessions)) {
       out.sessions = d.sessions.filter(function (s) { return s && typeof s.name === 'string' && Array.isArray(s.tabs); })
         .map(function (s) {
