@@ -1,4 +1,4 @@
-My Launcher 2.5.0
+My Launcher 2.5.1
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -41,6 +41,8 @@ Wallpapers
   Halftone, Grass, Dither, Paper, Contour and Cloud Sky.
   Only Ripples and Cloud Sky move, and both animate on the compositor, so a
   wallpaper stays cheap even with several new tabs open.
+  Save up to 8 named collections of 20 built-in wallpapers. Apply them manually,
+  or enable rotation once per new-tab opening. No timers or background polling.
 
 Dark mode for websites
   On for all websites by default. Sites that are already dark are left alone.
