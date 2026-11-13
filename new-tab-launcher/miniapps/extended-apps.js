@@ -11,7 +11,8 @@ function textField(p,label,value,max){var x=field(p,label);x.maxLength=max||240;
 function area(p,label,value,max){var x=field(p,label,'textarea');x.maxLength=max||10000;x.value=value||'';return x;}
 function select(p,label,items,value){var x=field(p,label,'select');items.forEach(function(v){var o=node('option',v[1]);o.value=v[0];x.appendChild(o);});x.value=value||items[0][0];return x;}
 function saveData(){save();setStatus('Saved on this device.');}
-function dateOk(v){return !v||(/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(new Date(v+'T00:00:00').getTime())&&new Date(v+'T00:00:00').toISOString().slice(0,10)===v);}
+function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function dateOk(v){return !v||(/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(new Date(v+'T00:00:00Z').getTime())&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v);}
 function safeName(s){return String(s||'').trim().slice(0,100);}
 function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 function parseCsv(s){var rows=[],row=[],v='',q=false;for(var i=0;i<s.length;i++){var ch=s[i];if(q){if(ch==='"'&&s[i+1]==='"'){v+='"';i++;}else if(ch==='"')q=false;else v+=ch;}else if(ch==='"')q=true;else if(ch===','){row.push(v);v='';}else if(ch==='\n'){row.push(v);rows.push(row);row=[];v='';}else if(ch!=='\r')v+=ch;if(rows.length>1000)return rows;}if(v.length||row.length){row.push(v);rows.push(row);}return rows;}
