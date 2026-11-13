@@ -179,7 +179,7 @@
     if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') { e.preventDefault(); input.focus(); }
   });
 
-  store.get('shortcuts', function (d) {
+  chrome.storage.local.get('shortcuts', function (d) {
     shortcuts = Array.isArray(d.shortcuts) ? d.shortcuts : [];
   });
 })();
