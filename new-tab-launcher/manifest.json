@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "2.0.0",
-  "description": "Custom new tab launcher with themes, mini apps, a Claude Code editor, command bar, tab tools, memory monitor and dark mode for websites.",
+  "version": "2.1.0",
+  "description": "Custom new tab launcher with refined website dark mode, balanced wallpapers, themes, mini apps, editor, command bar and tab tools.",
   "minimum_chrome_version": "103",
   "permissions": ["storage", "tabs", "sessions", "scripting", "alarms", "system.memory", "bookmarks", "history"],
   "host_permissions": ["<all_urls>"],
