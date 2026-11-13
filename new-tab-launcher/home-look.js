@@ -89,6 +89,96 @@
   });
   markWall();
 
+  /* Collections contain lightweight built-in wallpaper IDs, never image data. */
+  var collections = [], activeCollection = '', rotationOn = false;
+  var validWallIds = WALLS.map(function (w) { return w[0]; });
+  function collectionSay(msg, err) {
+    var el = $('wallCollectionStatus'); el.textContent = msg || '';
+    el.className = 'status' + (err ? ' err' : '');
+  }
+  function saveCollections(callback) {
+    chrome.storage.local.set({ wallpaperCollections: collections, activeWallpaperCollection: activeCollection, wallpaperRotation: rotationOn }, function () {
+      if (chrome.runtime.lastError) collectionSay('Could not save wallpaper collections.', true);
+      else if (callback) callback();
+    });
+  }
+  function selectedCollection() {
+    return collections.filter(function (c) { return c.id === activeCollection; })[0] || null;
+  }
+  function renderCollections() {
+    var select = $('wallCollectionSelect'); select.textContent = '';
+    collections.forEach(function (c) {
+      var option = document.createElement('option'); option.value = c.id;
+      option.textContent = c.name + ' (' + c.wallpapers.length + ')'; select.appendChild(option);
+    });
+    if (!collections.length) {
+      var empty = document.createElement('option'); empty.value = ''; empty.textContent = 'No collections yet'; select.appendChild(empty);
+    }
+    select.value = activeCollection;
+    var c = selectedCollection();
+    $('wallCollectionAdd').disabled = !c || c.wallpapers.length >= 20;
+    $('wallCollectionApply').disabled = !c || !c.wallpapers.length;
+    $('wallCollectionDelete').disabled = !c;
+    $('wallRotate').disabled = !c || c.wallpapers.length < 2;
+    $('wallRotate').checked = !!rotationOn && !!c && c.wallpapers.length > 1;
+  }
+  function currentBuiltInWall() {
+    var id = ls('wallMode') || 'aurora'; return validWallIds.indexOf(id) >= 0 ? id : '';
+  }
+  function saved(message) { saveCollections(function () { renderCollections(); if (message) collectionSay(message); }); }
+  chrome.storage.local.get(['wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation'], function (data) {
+    var seenNames = {}, seenIds = {};
+    collections = Array.isArray(data.wallpaperCollections) ? data.wallpaperCollections.filter(function (c) {
+      if (!c || typeof c.name !== 'string' || !c.name.trim() || !Array.isArray(c.wallpapers)) return false;
+      var name = c.name.trim().toLowerCase(), id = String(c.id || '');
+      if (seenNames[name] || (id && seenIds[id]) || collections.length >= 8) return false;
+      seenNames[name] = true; if (id) seenIds[id] = true; return true;
+    }).map(function (c, i) {
+      return { id: String(c.id || ('wall-' + i)).slice(0, 48), name: c.name.trim().slice(0, 24),
+        wallpapers: c.wallpapers.filter(function (id, i, a) { return validWallIds.indexOf(id) >= 0 && a.indexOf(id) === i; }).slice(0, 20) };
+    }) : [];
+    activeCollection = collections.some(function (c) { return c.id === data.activeWallpaperCollection; })
+      ? data.activeWallpaperCollection : (collections[0] ? collections[0].id : '');
+    rotationOn = !!data.wallpaperRotation; renderCollections();
+  });
+  $('wallCollectionSelect').addEventListener('change', function () {
+    activeCollection = $('wallCollectionSelect').value; rotationOn = false;
+    saved('Collection selected. Automatic rotation is off until enabled.');
+  });
+  $('wallCollectionCreate').addEventListener('click', function () {
+    var name = $('wallCollectionName').value.trim(), wall = currentBuiltInWall();
+    if (!name) { collectionSay('Enter a name for the collection.', true); return; }
+    if (!wall) { collectionSay('Choose a built-in wallpaper before saving a collection.', true); return; }
+    if (collections.length >= 8) { collectionSay('You can save up to 8 collections.', true); return; }
+    if (collections.some(function (c) { return c.name.toLowerCase() === name.toLowerCase(); })) { collectionSay('A collection with that name already exists.', true); return; }
+    collections.push({ id: 'wall-' + Date.now().toString(36), name: name.slice(0, 24), wallpapers: [wall] });
+    activeCollection = collections[collections.length - 1].id; rotationOn = false; $('wallCollectionName').value = '';
+    saved('Collection saved with ' + wall + '.');
+  });
+  $('wallCollectionAdd').addEventListener('click', function () {
+    var c = selectedCollection(), wall = currentBuiltInWall();
+    if (!c || !wall) { collectionSay('Choose a built-in wallpaper first.', true); return; }
+    if (c.wallpapers.indexOf(wall) >= 0) { collectionSay('That wallpaper is already in this collection.', true); return; }
+    if (c.wallpapers.length >= 20) { collectionSay('A collection can contain up to 20 wallpapers.', true); return; }
+    c.wallpapers.push(wall); saved('Added ' + wall + ' to ' + c.name + '.');
+  });
+  function applyCollectionNext() {
+    var c = selectedCollection(); if (!c || !c.wallpapers.length) return;
+    var index = c.wallpapers.indexOf(ls('wallMode') || '');
+    var next = c.wallpapers[(index + 1) % c.wallpapers.length];
+    chooseWall(next); collectionSay('Applied ' + next + ' from ' + c.name + '.');
+  }
+  $('wallCollectionApply').addEventListener('click', applyCollectionNext);
+  $('wallCollectionDelete').addEventListener('click', function () {
+    var c = selectedCollection(); if (!c || !window.confirm('Delete the wallpaper collection "' + c.name + '"?')) return;
+    collections = collections.filter(function (item) { return item.id !== c.id; });
+    activeCollection = collections[0] ? collections[0].id : ''; rotationOn = false; saved('Wallpaper collection deleted.');
+  });
+  $('wallRotate').addEventListener('change', function () {
+    var c = selectedCollection(); rotationOn = !!$('wallRotate').checked && !!c && c.wallpapers.length > 1;
+    saved(rotationOn ? 'Wallpaper rotates when you open a new tab.' : 'Automatic wallpaper rotation is off.');
+  });
+
   // custom photo, shrunk to 1280px wide so it stays light on a 2GB Chromebook
   $('wallPick').addEventListener('change', function (e) {
     var f = e.target.files[0];
