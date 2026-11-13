@@ -41,10 +41,10 @@
 
     /* ---------- helpers ---------- */
     function ls(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+    var plural = window.LauncherUtils.plural;
     function hostOf(u) { try { var x = new URL(u); return /^https?:$/.test(x.protocol) ? x.hostname.replace(/^www\./, '') : ''; } catch (e) { return ''; } }
-    function gb(n) { return (n / 1073741824).toFixed(1); }
-    function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    var gb = window.LauncherUtils.formatGiB;
+    var el = window.LauncherUtils.el;
 
     function setState(s) { state = s; view.setState(s); }
     function addLine(who, text) { view.addLine(who, text); }
