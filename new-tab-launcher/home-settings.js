@@ -54,7 +54,7 @@
   $('asMin').addEventListener('change', saveAS);
 
   /* ---------- Backup ---------- */
-  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
+  var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
   /* All fourteen themes, day pair included: a backup used to silently drop a
      day theme because only the nine night ones were listed here. */
   var THEMES = [
@@ -182,6 +182,23 @@
     if (Array.isArray(d.darkSkip)) {
       out.darkSkip = d.darkSkip.filter(function (h) { return typeof h === 'string' && /^[a-z0-9.-]+$/i.test(h); });
     }
+    if (Array.isArray(d.wallpaperCollections)) {
+      var seenWallNames = {}, seenWallIds = {};
+      out.wallpaperCollections = d.wallpaperCollections.filter(function (c) {
+        if (!c || typeof c.name !== 'string' || !c.name.trim() || !Array.isArray(c.wallpapers)) return false;
+        var name = c.name.trim().toLowerCase(), id = String(c.id || '');
+        if (seenWallNames[name] || (id && seenWallIds[id])) return false;
+        seenWallNames[name] = true; if (id) seenWallIds[id] = true; return true;
+      }).slice(0, 8).map(function (c, i) {
+        var seenModes = {};
+        return { id: String(c.id || ('wall-' + i)).slice(0, 48), name: c.name.trim().slice(0, 24),
+          wallpapers: c.wallpapers.filter(function (id) { if (WALL_IDS.indexOf(id) < 0 || seenModes[id]) return false; seenModes[id] = true; return true; }).slice(0, 20) };
+      });
+    }
+    if (typeof d.activeWallpaperCollection === 'string' && Array.isArray(out.wallpaperCollections) &&
+        out.wallpaperCollections.some(function (c) { return c.id === d.activeWallpaperCollection; })) out.activeWallpaperCollection = d.activeWallpaperCollection;
+    out.wallpaperRotation = !!d.wallpaperRotation && !!out.activeWallpaperCollection;
+    if (isFinite(+d.wallpaperRotationIndex) && +d.wallpaperRotationIndex >= 0) out.wallpaperRotationIndex = Math.floor(+d.wallpaperRotationIndex) % 20;
     if (WALL_IDS.indexOf(d.wallMode) >= 0) out.wallMode = d.wallMode;
     else if (d.wallMode === 'custom') out.wallMode = 'aurora';
     if (d.motion === 'on' || d.motion === 'off') out.motion = d.motion;
