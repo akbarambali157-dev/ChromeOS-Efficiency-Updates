@@ -293,6 +293,16 @@ button.filebtn{border:0;font:inherit;font-size:15px;color:var(--text)}
 :root[data-theme="dayamber"]{--w-sky:#fdf0e4;--w-far:#e6cbb2;--w-mid:#bd9673;--w-near:#7a5238;--w-light:#fff8f0;--w-shadow:#40260f}
 :root[data-theme="dayviolet"]{--w-sky:#f2eefb;--w-far:#cfc6e8;--w-mid:#9a8cc4;--w-near:#5a4c86;--w-light:#fff;--w-shadow:#241a3d}
 
+
+/* Scenic wallpapers use their own restrained landscape palettes. The UI keeps
+   its selected theme colours, while the wallpaper's sky and terrain stay in a
+   compatible family even when a user manually chooses a different scene. */
+#wall.dunes{--w-sky:#33251f;--w-far:#8d6447;--w-mid:#674832;--w-near:#3e2b24;--w-light:#f2c58a;--w-shadow:#17110f}
+#wall.mountains{--w-sky:#182735;--w-far:#526d7b;--w-mid:#344d5d;--w-near:#203543;--w-light:#d7e5e8;--w-shadow:#0b141b}
+#wall.ridges{--w-sky:#111e2b;--w-far:#45586a;--w-mid:#2e4051;--w-near:#1b2b39;--w-light:#a8c1cf;--w-shadow:#080e14}
+#wall.waves{--w-sky:#092533;--w-far:#1e6170;--w-mid:#164958;--w-near:#0c303e;--w-light:#a1e2e4;--w-shadow:#04131c}
+#wall.canopy{--w-sky:#101f1c;--w-far:#34594a;--w-mid:#244438;--w-near:#142c25;--w-light:#a8c99a;--w-shadow:#07110e}
+
 body.has-wall{--panel:rgba(var(--panel-rgb),.78);--panel-hi:rgba(var(--panel-hi-rgb),.9)}
 
 /* ===== colour accents ===== */
@@ -310,7 +320,7 @@ h3.sec::before{content:"";width:4px;height:16px;border-radius:2px;background:lin
 .ico{background:linear-gradient(135deg,rgba(var(--accent-rgb),.22),rgba(var(--accent2-rgb),.22))}
 
 /* ===== wallpapers ===== */
-#wall{position:fixed;top:0;right:0;bottom:0;left:0;z-index:-1;overflow:hidden;pointer-events:none}
+#wall{position:fixed;top:0;right:0;bottom:0;left:0;z-index:-1;overflow:hidden;pointer-events:none;opacity:1;transition:opacity .34s ease}
 #wall svg{position:absolute;left:0;top:0;width:100%;height:100%}
 
 /* aurora — four light blooms drifting on long, offset cycles */
@@ -350,7 +360,11 @@ h3.sec::before{content:"";width:4px;height:16px;border-radius:2px;background:lin
 /* dunes — long smooth curves under a low sun */
 #wall.dunes .d1{animation:sway2 48s ease-in-out infinite alternate}
 #wall.dunes .d2{animation:sway1 36s ease-in-out infinite alternate}
-#wall.dunes .d3{animation:sway2 28s ease-in-out infinite alternate}
+#wall.dunes .d3{animation:sway2 58s ease-in-out infinite alternate}
+#wall.dunes .d1{animation-duration:76s}
+#wall.dunes .d2{animation-duration:66s}
+#wall.dunes .dead-bush{transform-origin:286px 674px;animation:bushSway 24s ease-in-out infinite alternate}
+@keyframes bushSway{to{transform:rotate(1.2deg)}}
 
 /* waves — four crests rolling sideways, each at its own speed */
 #wall.waves .w1g,#wall.waves .w2g,#wall.waves .w3g,#wall.waves .w4g{transform-box:fill-box;transform-origin:0 0}
@@ -381,7 +395,9 @@ h3.sec::before{content:"";width:4px;height:16px;border-radius:2px;background:lin
 #wall.mountains .sun{animation:pulse 7s ease-in-out infinite}
 #wall.mountains .m1{animation:sway1 46s ease-in-out infinite alternate}
 #wall.mountains .m2{animation:sway2 38s ease-in-out infinite alternate}
-#wall.mountains .m3{animation:sway1 30s ease-in-out infinite alternate}
+#wall.mountains .m3{animation:sway1 62s ease-in-out infinite alternate}
+#wall.mountains .m1{animation-duration:82s}
+#wall.mountains .m2{animation-duration:70s}
 @keyframes sway1{to{transform:translateX(-42px)}}
 @keyframes sway2{to{transform:translateX(34px)}}
 @keyframes pulse{50%{opacity:.65}}
@@ -571,6 +587,7 @@ dialog[open]{animation:pop .22s ease-out}
 :root[data-motion="off"] *,:root[data-motion="off"] *::before,:root[data-motion="off"] *::after{animation:none!important;transition:none!important}
 :root[data-hidden] *,:root[data-hidden] *::before,:root[data-hidden] *::after{animation-play-state:paused!important}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){#wall{opacity:1!important}}
 
 /* ===== switches ===== */
 .sw-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0;font-size:15px;cursor:pointer}
