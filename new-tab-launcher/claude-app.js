@@ -27,12 +27,7 @@
 
   /* ---------- small helpers ---------- */
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-  function el(tag, cls, text) {
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (text != null) e.textContent = text;
-    return e;
-  }
+  var el = window.LauncherUtils.el;
   function say(id, msg, err) {
     var s = $(id);
     if (!s) return;
