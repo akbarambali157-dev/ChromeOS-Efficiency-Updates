@@ -63,7 +63,7 @@
     var nm = $('cName').value.trim().slice(0, 20) || 'Nova';
     var model = $('cModel').value.trim();
     if (model && !/^[\w.:\/-]+$/.test(model)) { $('cStatus').textContent = 'That model name has odd characters.'; $('cStatus').className = 'status err'; return; }
-    var cfg = { name: nm, model: model || 'claude-haiku-4-5', speak: $('cSpeak').checked, wake: $('cWake').checked };
+    var cfg = { name: nm, model: model || 'claude-haiku-4-5', speak: $('cSpeak').checked, wake: $('cWake').checked, contextEnabled: $('cContext').checked };
     core.setCfg(cfg);
     var k = $('cKey').value.trim() || core.getKey();
     core.setKey(k);
@@ -112,7 +112,7 @@
 
   core.init(function (cfg, key) {
     $('cName').value = cfg.name; $('cModel').value = cfg.model;
-    $('cSpeak').checked = cfg.speak; $('cWake').checked = cfg.wake;
+    $('cSpeak').checked = cfg.speak; $('cWake').checked = cfg.wake; $('cContext').checked = !!cfg.contextEnabled;
     $('cKey').placeholder = key ? 'Key saved (hidden)' : 'bk_live_...';
     applyName();
     core.addLine('ai', 'Hi, I’m ' + cfg.name + '. Tap the mic, or type a request.' + (key ? '' : ' Add your brewkeg key in Assistant settings for general questions.'));
