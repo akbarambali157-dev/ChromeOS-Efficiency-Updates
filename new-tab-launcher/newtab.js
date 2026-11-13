@@ -30,7 +30,11 @@
       h < 12 ? 'Good morning \u2600\uFE0F' : h < 17 ? 'Good afternoon \uD83C\uDF24\uFE0F' : 'Good evening \uD83C\uDF19';
   }
   tick();
-  setInterval(tick, 15000);
+  /* The display shows minutes, so a 60-second cadence is sufficient. */
+  setInterval(function () { if (!document.hidden) tick(); }, 60000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) tick();
+  });
 
   /* ---------- Shortcuts ---------- */
   function normalizeUrl(u) {
