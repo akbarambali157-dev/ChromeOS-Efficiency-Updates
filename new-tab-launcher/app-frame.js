@@ -16,7 +16,7 @@ function node(tag,txt,cls){var n=document.createElement(tag);if(txt!==undefined)
 function panel(){var p=node('section',undefined,'panel');root.appendChild(p);return p;}
 function button(p,label,fn,secondary){var b=node('button',label,secondary?'secondary':'');b.type='button';b.addEventListener('click',fn);p.appendChild(b);return b;}
 function field(p,label,tag){var w=node('div',undefined,'field'),l=node('label',label),i=document.createElement(tag||'input');i.id='f'+Math.random().toString(36).slice(2);l.htmlFor=i.id;w.appendChild(l);w.appendChild(i);p.appendChild(w);return i;}
-var saveTimer=null;function save(){if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(function(){send('storage.set',{value:data});},250);}
+var saveTimer=null;function save(){if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(function(){saveTimer=null;send('storage.set',{value:data});},250);}
 
 function draw(){
 root.textContent='';
@@ -55,6 +55,7 @@ setStatus('This app is not available in this runtime.',true);
 function receive(event){var m=event.data;if(event.source!==parent||!m||m.channel!=='my-launcher-miniapp'||m.nonce!==nonce||m.appId!==id)return;
 if(m.type==='theme'){var t=m.payload||{};document.documentElement.style.setProperty('--bg',t.background||'#10151c');document.documentElement.style.setProperty('--panel',t.panel||'#19222d');document.documentElement.style.setProperty('--text',t.text||'#e8eef5');document.documentElement.style.setProperty('--muted',t.muted||'#a8b6c5');document.documentElement.style.setProperty('--accent',t.accent||'#83d6bd');document.documentElement.style.colorScheme=t.colorScheme==='light'?'light':'dark';}
 if(m.type==='storage.result'){data=m.payload&&m.payload.value&&typeof m.payload.value==='object'?m.payload.value:{};draw();}
+if(m.type==='app.flush'){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}send('storage.set',{value:data,flush:true});}
 if(m.type==='research.results'){var list=root.querySelector('.panel');if(!list)return;var box=list.querySelector('.research-results');if(!box){box=node('div',undefined,'research-results');list.appendChild(box);}box.textContent='';if(m.payload&&m.payload.error){setStatus(m.payload.error,true);return;}(m.payload.items||[]).forEach(function(w){var item=node('article',undefined,'result'),a=node('a',w.title);var link=null;try{link=new URL(w.url);}catch(e){}a.href=link&&link.protocol==='https:'?link.href:'#';a.target='_blank';a.rel='noopener noreferrer';item.appendChild(a);item.appendChild(node('p',(w.year||'Year unknown')+' · Open access'));box.appendChild(item);});setStatus((m.payload.items||[]).length+' open-access records found.');}
 }
 window.addEventListener('message',receive);
