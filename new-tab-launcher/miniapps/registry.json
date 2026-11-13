@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "apps": [
-    {"id":"research-library","name":"Research Library","version":"1.0.0","category":"research","offline":"Saved records and notes work offline; new searches require internet.","network":["api.openalex.org"],"ramMb":18,"dataLimit":262144},
+    {"id":"research-library","name":"Research Library","version":"1.0.0","category":"research","offline":"Fresh scholarly searches require internet; the bundled app shell remains available offline.","network":["api.openalex.org"],"ramMb":18,"dataLimit":262144},
     {"id":"pdf-reader","name":"PDF Reader","version":"1.0.0","category":"research","offline":"Works with locally selected PDFs.","network":[],"ramMb":28,"dataLimit":65536},
     {"id":"citation-manager","name":"Citation Manager","version":"1.0.0","category":"research","offline":"Fully offline.","network":[],"ramMb":14,"dataLimit":262144},
     {"id":"focus-timer","name":"Focus Timer","version":"1.0.0","category":"productivity","offline":"Fully offline; pauses while hidden.","network":[],"ramMb":10,"dataLimit":65536},
