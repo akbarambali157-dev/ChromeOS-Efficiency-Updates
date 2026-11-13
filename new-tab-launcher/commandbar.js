@@ -42,6 +42,7 @@
   add('Save tabs and close them', 'tool', 'session sessions save close tabs', function () { $('sSaveClose').click(); });
   add('Export launcher backup', 'tool', 'backup export save settings', function () { $('bkExport').click(); });
   add('Free up memory', 'tool', 'tools memory free suspend ram tabs', function () { $('tMem').click(); });
+  add('Add a task', 'tool', 'task tasks todo to-do list', function () { var el = $('taskTitle'); if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.focus(); } });
 
   function tokens(s) { return s.toLowerCase().split(/\s+/).filter(Boolean); }
   function matches(hay, toks) {
