@@ -4,6 +4,9 @@
 - Keep truly shared helpers in common.js or the existing shared module that owns the behaviour. Do not merge page-local helpers merely because their names match; check semantics and execution context first.
 - Preserve existing storage keys and formats unless a deliberate migration is part of the release. Keep credentials out of backups and logs.
 - Do not add dependencies, frameworks, permissions, recurring background work or build steps without a demonstrated need.
+- GitHub pushes must remain bound to the exact file snapshot and destination shown in the review. Never bypass the review step.
+- File moves must preserve the original until the destination copy has been verified. Do not classify partial hashes as exact duplicates.
+- Bound imports and large-file operations for the 2 GB Chromebook; prefer streaming and explicit limits over loading unbounded data into memory.
 
 ## graphify
 
