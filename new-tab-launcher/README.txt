@@ -1,4 +1,4 @@
-My Launcher 2.9.0
+My Launcher 3.0.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -31,9 +31,9 @@ Customisation
   These settings are saved locally and included in validated backups. Keyboard focus is consistently visible, shortcut edit/remove buttons have descriptive labels, and touch devices receive larger controls.
 
 Themes
-  Nine themes plus Void, a true-black night sky with white stars. Each theme has a
-  matching wallpaper; picking a theme picks its wallpaper, and you can override it
-  with your own photo.
+  Fourteen themes (10 dark and 4 light), including Void, a true-black night sky
+  with white stars. Each theme has a matching wallpaper; picking a theme picks
+  its wallpaper, and you can override it with your own photo.
   Theme timing: Fixed, or Day / night, which switches between a light and a dark
   pair at 07:00 and 19:00.
   Animations can be turned off entirely for a lighter page.
@@ -44,8 +44,7 @@ Wallpapers
   Textures, all drawn from gradients rather than image files, so they cost nothing
   to ship: Felt, Fluted Glass, Thermal, Ripples, Speckle, Single Hue, Blueprint,
   Halftone, Grass, Dither, Paper, Contour and Cloud Sky.
-  Only Ripples and Cloud Sky move, and both animate on the compositor, so a
-  wallpaper stays cheap even with several new tabs open.
+  Motion can be turned off entirely for a lighter page.
   Save up to 8 named collections of 20 built-in wallpapers. Apply them manually,
   or enable rotation once per new-tab opening. No timers or background polling.
 
@@ -86,6 +85,8 @@ list (read only).
 Credentials (GitHub, Brewkeg and Parallel) are stored in Chrome extension local storage,
 not an encrypted password vault. They are excluded from backups. Keep your Chrome
 profile private and use narrowly scoped tokens.
+
+Architecture: see ARCHITECTURE.md in the repository root for module boundaries, storage ownership and background message contracts.
 
 Performance: see PERFORMANCE-BASELINE.md for a repeatable Chrome Task Manager
 memory and CPU measurement process.
