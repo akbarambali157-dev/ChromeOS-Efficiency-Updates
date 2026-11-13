@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mini-app Workspace · My Launcher</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="newtab.css">
+<link rel="stylesheet" href="apps.css">
+<link rel="stylesheet" href="app-workspace.css">
+<script src="theme.js"></script>
+</head>
+<body data-app="apps" class="mini-workspace-page">
+<main class="wrap apps-wrap">
+  <nav class="nav"></nav>
+  <header class="mini-workspace-bar">
+    <a class="mini-back" href="apps.html">← Marketplace</a>
+    <div class="mini-app-heading"><span id="workspaceIcon">□</span><div><strong id="workspaceName">Opening app…</strong><small id="workspaceMeta">Checking installation</small></div></div>
+    <div class="mini-window-actions"><button id="minimiseApp" type="button" class="app-action secondary">Minimise</button><button id="closeApp" type="button" class="app-action secondary">Close</button></div>
+  </header>
+  <section id="workspaceNotice" class="workspace-notice" role="status"></section>
+  <section class="mini-frame-shell"><iframe id="miniFrame" title="Mini-app" sandbox="allow-scripts allow-forms allow-downloads" referrerpolicy="no-referrer"></iframe></section>
+  <p class="app-footnote">Apps run in a restricted frame. They cannot access launcher extension APIs or another app's private data. Resource figures are estimates.</p>
+</main>
+<script src="nav.js"></script>
+<script src="app-workspace.js"></script>
+</body>
+</html>
