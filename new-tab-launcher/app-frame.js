@@ -36,7 +36,7 @@ var p=panel(),clock=node('div','25:00','timer');p.appendChild(clock);var minutes
 function show(){clock.textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');}
 function stop(msg){if(timer)clearInterval(timer);timer=null;running=false;if(msg)setStatus(msg);data.remaining=left;save();}
 button(p,'Start / Pause',function(){if(running){stop('Paused.');return;}running=true;setStatus('Timer running.');timer=setInterval(function(){left=Math.max(0,left-1);show();if(left%5===0){data.remaining=left;save();}if(!left)stop('Session complete.');},1000);});
-button(p,'Reset',function(){stop();var n=Math.max(1,Math.min(120,Number(minutes.value)||25));left=n*60;data.minutes=n;show();save();setStatus('Reset.');},true);
+button(p,'Reset',function(){stop();var n=Math.max(1,Math.min(120,Number(minutes.value)||25));left=n*60;data.minutes=n;show();save();setStatus('Reset.');},true);window.__miniSuspend=function(){if(running)stop('Paused while the app is minimised.');};
 document.addEventListener('visibilitychange',function(){if(document.hidden&&running)stop('Paused while hidden.');});window.addEventListener('pagehide',function(){if(timer)clearInterval(timer);});show();return;
 }
 if(id==='markdown-editor'){
@@ -92,7 +92,8 @@ setStatus('This app is not available in this runtime.',true);
 function receive(event){var m=event.data;if(event.source!==parent||!m||m.channel!=='my-launcher-miniapp'||m.nonce!==nonce||m.appId!==id)return;
 if(m.type==='theme'){var t=m.payload||{};document.documentElement.style.setProperty('--bg',t.background||'#10151c');document.documentElement.style.setProperty('--panel',t.panel||'#19222d');document.documentElement.style.setProperty('--text',t.text||'#e8eef5');document.documentElement.style.setProperty('--muted',t.muted||'#a8b6c5');document.documentElement.style.setProperty('--accent',t.accent||'#83d6bd');document.documentElement.style.colorScheme=t.colorScheme==='light'?'light':'dark';document.documentElement.setAttribute('data-text-size',['small','normal','large'].indexOf(t.textSize)>=0?t.textSize:'normal');document.documentElement.setAttribute('data-density',t.density==='compact'?'compact':'comfortable');if(t.highContrast)document.documentElement.setAttribute('data-contrast','high');else document.documentElement.removeAttribute('data-contrast');if(t.reducedMotion)document.documentElement.setAttribute('data-motion','off');else document.documentElement.removeAttribute('data-motion');}
 if(m.type==='storage.result'){data=m.payload&&m.payload.value&&typeof m.payload.value==='object'?m.payload.value:{};draw();}
-if(m.type==='app.flush'){if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}send('storage.set',{value:data,flush:true});}
+if(m.type==='app.suspend'){if(typeof window.__miniSuspend==='function')window.__miniSuspend();}
+if(m.type==='app.flush'){if(typeof window.__miniSuspend==='function')window.__miniSuspend();if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}send('storage.set',{value:data,flush:true});}
 if(m.type==='launcher.notes.result'){var noteBox=root.querySelector('textarea');if(m.payload&&m.payload.error){setStatus(m.payload.error,true);}else if(noteBox){noteBox.value=m.payload.text||'';data.text=noteBox.value;save();setStatus('Loaded the launcher quick note into this app.');}}
 if(m.type==='launcher.notes.saved'){setStatus(m.payload&&m.payload.ok?'Copied into the launcher quick note.':(m.payload.error||'Could not save launcher note.'),!(m.payload&&m.payload.ok));}
 if(m.type==='launcher.tasks.added'){setStatus(m.payload&&m.payload.ok?'Added to the launcher task list.':(m.payload.error||'Could not add launcher task.'),!(m.payload&&m.payload.ok));}
