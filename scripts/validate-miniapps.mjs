@@ -26,8 +26,8 @@ const readme = read('README.md');
 const localIds = local.map((app) => app.id);
 const remoteIds = remote.map((app) => app.id);
 const bundledIds = [...appsJs.matchAll(/'([a-z][a-z0-9-]+)':'1\.0\.0'/g)].map((m) => m[1]);
-const frameIds = [...frameJs.matchAll(/^'([a-z][a-z0-9-]+)':\{name:/gm)].map((m) => m[1]);
-const extendedIds = [...extendedJs.matchAll(/if\(id==='([a-z][a-z0-9-]+)'\)/g)].map((m) => m[1]);
+const frameIds = [...frameJs.matchAll(/'([a-z][a-z0-9-]+)':\\{name:/g)].map((m) => m[1]);
+const extendedIds = [...new Set([...extendedJs.matchAll(/id==='([a-z][a-z0-9-]+)'/g)].map((m) => m[1]))];
 
 check(local.length === 40, `Local registry must contain 40 apps (found ${local.length}).`);
 check(remote.length === 40, `Remote catalogue must contain 40 apps (found ${remote.length}).`);
