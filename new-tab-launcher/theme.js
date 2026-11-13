@@ -62,15 +62,17 @@
       '<defs>' + defs + '</defs>' + body + '</svg>';
   }
 
-  /* Mountains — big peaks, a low sun, and a lit face against a shadowed one. */
+  /* Mountains — layered, irregular peaks with distant haze and restrained snow light. */
   var MOUNTAINS = svg(
-    sky('mtnSky') + glow('mtnSun', '.95') +
-    lit('mtnFar', 'far', '.55', '.85') + lit('mtnMid', 'mid', '.4', '.9') + lit('mtnNear', 'near', '.26', '.95'),
+    sky('mtnSky') + glow('mtnSun', '.82') +
+    lit('mtnFar', 'far', '.48', '.78') + lit('mtnMid', 'mid', '.36', '.88') +
+    lit('mtnNear', 'near', '.24', '.94'),
     '<rect width="1440" height="800" fill="url(#mtnSky)"/>' +
     '<circle class="sun" cx="330" cy="300" r="250" fill="url(#mtnSun)"/>' +
-    '<path class="m1" fill="url(#mtnFar)" d="M-60 800 L90 470 L210 560 L360 400 L500 560 L640 430 L790 570 L940 420 L1090 560 L1240 450 L1380 570 L1500 500 L1500 800Z"/>' +
-    '<path class="m2" fill="url(#mtnMid)" d="M-60 800 L120 600 L280 680 L430 540 L590 690 L740 570 L900 700 L1060 560 L1210 690 L1360 590 L1500 680 L1500 800Z"/>' +
-    '<path class="m3" fill="url(#mtnNear)" d="M-60 800 L160 700 L340 760 L520 680 L700 770 L880 700 L1060 780 L1240 710 L1400 770 L1500 730 L1500 800Z"/>'
+    '<path class="m1" fill="url(#mtnFar)" d="M-60 800 L40 590 L145 430 L230 545 L365 330 L470 505 L590 395 L720 565 L855 345 L970 520 L1095 385 L1220 555 L1350 410 L1500 590 L1500 800Z"/>' +
+    '<path fill="var(--w-light)" opacity=".20" d="M145 430 L365 330 L470 505 L365 405 L285 472 L230 545 L205 480Z M855 345 L970 520 L910 440 L855 410 L815 470Z M1095 385 L1220 555 L1140 468 L1095 445 L1055 500Z"/>' +
+    '<path class="m2" fill="url(#mtnMid)" d="M-60 800 L75 665 L220 575 L340 665 L505 500 L645 680 L790 555 L930 690 L1085 535 L1235 685 L1385 565 L1500 665 L1500 800Z"/>' +
+    '<path class="m3" fill="url(#mtnNear)" d="M-60 800 L110 720 L270 650 L420 745 L600 645 L760 760 L930 655 L1100 765 L1270 665 L1420 750 L1500 710 L1500 800Z"/>'
   );
 
   /* Ridges — sharp slate teeth, no sun, cooler and busier than the mountains. */
@@ -82,15 +84,24 @@
     '<path class="r3" fill="url(#rdg3)" d="M-60 800 L100 740 L220 780 L340 720 L460 790 L580 730 L700 790 L820 740 L940 800 L1060 750 L1180 800 L1300 760 L1420 800 L1500 780 L1500 800Z"/>'
   );
 
-  /* Dunes — long smooth curves and a big low sun. */
+  /* Dunes — substantial overlapping sand formations, fine wind-carved ridges,
+     and one fixed dead acacia silhouette so the scene never rearranges itself. */
   var DUNES = svg(
-    sky('dnSky') + glow('dnSun', '.9') +
-    lit('dn1', 'far', '.5', '.8') + lit('dn2', 'mid', '.34', '.9') + lit('dn3', 'near', '.2', '.95'),
+    sky('dnSky') + glow('dnSun', '.78') +
+    lit('dn1', 'far', '.48', '.76') + lit('dn2', 'mid', '.36', '.88') +
+    lit('dn3', 'near', '.24', '.94'),
     '<rect width="1440" height="800" fill="url(#dnSky)"/>' +
-    '<circle class="sun" cx="1080" cy="430" r="280" fill="url(#dnSun)"/>' +
-    '<path class="d1" fill="url(#dn1)" d="M-60 800 C180 500 380 700 640 590 C900 480 1100 700 1500 540 L1500 800Z"/>' +
-    '<path class="d2" fill="url(#dn2)" d="M-60 800 C220 620 440 760 720 660 C1000 560 1220 740 1500 640 L1500 800Z"/>' +
-    '<path class="d3" fill="url(#dn3)" d="M-60 800 C260 720 520 800 800 740 C1080 680 1300 790 1500 730 L1500 800Z"/>'
+    '<circle class="sun" cx="1080" cy="365" r="260" fill="url(#dnSun)"/>' +
+    '<path class="d1" fill="url(#dn1)" d="M-60 800 C90 585 280 410 520 475 C760 535 880 640 1110 520 C1280 430 1390 470 1500 430 L1500 800Z"/>' +
+    '<path class="d2" fill="url(#dn2)" d="M-60 800 C130 660 285 585 470 610 C700 640 760 735 1010 650 C1200 585 1350 600 1500 555 L1500 800Z"/>' +
+    '<path class="d3" fill="url(#dn3)" d="M-60 800 C170 735 330 680 540 710 C760 740 875 790 1080 725 C1260 670 1390 700 1500 670 L1500 800Z"/>' +
+    '<path d="M95 626 C230 520 340 490 470 510" fill="none" stroke="var(--w-light)" stroke-opacity=".22" stroke-width="3"/>' +
+    '<path d="M780 658 C920 585 1050 568 1195 585" fill="none" stroke="var(--w-light)" stroke-opacity=".18" stroke-width="2"/>' +
+    '<g class="dead-bush" fill="var(--w-shadow)" opacity=".78">' +
+      '<path d="M286 674 l-5 -34 -19 -24 4 -4 18 21 -3 -31 5 -2 5 34 19 -23 5 3 -21 27 2 31Z"/>' +
+      '<path d="M284 654 l-24 -12 -13 -18 4 -3 14 17 19 8Z M291 645 l17 -20 2 -16 5 0 -2 19 -18 22Z"/>' +
+      '<path d="M282 675 l-12 -2 -9 -8 3 -4 9 7 10 1Z"/>' +
+    '</g>'
   );
 
   /* Waves — four crests that actually roll. Each band is drawn twice as wide as
@@ -227,7 +238,9 @@
     }
   }
 
+  var wallTransition = 0;
   function setWall(mode) {
+    var transitionId = ++wallTransition;
     var body = document.body;
     if (!body || body.hasAttribute('data-nowall')) return;
     if (MOTION_OFF) de.setAttribute('data-motion', 'off');
@@ -235,8 +248,13 @@
     if (MODES.indexOf(mode) < 0) mode = 'aurora';
     if (mode === 'custom' && !custom) mode = 'aurora';
     if (mode === 'none') {
-      if (w) w.remove();
       body.classList.remove('has-wall');
+      if (w) {
+        w.style.opacity = '0';
+        setTimeout(function () {
+          if (transitionId === wallTransition && w.parentNode) w.remove();
+        }, 340);
+      }
       return;
     }
     if (!w) {
@@ -244,6 +262,8 @@
       w.id = 'wall';
       body.insertBefore(w, body.firstChild);
     }
+    var crossfade = !!w.className && w.className !== mode;
+    if (crossfade) { w.style.opacity = '0'; void w.offsetWidth; }
     w.className = mode;
     w.removeAttribute('style');
     w.textContent = '';
@@ -311,6 +331,12 @@
     }
     /* felt, fluted, thermal, speckle, blueprint, halftone, grass, paper and
        contour are pure CSS: the class name is all they need. */
+    if (crossfade) {
+      w.style.opacity = '0';
+      requestAnimationFrame(function () {
+        if (transitionId === wallTransition && document.getElementById('wall') === w) w.style.opacity = '1';
+      });
+    }
   }
   window.setWall = setWall;
   window.setCustomWall = function (url) { custom = url || ''; };
