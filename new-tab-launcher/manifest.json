@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "3.0.0",
-  "description": "Architecture foundations, shared catalogs, and consolidated request validation.",
+  "version": "3.2.0",
+  "description": "Deep refactor: safer editor and GitHub integration, file handling, themes and session data.",
   "minimum_chrome_version": "103",
   "permissions": [
     "storage",
