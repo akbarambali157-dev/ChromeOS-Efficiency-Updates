@@ -1,2 +1,24 @@
 :root{color-scheme:dark;--bg:#10151c;--panel:#19222d;--line:#2a3948;--text:#e8eef5;--muted:#a8b6c5;--accent:#83d6bd;--button-text:#10231e;font:14px/1.5 system-ui,sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}.frame-app{max-width:920px;margin:auto;padding:20px}header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid var(--line);padding-bottom:13px;margin-bottom:16px}.eyebrow{font-size:10px;letter-spacing:.14em;color:var(--accent);font-weight:700;margin:0 0 5px}h1{font-size:clamp(22px,4vw,30px);margin:0 0 5px}.muted,.status{color:var(--muted)}.muted{font-size:12px;margin:0}.offline-pill{border:1px solid var(--line);border-radius:20px;padding:5px 9px;font-size:10px;color:var(--accent);white-space:nowrap}.app-root{display:grid;gap:12px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}.field{display:grid;gap:5px;margin:9px 0}.field label{font-size:12px;color:var(--muted)}input,textarea,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text);font:inherit}textarea{min-height:150px;resize:vertical;font-family:ui-monospace,monospace}button{padding:9px 12px;border:0;border-radius:8px;background:var(--accent);color:var(--button-text);font:inherit;font-weight:650;cursor:pointer}.secondary{background:#2b3948;color:var(--text)}.danger{background:transparent;border:1px solid #c66;color:#f99}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.status{min-height:22px;font-size:12px;margin:10px 0}.status.error{color:#ff9d9d}.timer{font-size:clamp(56px,13vw,100px);text-align:center;color:var(--accent);font-variant-numeric:tabular-nums;padding:12px}.result{padding:10px 0;border-bottom:1px solid var(--line)}.result a{color:var(--accent)}.result p{font-size:12px;color:var(--muted)}.preview,pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--panel);padding:12px;border-radius:8px;min-height:50px}.reader{width:100%;height:58vh;border:0;background:white}.reference{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 :root[data-text-size=small]{font-size:13px}:root[data-text-size=large]{font-size:17px}:root[data-density=compact] .panel{padding:9px}:root[data-contrast=high]{--line:#8196a7;--muted:#d1dce4}:root[data-motion=off] *{animation:none!important;transition:none!important}
+
+/* Mini-app 40 catalogue: responsive, theme-inheriting controls */
+.app-root h2{font-size:1.08rem;margin:0 0 10px;color:var(--text)}
+.app-root .panel{min-width:0;overflow:hidden}
+.app-root .reference{flex-wrap:wrap;align-items:center}
+.app-root .reference>span,.app-root .reference>div{min-width:0;overflow-wrap:anywhere}
+.app-root button{min-height:36px;padding:8px 12px;border:1px solid transparent;border-radius:9px;background:var(--accent);color:var(--button-text);font:inherit;font-weight:650;cursor:pointer}
+.app-root button.secondary{background:transparent;border-color:var(--line);color:var(--text)}
+.app-root button:focus-visible,.app-root input:focus-visible,.app-root textarea:focus-visible,.app-root select:focus-visible,.app-root a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app-root input[type=range],.app-root input[type=color]{max-width:100%;padding:4px}
+.app-root input[type=color]{width:58px;height:38px}
+.app-root textarea{min-height:110px}
+.app-root pre{max-height:360px;overflow:auto}
+.app-root .table-wrap{max-width:100%;overflow:auto;border:1px solid var(--line);border-radius:9px}
+.app-root table{border-collapse:collapse;width:100%;font-size:.9em}
+.app-root th,.app-root td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.app-root th{position:sticky;top:0;background:var(--panel);color:var(--accent)}
+.app-root figure{margin:0;padding:8px;border:1px solid var(--line);border-radius:10px}
+.app-root figcaption{font-size:.85em;color:var(--muted);overflow-wrap:anywhere}
+.app-root iframe{max-width:100%}
+.app-root .download-link{color:var(--accent)}
+@media(max-width:560px){.frame-app{padding:12px}.app-root .panel{padding:10px}.app-root .reference{align-items:flex-start}.app-root .reference button{flex:0 0 auto}}
