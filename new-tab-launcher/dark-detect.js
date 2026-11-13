@@ -42,11 +42,14 @@
       else if (v === false) light++;
     }
     /* Inconclusive (everything transparent): do not invert. */
-    if (!dark && !light) return false;
-    return dark > light;
+    /* Unknown pages must be left untouched. Only a clear majority of light
+       samples should activate the inversion filter. */
+    if (dark + light < 4) return null;
+    return dark > light ? true : (light > dark ? false : null);
   }
 
   function remember(dark) {
+    if (typeof dark !== 'boolean') return;
     try {
       chrome.storage.local.get('nativeDark', function (d) {
         var map = d.nativeDark || {};
@@ -65,7 +68,8 @@
     de.setAttribute('data-nodark', '1');
     var dark = false;
     try { dark = isDark(); } catch (e) {}
-    if (!dark) de.removeAttribute('data-nodark');
+    if (dark !== false) de.setAttribute('data-nodark', '1');
+    else de.removeAttribute('data-nodark');
     remember(dark);
   }
   window.__darkRevive = function () {
@@ -95,4 +99,5 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
   else start();
   window.addEventListener('load', decide);
+  window.addEventListener('pageshow', decide);
 })();
