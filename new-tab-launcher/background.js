@@ -240,7 +240,7 @@ function sweep() {
       chrome.tabs.query({ active: false, audible: false, pinned: false, discarded: false }),
       chrome.storage.session.get('seen')
     ]).then(function (r) {
-      var seen = r[1].seen || {}, next = {};
+      var seen = r[1].seen || {}, next = Object.assign({}, seen);
       r[0].forEach(function (t) {
         var ts = seen[t.id] || now;
         next[t.id] = ts;
