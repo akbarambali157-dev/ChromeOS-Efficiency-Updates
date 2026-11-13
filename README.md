@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 2.7.0** · Manifest V3 · minimum Chrome 103
+**Version 2.8.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -36,7 +36,7 @@ recently closed tabs, and settings.
 **Command bar** — click the search box or press `/`. Search shortcuts, open tabs, bookmarks and history, or type `gh prs`,
 `drive new sheet`, a tab name, or a shortcut name.
 
-**Customisation** — hide or show Tools, Sessions, Quick note and Tasks independently; changes do not delete their saved data. Choose custom primary and secondary accent colours, adjust text size and dashboard spacing, or enable higher contrast. These preferences are included in validated backups.
+**Customisation** — hide or show Tools, Sessions, Quick note and Tasks independently; changes do not delete their saved data. Choose custom primary and secondary accent colours, adjust text size and dashboard spacing, or enable higher contrast. These preferences are included in validated backups. The interface also has consistent keyboard focus indicators, a skip-to-content link, clearer shortcut edit/remove labels for assistive technology, and larger touch targets on touch devices.
 
 **Themes** — 14 themes (10 dark, 4 light) each with a matching wallpaper, plus
 **Void**, a true-black night sky with sparse sharp stars. *Day / night* mode
