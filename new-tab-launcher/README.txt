@@ -1,4 +1,4 @@
-My Launcher 2.5.1
+My Launcher 2.6.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -13,6 +13,10 @@ Shortcuts (change at chrome://extensions/shortcuts):
   Alt+Shift+X  close duplicate tabs in this window
   Alt+Shift+F  suspend background tabs to free memory
   Alt+Shift+D  turn dark mode on or off for the site you are on
+
+Automatic tab suspension
+  Its one-minute alarm runs only while the setting is enabled. Idle time is measured
+  from the last tab activation; supported intervals are 10, 20, 30 or 60 minutes.
 
 Home page
   Four shortcut tiles, 2x2. Everything else is behind "All shortcuts", which is
@@ -77,6 +81,13 @@ Files: open the Files tab, choose a folder, press Scan. Then ask the assistant
 'what files do I have'.
 Email: ask the assistant 'check my email'. It reads your signed-in Gmail unread
 list (read only).
+
+Credentials (GitHub, Brewkeg and Parallel) are stored in Chrome extension local storage,
+not an encrypted password vault. They are excluded from backups. Keep your Chrome
+profile private and use narrowly scoped tokens.
+
+Performance: see PERFORMANCE-BASELINE.md for a repeatable Chrome Task Manager
+memory and CPU measurement process.
 
 Backup: Settings -> Export backup saves shortcuts, workspaces, notes, tasks, sessions, settings and
 Claude Code files and conversations. Your GitHub token and brewkeg keys are never
