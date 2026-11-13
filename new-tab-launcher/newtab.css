@@ -713,3 +713,27 @@ dialog[open]{animation:pop .22s ease-out}
 .workspace-controls .railbtn:disabled{opacity:.45;cursor:not-allowed}
 .workspace-switcher .status{margin-top:5px}
 @media(max-width:520px){.workspace-controls{flex-wrap:wrap}.workspace-controls select{flex-basis:100%}.workspace-controls .railbtn{flex:1;justify-content:center}}
+
+
+/* ---------- Customisation 2.5.0 ---------- */
+.custom-colours{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.custom-colours label{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+.custom-colours input[type=color]{width:42px;height:34px;padding:2px;border:1px solid var(--panel-hi);border-radius:8px;background:var(--panel);cursor:pointer}
+.layout-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px}
+.layout-option{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:10px;background:var(--panel);color:var(--text);font-size:13px}
+.layout-option input{width:17px;height:17px;accent-color:var(--accent)}
+:root[data-text-size="small"] body{font-size:14px}
+:root[data-text-size="large"] body{font-size:17px}
+:root[data-density="compact"] .wrap{padding-top:30px;padding-bottom:24px}
+:root[data-density="compact"] #homeView>section{margin-top:14px}
+:root[data-density="compact"] h3.sec{margin-top:18px;margin-bottom:8px}
+:root[data-contrast="high"]{--muted:#c4d0d9}
+:root[data-contrast="high"] .tile,
+:root[data-contrast="high"] .links a,
+:root[data-contrast="high"] .links button.tool,
+:root[data-contrast="high"] .notes textarea,
+:root[data-contrast="high"] .task-item,
+:root[data-contrast="high"] .layout-option{outline:1px solid rgba(var(--text-rgb,238,242,244),.24)}
+:root[data-contrast="high"] .hint,
+:root[data-contrast="high"] .date,
+:root[data-contrast="high"] .desc{color:var(--text)}
