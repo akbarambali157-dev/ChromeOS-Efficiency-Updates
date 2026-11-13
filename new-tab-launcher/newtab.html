@@ -25,6 +25,16 @@
     <ul id="sugg" class="sugg" hidden></ul>
   </form>
 
+  <section class="workspace-switcher" aria-labelledby="workspaceHeading">
+    <div class="workspace-top"><div><h3 class="sec" id="workspaceHeading">Workspaces</h3><p class="hint">Separate shortcut collections for different parts of your day.</p></div><span class="workspace-count" id="workspaceCount">1 profile</span></div>
+    <div class="workspace-controls">
+      <label class="sr-only" for="workspaceSelect">Choose workspace</label>
+      <select id="workspaceSelect" aria-label="Choose workspace"></select>
+      <button type="button" class="railbtn" id="workspaceSave">Save as new</button>
+      <button type="button" class="railbtn" id="workspaceDelete" disabled>Delete</button>
+    </div>
+    <div id="workspaceStatus" class="status" aria-live="polite"></div>
+  </section>
   <section>
     <div id="grid" class="grid"></div>
     <div class="railbtns">
@@ -184,6 +194,14 @@
       <button type="button" id="sCancel" class="ghost">Cancel</button>
       <button type="submit" class="primary">Save session</button>
     </div>
+  </form>
+</dialog>
+<dialog id="dlgW">
+  <form id="dlgWForm" method="dialog">
+    <h2>Save workspace</h2>
+    <p class="hint">This saves a separate copy of your current shortcuts. Your existing workspace stays unchanged.</p>
+    <label>Name <input id="wName" type="text" required maxlength="24" placeholder="e.g. Study"></label>
+    <div class="row"><button type="button" id="wCancel" class="ghost">Cancel</button><button type="submit" class="primary">Create workspace</button></div>
   </form>
 </dialog>
 <script src="nav.js"></script>
