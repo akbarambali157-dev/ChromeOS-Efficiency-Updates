@@ -15,7 +15,7 @@
   var files = [], logs = [], activeFile = null, activeLog = null;
   var ccKey = '', model = 'claude-sonnet-5-5', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
-  var dirty = false, saveTimer = null, busy = false;
+  var saveTimer = null, busy = false;
 
   /* Context limits. The chat used to send only the open file, trimmed to 6000
      characters, and ten messages of history. That is why long answers looked
@@ -98,7 +98,6 @@
   }
 
   function setDirty(on) {
-    dirty = on;
     $('dirty').hidden = !on;
   }
 
