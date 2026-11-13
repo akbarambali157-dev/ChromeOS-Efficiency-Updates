@@ -1,6 +1,6 @@
 # My Launcher — 40-app catalogue and release roadmap
 
-**Catalogue status:** 40 entries published; 12 bundled implementations; 28 planned.  
+**Catalogue status:** 40 entries published; all 40 implementations bundled and registered; final QA in progress.  
 **Target hardware:** Acer Chromebook 15 CB3-532, 2 GB RAM, ChromeOS 103.  
 **Policy:** offline-first, small packages, one foreground app by default. A planned listing is not an installable app.
 
@@ -11,8 +11,8 @@
 | 2 | Quick Notes | Live |
 | 3 | Mini Kanban | Live |
 | 4 | Study Planner | Live |
-| 5 | Calendar Mini | Planned |
-| 6 | Habit Tracker | Planned |
+| 5 | Calendar Mini | Live |
+| 6 | Habit Tracker | Live |
 
 ## Research and learning
 | # | App | Status |
@@ -20,70 +20,65 @@
 | 7 | Research Library | Live; fresh search online |
 | 8 | Citation Manager | Live |
 | 9 | Flashcard Studio | Live |
-| 10 | Quiz Builder | Planned |
-| 11 | Mind Map | Planned |
+| 10 | Quiz Builder | Live |
+| 11 | Mind Map | Live |
 
 ## Documents and files
 | # | App | Status |
 |---:|---|---|
 | 12 | PDF Reader | Live |
 | 13 | Markdown Editor | Live |
-| 14 | Document Studio | Planned |
-| 15 | Text & CSV Viewer | Planned |
-| 16 | File Toolkit | Planned |
+| 14 | Document Studio | Live |
+| 15 | Text & CSV Viewer | Live |
+| 16 | File Toolkit | Live |
 
 ## Developer and data tools
 | # | App | Status |
 |---:|---|---|
 | 17 | JSON Studio | Live |
-| 18 | Code Playground | Planned |
-| 19 | Regex Tester | Planned |
-| 20 | CSV Data Studio | Planned |
-| 21 | Diff Checker | Planned |
+| 18 | Code Playground | Live |
+| 19 | Regex Tester | Live |
+| 20 | CSV Data Studio | Live |
+| 21 | Diff Checker | Live |
 
 ## System and utilities
 | # | App | Status |
 |---:|---|---|
 | 22 | Advanced Calculator | Live |
-| 23 | System Monitor | Planned |
-| 24 | Storage Dashboard | Planned |
-| 25 | Unit Converter | Planned |
-| 26 | QR Studio | Planned |
+| 23 | System Monitor | Live |
+| 24 | Storage Dashboard | Live |
+| 25 | Unit Converter | Live |
+| 26 | QR Studio | Live; QR rendering online |
 
 ## Creative studio
 | # | App | Status |
 |---:|---|---|
 | 27 | Colour Studio | Live |
-| 28 | Image Studio | Planned |
-| 29 | Drawing Pad | Planned |
-| 30 | Diagram Maker | Planned |
-| 31 | SVG Icon Studio | Planned |
+| 28 | Image Studio | Live |
+| 29 | Drawing Pad | Live |
+| 30 | Diagram Maker | Live |
+| 31 | SVG Icon Studio | Live |
 
 ## Personal organisation
 | # | App | Status |
 |---:|---|---|
-| 32 | Expense Tracker | Planned |
-| 33 | Reading Tracker | Planned |
-| 34 | Bookmark Library | Planned |
-| 35 | Daily Journal | Planned |
+| 32 | Expense Tracker | Live |
+| 33 | Reading Tracker | Live |
+| 34 | Bookmark Library | Live |
+| 35 | Daily Journal | Live |
 
 ## Media and accessibility
 | # | App | Status |
 |---:|---|---|
-| 36 | Audio Player | Planned |
-| 37 | Video Library | Planned |
-| 38 | Image Viewer | Planned |
-| 39 | Text-to-Speech | Planned |
-| 40 | Accessibility Checker | Planned |
+| 36 | Audio Player | Live |
+| 37 | Video Library | Live |
+| 38 | Image Viewer | Live |
+| 39 | Text-to-Speech | Live; browser support dependent |
+| 40 | Accessibility Checker | Live; basic heuristic checks |
 
 ## Implementation waves
 
-- **3.5.0:** the twelve current first-party apps, runtime, workspace, theme integration, scoped storage, backup/restore, storefront and release acceptance tests.
-- **3.5.1:** complete the next eight apps, prioritising Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester.
-- **3.6.0:** complete the next ten apps, prioritising CSV Data Studio, Diff Checker, System Monitor, Storage Dashboard, Unit Converter, QR Studio, Image Studio, Drawing Pad, Diagram Maker and SVG Icon Studio.
-- **3.7.0:** complete the final ten apps across personal organisation and media/accessibility.
-
-The version targets are planning milestones. A release count changes only after each app is implemented, tested and marked live. Do not enable Install for planned entries.
+- **3.5.0:** runtime foundation and the original twelve apps.\n- **3.5.1:** audit/fix the original twelve and deliver Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester (20 total).\n- **3.6.0:** add CSV Data Studio, Diff Checker, System Monitor, Storage Dashboard, Unit Converter, QR Studio, Image Studio, Drawing Pad, Diagram Maker and SVG Icon Studio (30 total).\n- **3.7.0:** add Habit Tracker, Expense Tracker, Reading Tracker, Bookmark Library, Daily Journal, Audio Player, Video Library, Image Viewer, Text-to-Speech and Accessibility Checker (40 total).\n- **3.8.0:** complete marketplace-wide regression, accessibility, storage, offline, security and target-device QA.\n- **3.9.0:** begin the Claude file-reader upgrade only after the 40-app QA gate passes.\n\nThe current 3.7.0 implementation candidate registers all 40 apps as bundled. A release count is not a claim of target-device verification: the 3.8.0 gate must still validate every app on Chrome 103 and the target Chromebook. QR image generation is an optional online feature; its payload editor remains local. Code Playground intentionally does not execute user JavaScript.
 
 ## Resource policy
 
