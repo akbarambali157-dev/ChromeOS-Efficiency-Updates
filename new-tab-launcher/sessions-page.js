@@ -107,11 +107,14 @@
     } catch (e) { say('Could not read the selection: ' + e.message, true); return; }
     var n = Object.keys(acc).length;
     if (!n) { say('No token usage found in those files.', true); return; }
+    var nextSaved = Object.create(null);
+    Object.keys(saved).forEach(function (k) { nextSaved[k] = saved[k]; });
     Object.keys(acc).forEach(function (k) {
-      if (Object.prototype.hasOwnProperty.call(saved, k) || Object.keys(saved).length < MAX_SESSIONS) saved[k] = acc[k];
+      if (Object.prototype.hasOwnProperty.call(nextSaved, k) || Object.keys(nextSaved).length < MAX_SESSIONS) nextSaved[k] = acc[k];
     });
-    chrome.storage.local.set({ ccSessions: saved }, function () {
+    chrome.storage.local.set({ ccSessions: nextSaved }, function () {
       if (chrome.runtime.lastError) { say('Could not save imported totals. Clear older sessions or import a smaller batch.', true); return; }
+      saved = nextSaved;
       say('Loaded ' + n + (n === 1 ? ' session' : ' sessions') + ' from ' + files.length + (files.length === 1 ? ' file.' : ' files.'));
       render();
     });
@@ -152,7 +155,11 @@
   $('pickDir').addEventListener('change', function (e) { importFiles(e.target.files); e.target.value = ''; });
   $('pickFiles').addEventListener('change', function (e) { importFiles(e.target.files); e.target.value = ''; });
   $('clear').addEventListener('click', function () {
-    saved = {}; chrome.storage.local.remove('ccSessions'); say('Saved totals cleared.'); render();
+    var previous = saved;
+    chrome.storage.local.remove('ccSessions', function () {
+      if (chrome.runtime.lastError) { say('Could not clear saved totals.', true); return; }
+      saved = Object.create(null); say('Saved totals cleared.'); render();
+    });
   });
 
   chrome.storage.local.get('ccSessions', function (d) {
