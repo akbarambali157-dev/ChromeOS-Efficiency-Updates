@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 3.4.1** · Manifest V3 · minimum Chrome 103
+**Development: 3.5.0-B** (last tagged release 3.4.1) · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -69,7 +69,7 @@ GitHub push button. It uses its own brewkeg key, kept apart from the assistant's
 and never included in a backup export. Pushing shows you the diff before anything is written, and the push is bound
 to the exact file contents and destination reviewed.
 
-**Mini-app Store** — a remote catalogue whose metadata remains in GitHub and whose storefront and six versioned apps are hosted on Vercel. Install saves a small launch record; apps open in separate tabs, outside the extension origin. RAM/CPU figures are estimates with Conservative (20 MB), Balanced (35 MB) and Unrestricted profiles. Closed apps use no app runtime RAM. App site data is separate from extension storage. The Vercel project deploys the `marketplace/` directory from `main`. Data saved on the former GitHub Pages origin is not migrated automatically. Research discovery links only to legitimate open-access records.
+**Mini-app Store** — a remote Vercel storefront and cached metadata catalogue, with a new local mini-app runtime under development. The first six first-party apps (Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor and JSON Studio) can be enabled locally and opened in a restricted launcher workspace. Their bundled code works offline; fresh Research Library searches need internet. App data is stored in an app-specific IndexedDB namespace. Install enables bundled code; it does not download remote executable JavaScript. The 40-app catalogue, initial 12-app release, app-data backup/restore and final 3.5.0 QA are still in progress. See [the 3.5.0 audit](MINI-APP-3.5.0-AUDIT.md) and [marketplace architecture](MARKETPLACE.md).
 
 **Tab tools** — close duplicate tabs, suspend background tabs to free memory,
 and a memory monitor that shows which sites are using the most.
