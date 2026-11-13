@@ -1,4 +1,4 @@
-My Launcher 2.6.0
+My Launcher 2.7.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
