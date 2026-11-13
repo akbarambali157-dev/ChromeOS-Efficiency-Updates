@@ -63,6 +63,11 @@
   ];
   function say(msg, err) { var s = $('bkStatus'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
   function isWeb(u) { return typeof u === 'string' && /^https?:\/\//i.test(u); }
+  function isDateKey(v) {
+    if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+    var p = v.split('-').map(Number), d = new Date(p[0], p[1] - 1, p[2]);
+    return d.getFullYear() === p[0] && d.getMonth() === p[1] - 1 && d.getDate() === p[2];
+  }
 
   $('bkExport').addEventListener('click', function () {
     chrome.storage.local.get(KEYS, function (data) {
@@ -87,7 +92,7 @@
       out.tasks = d.tasks.filter(function (t) {
         return t && typeof t.title === 'string' && t.title.trim() && t.title.length <= 160;
       }).slice(0, 100).map(function (t, i) {
-        var due = typeof t.due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(t.due) &&
+        var due = isDateKey(t.due) ? t.due : '';
           !isNaN(Date.parse(t.due + 'T00:00:00')) ? t.due : '';
         return {
           id: String(t.id || ('restored-' + i)).slice(0, 80),
