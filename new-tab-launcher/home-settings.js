@@ -190,7 +190,7 @@
     if (Array.isArray(d.ccFiles)) {
       out.ccFiles = d.ccFiles.filter(function (f) { return f && typeof f.name === 'string' && typeof f.content === 'string'; })
         .slice(0, 40).map(function (f) {
-          return { id: String(f.id || ''), name: f.name.slice(0, 60), content: f.content.slice(0, 200000) };
+          return { id: String(f.id || ''), name: f.name.slice(0, 60), content: f.content.slice(0, 200000), attached: f.attached !== false };
         });
     }
     if (Array.isArray(d.ccLogs)) {
