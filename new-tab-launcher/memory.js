@@ -5,7 +5,7 @@
   var busy = false, sysTxt = '', tabTxt = '';
   function paintSum() { $('memSum').textContent = sysTxt + (tabTxt ? ' \u2022 ' + tabTxt : ''); }
 
-  function gb(n) { return (n / 1073741824).toFixed(1); }
+  var gb = window.LauncherUtils.formatGiB;
   function mb(b) { return b >= 1073741824 ? (b / 1073741824).toFixed(2) + ' GB' : Math.max(1, Math.round(b / 1048576)) + ' MB'; }
   function dur(ms) {
     var m = Math.floor(ms / 60000);
