@@ -20,7 +20,7 @@
 ## Verification
 - Syntax checks passed for the changed extension and storefront JavaScript.
 - Registry, catalogue and manifest JSON parsed successfully.
-- Vercel production deployment for the storefront redesign was reported READY on the commit that published the twelve-app catalogue; a later copy-only production deployment was still building at the time of this changelog.
+- Vercel production deployment for the redesigned storefront and 40-entry catalogue reached READY. The production homepage and catalogue were fetched successfully (HTTP 200), and the deployed catalogue contained 40 entries (12 live, 28 planned).
 - Browser-level tests on Chrome 103 and the actual 2 GB Chromebook remain necessary.
 
 ## Remaining
