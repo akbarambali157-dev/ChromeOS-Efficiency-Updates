@@ -1,7 +1,9 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var saved = {};
+  var saved = Object.create(null);
+  var MAX_IMPORT_FILES = 20, MAX_IMPORT_BYTES = 25 * 1048576;
+  var MAX_IMPORT_LINES = 100000, MAX_LINE_CHARS = 512000, MAX_SESSIONS = 500;
 
   function fmt(n) {
     if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
@@ -16,21 +18,35 @@
   }
   function say(msg, err) { var s = $('status'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
 
-  // read a file line by line without loading it all into memory
+  // Read incrementally and reject pathological single-line records.
   async function readLines(file, onLine) {
     var reader = file.stream().getReader();
     var dec = new TextDecoder();
     var buf = '';
-    for (;;) {
-      var r = await reader.read();
-      if (r.done) break;
-      buf += dec.decode(r.value, { stream: true });
-      var parts = buf.split('\n');
-      buf = parts.pop();
-      for (var i = 0; i < parts.length; i++) onLine(parts[i]);
+    try {
+      for (;;) {
+        var r = await reader.read();
+        if (r.done) break;
+        buf += dec.decode(r.value, { stream: true });
+        var parts = buf.split('\n');
+        buf = parts.pop();
+        if (buf.length > MAX_LINE_CHARS) throw new Error('A JSONL record is too large to process safely.');
+        for (var i = 0; i < parts.length; i++) {
+          if (parts[i].length > MAX_LINE_CHARS) throw new Error('A JSONL record is too large to process safely.');
+          onLine(parts[i]);
+        }
+      }
+      buf += dec.decode();
+      if (buf.length > MAX_LINE_CHARS) throw new Error('A JSONL record is too large to process safely.');
+      if (buf) onLine(buf);
+    } finally {
+      try { reader.releaseLock(); } catch (e) {}
     }
-    buf += dec.decode();
-    if (buf) onLine(buf);
+  }
+
+  function safeCount(value) {
+    var n = Number(value);
+    return isFinite(n) && n > 0 ? Math.min(Math.floor(n), 1000000000000) : 0;
   }
 
   function addLine(line, fname, acc, seen) {
@@ -38,45 +54,67 @@
     var o;
     try { o = JSON.parse(line); } catch (e) { return; }
     var m = o && o.message;
-    if (!m || !m.usage || m.model === '<synthetic>') return;
-    var key = (m.id || '') + ':' + (o.requestId || '');
-    if (key !== ':') { if (seen[key]) return; seen[key] = 1; }
-    var sid = o.sessionId || fname.replace(/\.jsonl$/, '');
-    var s = acc[sid] || (acc[sid] = {
-      id: sid, project: '', first: null, last: null,
-      input: 0, output: 0, cacheW: 0, cacheR: 0, turns: 0, models: {}
-    });
+    if (!m || !m.usage || typeof m.usage !== 'object' || m.model === '<synthetic>') return;
+    var messageId = typeof m.id === 'string' ? m.id.slice(0, 160) : '';
+    var requestId = typeof o.requestId === 'string' ? o.requestId.slice(0, 160) : '';
+    var key = messageId + ':' + requestId;
+    if (key !== ':') { if (seen[key]) return; seen[key] = true; }
+    var sid = String(o.sessionId || fname.replace(/\.jsonl$/i, '')).slice(0, 160);
+    var s = acc[sid];
+    if (!s) {
+      if (Object.keys(acc).length >= MAX_SESSIONS) return;
+      s = acc[sid] = {
+        id: sid, project: '', first: null, last: null,
+        input: 0, output: 0, cacheW: 0, cacheR: 0, turns: 0, models: Object.create(null)
+      };
+    }
     var u = m.usage;
-    s.input += u.input_tokens || 0;
-    s.output += u.output_tokens || 0;
-    s.cacheW += u.cache_creation_input_tokens || 0;
-    s.cacheR += u.cache_read_input_tokens || 0;
-    s.turns++;
-    if (m.model) s.models[m.model] = (s.models[m.model] || 0) + 1;
-    var ts = o.timestamp;
-    if (ts) {
+    s.input = Math.min(1000000000000, s.input + safeCount(u.input_tokens));
+    s.output = Math.min(1000000000000, s.output + safeCount(u.output_tokens));
+    s.cacheW = Math.min(1000000000000, s.cacheW + safeCount(u.cache_creation_input_tokens));
+    s.cacheR = Math.min(1000000000000, s.cacheR + safeCount(u.cache_read_input_tokens));
+    s.turns = Math.min(1000000000000, s.turns + 1);
+    if (typeof m.model === 'string' && m.model && m.model.length <= 80 &&
+        (Object.prototype.hasOwnProperty.call(s.models, m.model) || Object.keys(s.models).length < 20)) {
+      s.models[m.model] = Math.min(1000000000000, (s.models[m.model] || 0) + 1);
+    }
+    var ts = typeof o.timestamp === 'string' && o.timestamp.length <= 40 ? o.timestamp : '';
+    if (ts && !isNaN(Date.parse(ts))) {
       if (!s.first || ts < s.first) s.first = ts;
       if (!s.last || ts > s.last) s.last = ts;
     }
-    if (o.cwd && !s.project) s.project = String(o.cwd).split('/').filter(Boolean).pop() || o.cwd;
+    if (typeof o.cwd === 'string' && !s.project) {
+      var cwd = o.cwd.slice(0, 240);
+      s.project = cwd.split('/').filter(Boolean).pop() || cwd;
+    }
   }
-
   async function importFiles(fileList) {
     var files = Array.prototype.filter.call(fileList, function (f) { return /\.jsonl$/i.test(f.name); });
     if (!files.length) { say('No .jsonl files found in that selection.', true); return; }
-    var acc = {}, seen = {};
+    if (files.length > MAX_IMPORT_FILES) { say('Choose no more than ' + MAX_IMPORT_FILES + ' JSONL files at once.', true); return; }
+    var totalBytes = files.reduce(function (sum, f) { return sum + f.size; }, 0);
+    if (totalBytes > MAX_IMPORT_BYTES) { say('That selection is larger than 25 MB. Import smaller batches.', true); return; }
+    var acc = Object.create(null), seen = Object.create(null), linesRead = 0;
     try {
       for (var i = 0; i < files.length; i++) {
         say('Reading file ' + (i + 1) + ' of ' + files.length + '\u2026');
-        await readLines(files[i], function (l) { addLine(l, files[i].name, acc, seen); });
+        await readLines(files[i], function (l) {
+          linesRead++;
+          if (linesRead > MAX_IMPORT_LINES) throw new Error('The selection exceeds the 100,000-record import limit. Split it into smaller files.');
+          addLine(l, files[i].name, acc, seen);
+        });
       }
-    } catch (e) { say('Could not read a file: ' + e.message, true); return; }
+    } catch (e) { say('Could not read the selection: ' + e.message, true); return; }
     var n = Object.keys(acc).length;
     if (!n) { say('No token usage found in those files.', true); return; }
-    Object.keys(acc).forEach(function (k) { saved[k] = acc[k]; });
-    chrome.storage.local.set({ ccSessions: saved });
-    say('Loaded ' + n + (n === 1 ? ' session' : ' sessions') + ' from ' + files.length + (files.length === 1 ? ' file.' : ' files.'));
-    render();
+    Object.keys(acc).forEach(function (k) {
+      if (Object.prototype.hasOwnProperty.call(saved, k) || Object.keys(saved).length < MAX_SESSIONS) saved[k] = acc[k];
+    });
+    chrome.storage.local.set({ ccSessions: saved }, function () {
+      if (chrome.runtime.lastError) { say('Could not save imported totals. Clear older sessions or import a smaller batch.', true); return; }
+      say('Loaded ' + n + (n === 1 ? ' session' : ' sessions') + ' from ' + files.length + (files.length === 1 ? ' file.' : ' files.'));
+      render();
+    });
   }
 
   function render() {
@@ -118,7 +156,24 @@
   });
 
   chrome.storage.local.get('ccSessions', function (d) {
-    saved = d.ccSessions || {};
+    var raw = d.ccSessions && typeof d.ccSessions === 'object' && !Array.isArray(d.ccSessions) ? d.ccSessions : {};
+    saved = Object.create(null);
+    Object.keys(raw).slice(0, MAX_SESSIONS).forEach(function (key) {
+      var s = raw[key];
+      if (!s || typeof s !== 'object' || Array.isArray(s)) return;
+      var id = String(s.id || key).slice(0, 160);
+      var models = Object.create(null);
+      if (s.models && typeof s.models === 'object' && !Array.isArray(s.models)) {
+        Object.keys(s.models).slice(0, 20).forEach(function (name) { models[String(name).slice(0, 80)] = safeCount(s.models[name]); });
+      }
+      saved[id] = {
+        id: id, project: typeof s.project === 'string' ? s.project.slice(0, 120) : '',
+        first: typeof s.first === 'string' ? s.first.slice(0, 40) : null,
+        last: typeof s.last === 'string' ? s.last.slice(0, 40) : null,
+        input: safeCount(s.input), output: safeCount(s.output), cacheW: safeCount(s.cacheW),
+        cacheR: safeCount(s.cacheR), turns: safeCount(s.turns), models: models
+      };
+    });
     render();
   });
 })();
