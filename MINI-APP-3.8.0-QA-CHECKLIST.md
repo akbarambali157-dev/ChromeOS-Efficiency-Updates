@@ -1,6 +1,8 @@
-# My Launcher 3.7.0 — 40 mini-app manual QA checklist
+# My Launcher 3.8.0 — 40 mini-app manual QA checklist
 
-**Purpose:** clear browser/device issues quickly before calling the 40-app platform complete.  
+**Purpose:** run the automated repository gate first, then clear browser/device issues before calling the 40-app platform complete.
+
+**Automated gate:** run `node scripts/validate-miniapps.mjs` from the repository root. CI also runs JavaScript syntax checks for every extension script. A passing repository gate does not replace manual ChromeOS 103 testing.  
 **Target:** Acer Chromebook 15 CB3-532 · Celeron N3060 · 2 GB RAM · ChromeOS 103.  
 **Important:** repository syntax/schema checks are not a substitute for testing in the actual ChromeOS 103 browser.
 
