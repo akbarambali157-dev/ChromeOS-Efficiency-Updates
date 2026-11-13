@@ -367,20 +367,11 @@
 
   /* ---------- GitHub ---------- */
   function gh(path, method, body) {
-    return fetch('https://api.github.com' + path, {
+    return window.GitHubApi.request(ghToken, path, {
       method: method || 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + ghToken,
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
-      body: body ? JSON.stringify(body) : undefined
-    }).then(function (r) {
-      if (r.status === 401) throw new Error('GitHub rejected the token.');
-      if (r.status === 403) throw new Error('GitHub refused that. Check the token has repo scope.');
-      if (r.status === 404) return { missing: true };
-      if (!r.ok) throw new Error('GitHub returned an error (' + r.status + ').');
-      return r.status === 204 ? {} : r.json();
+      body: body,
+      notFoundAsMissing: true,
+      forbiddenMessage: 'GitHub refused that. Check the token has repo scope.'
     });
   }
 
@@ -428,7 +419,11 @@
     var repo = $('pushRepo').value.trim();
     var path = $('pushPath').value.trim().replace(/^\/+/, '');
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { say('pushStatus', 'Repository should look like owner/repo.', true); return; }
-    if (!path) { say('pushStatus', 'Give the file a path inside the repo.', true); return; }
+    var pathParts = path.split('/');
+    if (!path || pathParts.some(function (part) { return !part || part === '.' || part === '..' || /[\\\\?#\\x00-\\x1f]/.test(part); })) {
+      say('pushStatus', 'Give a valid file path inside the repo. Empty, dot, query and fragment segments are not allowed.', true); return;
+    }
+    var apiPath = pathParts.map(encodeURIComponent).join('/');
     if (!activeFile) { say('pushStatus', 'There is no file in the editor to push.', true); return; }
     if (!ghToken) { say('pushStatus', 'Connect your GitHub token on the GitHub tab first.', true); return; }
 
@@ -440,7 +435,7 @@
     $('pushGo').disabled = true;
     $('pushDiff').hidden = true;
 
-    gh('/repos/' + repo + '/contents/' + path).then(function (d) {
+    gh('/repos/' + repo + '/contents/' + apiPath).then(function (d) {
       if (sequence !== reviewSeq || activeFile !== reviewedFile || activeFile.content !== reviewedContent ||
           $('pushRepo').value.trim() !== repo || $('pushPath').value.trim().replace(/^\\/+/, '') !== path) {
         say('pushStatus', 'The file or destination changed during review. Review again before pushing.', true);
@@ -452,7 +447,7 @@
         oldText = unb64(d.content || '');
       }
       var diff = diffLines(oldText, activeFile.content);
-      pending = { repo: repo, path: path, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
+      pending = { repo: repo, path: path, apiPath: apiPath, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
       renderDiff(diff);
       if (!diff.removed.length && !diff.added.length) {
         say('pushStatus', 'That file already matches the editor. Nothing to push.');
@@ -481,7 +476,7 @@
     say('pushStatus', 'Pushing…');
     var body = { message: msg, content: b64(pending.content) };
     if (pending.sha) body.sha = pending.sha;
-    gh('/repos/' + pending.repo + '/contents/' + pending.path, 'PUT', body).then(function (d) {
+    gh('/repos/' + pending.repo + '/contents/' + pending.apiPath, 'PUT', body).then(function (d) {
       if (d && d.content && d.content.html_url) {
         say('pushStatus', 'Pushed. ' + d.content.html_url);
       } else {
