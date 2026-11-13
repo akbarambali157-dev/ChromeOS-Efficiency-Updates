@@ -14,13 +14,11 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
   function validDate(value) {
-    return !value || (/^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(Date.parse(value + 'T00:00:00')));
-  }
-  function save() {
-    clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () {
-      chrome.storage.local.set({ tasks: tasks.slice(0, 100) });
-    }, 120);
+    if (!value) return true;
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    var p = value.split('-').map(Number);
+    var d = new Date(p[0], p[1] - 1, p[2]);
+    return d.getFullYear() === p[0] && d.getMonth() === p[1] - 1 && d.getDate() === p[2];
   }
   function dueLabel(value) {
     if (!value) return '';
