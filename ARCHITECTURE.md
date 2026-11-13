@@ -1,6 +1,6 @@
 # My Launcher architecture
 
-**Release baseline:** 3.2.0  
+**Release baseline:** 3.3.0  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
 
@@ -43,6 +43,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | sessions.js, sessions-page.js | Bounded browser tab-session save/restore and validated, streamed Claude usage imports |
 | memory.js | System memory and tab-level memory view |
 | weather.js | Weather forecast and secondary timezone clock |
+| apps.js | On-demand Mini-app Store, open-access research search, local PDF reader, citations, focus timer, Markdown and JSON tools |
 | popup.js | Toolbar popup controls and Cloudflare diagnostic |
 | defer.js | Defers non-critical home-page scripts until idle |
 
@@ -118,6 +119,10 @@ The chat relay retains a 200,000-character serialized-body limit; search retains
 ## 3.0 foundations
 
 3.0 established module responsibilities, shared page helpers and catalogs, a consolidated background API-relay path, and documented storage/message contracts.
+
+## 3.3 mini-app expansion
+
+3.3 adds a standalone apps.html page registered in nav.js. The app catalogue is rendered on demand and each tool initialises only after the user opens it. Research Library queries OpenAlex for records marked open access and links to the returned OA landing page or DOI; it does not proxy, mirror or bypass publisher access. PDF Reader uses a user-selected local PDF and revokes its object URL when the view closes. Citation records and Markdown drafts are stored locally with bounded collection/text sizes. Focus Timer owns a page-local interval that is cleared when the app closes or the page is hidden. JSON formatting is local and uses textContent for output. No new permissions, dependencies, frameworks, background jobs or storage schema migrations are introduced.
 
 ## 3.2 deep-refactor boundaries
 
