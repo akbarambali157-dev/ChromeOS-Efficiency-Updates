@@ -1,10 +1,10 @@
 # My Launcher architecture
 
-**Release baseline:** 3.0.0  
+**Release baseline:** 3.2.0  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
 
-This document records the responsibilities and boundaries established during the 3.0 foundations refactor. It is intended to make later changes safer, not to prescribe a framework migration.
+This document records the architecture established in 3.0 and the deeper reliability and data-integrity boundaries added in 3.2. It is intended to make later changes safer, not to prescribe a framework migration.
 
 ## Runtime boundaries
 
@@ -22,7 +22,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | background.js | MV3 service-worker events, dark-mode registration/synchronisation, tab age, auto-suspend, chat/search relay |
 | tools.js | Shared tab operations: duplicate closing, safe suspension predicate, manual memory freeing |
 | common.js | Shared, identical page helpers: safe text-node element factory, GiB formatter, plural formatter and URL normaliser |
-| theme.js | Theme engine, wallpaper rendering, day/night selection, shared theme and wallpaper identifier catalog |
+| theme.js | Theme engine, wallpaper rendering, day/night selection, and the complete shared theme/swatches/default-wallpaper catalog |
 | nav.js | Builds the sidebar from the page data-app identifier |
 | gauge.js | Shared SVG memory gauge renderer |
 | newtab.js | Home clock, shortcuts, workspace profiles, notes and dashboard rendering |
@@ -36,10 +36,11 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | assistant-core.js | Shared assistant logic, speech, commands, context and Brewkeg requests |
 | assistant.js, orb.js | Full-page and floating assistant views; neither duplicates the assistant brain |
 | commandbar.js | Command matching, shortcuts, open tabs, bookmarks and history |
-| claude-app.js | Lightweight editor, chat, search, diff review and GitHub push workflow |
+| claude-app.js | Lightweight editor, chat, search, diff review and snapshot-bound GitHub push workflow |
+| github-api.js | Shared authenticated GitHub REST client and status/error handling |
 | github.js | GitHub dashboard, Codespaces, pull requests, commits and builds |
-| files.js | User-selected folder scan and move-to-_Review workflow |
-| sessions.js, sessions-page.js | Browser tab-session save/restore and imported Claude usage summaries |
+| files.js | User-selected folder scan, exact duplicate candidates and verified move-to-_Review workflow |
+| sessions.js, sessions-page.js | Bounded browser tab-session save/restore and validated, streamed Claude usage imports |
 | memory.js | System memory and tab-level memory view |
 | weather.js | Weather forecast and secondary timezone clock |
 | popup.js | Toolbar popup controls and Cloudflare diagnostic |
@@ -48,10 +49,15 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 ## Shared identifiers and logic
 
 - common.js owns the small helpers that were byte-for-byte duplicated across page controllers. It is loaded only on pages that consume those helpers. Page-specific selectors, status setters and URL-host policies remain local.
-- theme.js is the source of truth for theme IDs and built-in wallpaper IDs. It exposes LAUNCHER_THEME_IDS and WALLPAPER_MODES for settings, assistant intents and backup validation. The custom-photo mode is deliberately excluded from the built-in wallpaper list.
+- theme.js is the source of truth for theme metadata, swatch colours, default wallpapers and IDs. It exposes LAUNCHER_THEMES, LAUNCHER_THEME_IDS, THEME_WALL and WALLPAPER_MODES. Settings, assistant intents and backup validation consume those catalogs; custom-photo mode is deliberately excluded from the built-in wallpaper list.
 - tools.js is the source of truth for duplicate-tab closing, the neverSuspend() safety predicate, and manual memory freeing. The worker and extension pages use the same predicate rather than maintaining competing versions.
 - assistant-core.js is shared by the full assistant page and floating orb. View-specific rendering stays in assistant.js and orb.js.
 - Chat and search use one relayRequest() implementation in the service worker. Endpoint, authentication header and size limit remain explicit per request type.
+- github-api.js owns authenticated GitHub REST request handling for the GitHub dashboard and editor. Token storage remains with each page; 404-as-missing is opt-in for the editor's create-or-update flow.
+- Editor pushes capture the reviewed file ID, content snapshot, repository and encoded path. A changed file or destination invalidates the review, and the PUT uses only the reviewed snapshot.
+- Files are called exact duplicates only after matching size and a full-file SHA-256 digest (files above 16 MB are skipped to keep memory bounded). Duplicate candidates are unselected by default. A move copies to a collision-safe destination, compares the streams byte-for-byte, and only then removes the source.
+- Task validation is shared between initial load and storage-change events. Task writes have an explicit local persistence function.
+- Usage JSONL imports are streamed and bounded by file count, total bytes, record count, line length, session count and model count. Browser sessions are capped for new saves, validate restored URLs, and close source tabs only after the save succeeds.
 - Tiny DOM selectors, status setters and formatters remain page-local where their meaning or output differs. A repeated name alone is not evidence that two helpers should become a global dependency.
 
 The old store.js read-through cache was removed in 3.0: it had one consumer and did not provide cross-page caching. The command bar now reads its shortcut list directly through the native Chrome storage API.
@@ -82,7 +88,7 @@ Chrome extension storage is the persistence layer for extension settings and app
 2. Keep storage operations close to the feature that owns the data. Cross-feature reads should be limited to documented integrations.
 3. Do not put API credentials in backup exports. Chrome local storage is not an encrypted secret vault.
 4. Validate imported JSON and bound collection sizes and text lengths before writing it.
-5. Preserve existing keys and data formats unless a release explicitly includes a migration. No storage schema migration is introduced in 3.0.
+5. Preserve existing keys and data formats unless a release explicitly includes a migration. No storage schema migration is introduced in 3.2; existing keys and data formats are retained.
 6. Use the callback or Promise form supported by the target Chrome API, but do not mix both forms for the same operation.
 
 ## Background message contract
@@ -109,6 +115,10 @@ The chat relay retains a 200,000-character serialized-body limit; search retains
 - Do not move tab queries, memory scans or network requests into idle startup paths without a demonstrated need.
 - Measure process memory and CPU using PERFORMANCE-BASELINE.md, not JavaScript heap estimates alone.
 
-## 3.0 refactor boundaries
+## 3.0 foundations
 
-3.0 establishes module responsibilities, shared catalogs, a single API-relay validation path and documented storage/message contracts. It does not redesign the editor, GitHub integration, wallpaper renderer, task/session data model or file manager internals; those deeper changes remain in the planned 3.2 phase.
+3.0 established module responsibilities, shared page helpers and catalogs, a consolidated background API-relay path, and documented storage/message contracts.
+
+## 3.2 deep-refactor boundaries
+
+3.2 strengthens the editor/GitHub approval boundary, centralises GitHub REST handling, makes theme metadata single-source, verifies file moves and exact duplicate candidates, bounds usage imports and session restores, and repairs task persistence. It preserves the existing feature set, Manifest V3, Chrome 103 minimum, storage keys and formats, and the no-new-dependencies/no-new-permissions constraints.
