@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Development: 3.5.0-B** (last tagged release 3.4.1) · Manifest V3 · minimum Chrome 103
+**Version 3.5.0** · Manifest V3 · minimum Chrome 103 · 12 live mini-apps, 28 planned
 
 ---
 
