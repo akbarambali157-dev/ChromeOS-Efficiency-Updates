@@ -18,6 +18,10 @@
     dayblue: 'waves', daygold: 'dunes', dayamber: 'bloom', dayviolet: 'aurora'
   };
   window.THEME_WALL = THEME_WALL;
+  /* Shared catalog identifiers: settings, backups and voice intents consume
+     these instead of maintaining independent allow-lists. */
+  window.LAUNCHER_THEME_IDS = Object.keys(THEME_WALL);
+  window.WALLPAPER_MODES = MODES.filter(function (mode) { return mode !== 'custom'; });
   /* 07:00–19:00 counts as day. */
   function autoTheme() {
     var pair = { day: 'dayblue', night: 'slate' };
