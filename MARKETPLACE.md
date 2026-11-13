@@ -19,7 +19,7 @@ The 3.4.1 marketplace stored a URL launch record and opened a hosted app in a se
 - New app code and app-code updates are delivered through a normal extension release. A remote catalogue version cannot silently replace executable code.
 - Vercel is still used for discovery and catalogue metadata. A cached validated catalogue is used when the network is unavailable.
 
-The local registry is `new-tab-launcher/miniapps/registry.json`. The first six local app IDs are Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor and JSON Studio.
+The local registry is `new-tab-launcher/miniapps/registry.json`. The first twelve local app IDs are Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor, JSON Studio, Quick Notes, Mini Kanban, Study Planner, Flashcard Studio, Advanced Calculator and Colour Studio.
 
 ## Runtime isolation and message contract
 
