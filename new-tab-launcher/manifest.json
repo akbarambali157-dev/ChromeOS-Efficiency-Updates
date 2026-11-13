@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "2.5.0",
-  "description": "Lightweight ChromeOS workspace with custom dashboard layouts, colour palettes, accessibility controls, optional AI context, shortcut workspaces, tasks, themes, wallpapers, website dark mode and mini apps.",
+  "version": "2.5.1",
+  "description": "Lightweight ChromeOS workspace with custom dashboard layouts, colour palettes, accessibility controls, wallpaper collections and optional per-new-tab rotation, optional AI context, shortcut workspaces, tasks, themes, website dark mode and mini apps.",
   "minimum_chrome_version": "103",
   "permissions": [
     "storage",
