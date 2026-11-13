@@ -450,7 +450,7 @@
 
   function review() {
     var repo = $('pushRepo').value.trim();
-    var path = $('pushPath').value.trim().replace(/^\/+/, '');
+    var path = cleanRepoPath($('pushPath').value);
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { say('pushStatus', 'Repository should look like owner/repo.', true); return; }
     var pathParts = path.split('/');
     if (!path || pathParts.some(invalidPathSegment)) {
@@ -470,7 +470,7 @@
 
     gh('/repos/' + repo + '/contents/' + apiPath).then(function (d) {
       if (sequence !== reviewSeq || activeFile !== reviewedFile || activeFile.content !== reviewedContent ||
-          $('pushRepo').value.trim() !== repo || $('pushPath').value.trim().replace(/^\\/+/, '') !== path) {
+          $('pushRepo').value.trim() !== repo || cleanRepoPath($('pushPath').value) !== path) {
         say('pushStatus', 'The file or destination changed during review. Review again before pushing.', true);
         return;
       }
@@ -499,7 +499,7 @@
   function doPush() {
     if (!pending) return;
     if (!activeFile || activeFile.id !== pending.fileId || activeFile.content !== pending.content ||
-        $('pushRepo').value.trim() !== pending.repo || $('pushPath').value.trim().replace(/^\\/+/, '') !== pending.path) {
+        $('pushRepo').value.trim() !== pending.repo || cleanRepoPath($('pushPath').value) !== pending.path) {
       invalidateReview();
       say('pushStatus', 'The file or destination changed after review. Review the current version before pushing.', true);
       return;
