@@ -1,4 +1,4 @@
-My Launcher 3.3.0
+My Launcher 3.4.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -136,4 +136,4 @@ Cloudflare verification (Turnstile / challenge pages)
       https://browser-compat.turnstile.workers.dev/
 
 Mini-app Store
-  Open Mini-apps in the sidebar. Research Library searches OpenAlex and filters for open-access records. PDF Reader opens a local PDF (up to 40 MB) in the current tab. Citation Manager stores up to 200 references locally. Focus Timer runs only while its mini-app is open. Markdown Editor previews escaped Markdown and saves a local draft. JSON Studio formats or minifies JSON locally. No app loads until opened; no extra permissions or dependencies are required. Research discovery links to publisher/repository pages and does not provide pirated copies.
+  The catalogue is fetched as metadata from the repository's GitHub Raw URL. Install saves a small record (app ID, version, URL and timestamp); hosted app code is not copied into or executed by the extension. Six apps open in separate tabs on the repository's GitHub Pages site: Research Library (OpenAlex open-access discovery), PDF Reader (local file selection), Citation Manager, Focus Timer, Markdown Editor and JSON Studio. App data on the Pages origin is separate from extension data. Resource profiles: Conservative (20 MB estimated RAM), Balanced (35 MB), and Unrestricted (warnings only). These are estimates, not live measurements; closed apps use no app runtime RAM. Enable GitHub Pages for this repository (main branch, root folder) before using hosted apps. No additional extension permissions or dependencies are required.
