@@ -168,7 +168,37 @@
           };
         });
     }
-    if (d.ccSessions && typeof d.ccSessions === 'object' && !Array.isArray(d.ccSessions)) out.ccSessions = d.ccSessions;
+    /* Claude usage imports are untrusted JSON too. Keep the shape small and
+       numeric fields finite so malformed backups cannot poison the Sessions
+       page or inflate local storage unexpectedly. */
+    if (d.ccSessions && typeof d.ccSessions === 'object' && !Array.isArray(d.ccSessions)) {
+      var usage = {}, sessionKeys = Object.keys(d.ccSessions).slice(0, 500);
+      function count(v) {
+        var n = Number(v);
+        return isFinite(n) && n >= 0 ? Math.min(Math.floor(n), 1000000000000) : 0;
+      }
+      sessionKeys.forEach(function (key) {
+        var s = d.ccSessions[key];
+        if (!s || typeof s !== 'object' || Array.isArray(s)) return;
+        var models = {};
+        if (s.models && typeof s.models === 'object' && !Array.isArray(s.models)) {
+          Object.keys(s.models).slice(0, 20).forEach(function (model) {
+            if (typeof model === 'string') models[model.slice(0, 80)] = count(s.models[model]);
+          });
+        }
+        var id = String(s.id || key).slice(0, 160);
+        usage[id] = {
+          id: id,
+          project: typeof s.project === 'string' ? s.project.slice(0, 120) : '',
+          first: typeof s.first === 'string' ? s.first.slice(0, 40) : null,
+          last: typeof s.last === 'string' ? s.last.slice(0, 40) : null,
+          input: count(s.input), output: count(s.output),
+          cacheW: count(s.cacheW), cacheR: count(s.cacheR),
+          turns: count(s.turns), models: models
+        };
+      });
+      out.ccSessions = usage;
+    }
     if (Array.isArray(d.ccFiles)) {
       out.ccFiles = d.ccFiles.filter(function (f) { return f && typeof f.name === 'string' && typeof f.content === 'string'; })
         .slice(0, 40).map(function (f) {
@@ -245,10 +275,16 @@
     var f = e.target.files[0];
     e.target.value = '';
     if (!f) return;
+    /* Current exports can contain editor files and chat history, but should
+       remain bounded. Reject oversized input before reading it into memory. */
+    if (f.size > 20 * 1024 * 1024) { say('That backup is too large to import (20 MB maximum).', true); return; }
     f.text().then(function (txt) {
       var obj;
       try { obj = JSON.parse(txt); } catch (err) { say('That file is not a valid backup.', true); return; }
-      if (!obj || obj.app !== 'my-launcher' || !obj.data) { say('That file is not a launcher backup.', true); return; }
+      if (!obj || obj.app !== 'my-launcher' || !obj.data || typeof obj.data !== 'object' || Array.isArray(obj.data) ||
+          (obj.v != null && obj.v !== 1)) {
+        say('That file is not a supported launcher backup.', true); return;
+      }
       if (!window.confirm('This replaces your current shortcuts, notes, sessions and settings with the backup. Continue?')) return;
       var data = clean(obj.data);
       try {
@@ -256,8 +292,13 @@
           if (data[k]) localStorage.setItem(k, data[k]); else localStorage.removeItem(k);
         });
       } catch (e) {}
-      chrome.storage.local.remove(KEYS, function () {
-        chrome.storage.local.set(data, function () {
+      /* Write validated data first. Only after that succeeds do we remove
+         omitted backup keys, avoiding the old remove-then-set data-loss window. */
+      chrome.storage.local.set(data, function () {
+        if (chrome.runtime.lastError) { say('Could not restore the backup: ' + chrome.runtime.lastError.message, true); return; }
+        var remove = KEYS.filter(function (k) { return !Object.prototype.hasOwnProperty.call(data, k); });
+        chrome.storage.local.remove(remove, function () {
+          if (chrome.runtime.lastError) { say('Backup data was restored, but some old settings could not be cleared.', true); return; }
           chrome.runtime.sendMessage({ type: 'reregister' }, function () {
             void chrome.runtime.lastError;
             location.reload();
