@@ -7,7 +7,7 @@
 
   /* ---------- Memory gauge ---------- */
   var gauge = makeGauge($('memGauge'));
-  function gb(n) { return (n / 1073741824).toFixed(1); }
+  var gb = window.LauncherUtils.formatGiB;
   function mem() {
     chrome.system.memory.getInfo(function (i) {
       if (!i) return;
