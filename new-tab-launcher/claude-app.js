@@ -65,7 +65,7 @@
       att.addEventListener('click', function (e) {
         e.stopPropagation();
         f.attached = f.attached === false;
-        persistFiles();
+        saveFiles();
         renderFiles();
       });
       row.appendChild(att);
@@ -78,7 +78,7 @@
         if (!confirm('Delete ' + f.name + '?')) return;
         files = files.filter(function (x) { return x.id !== f.id; });
         if (activeFile && activeFile.id === f.id) { activeFile = files[0] || null; loadEditor(); }
-        persistFiles();
+        saveFiles();
         renderFiles();
       });
       row.appendChild(del);
@@ -102,14 +102,31 @@
     $('dirty').hidden = !on;
   }
 
-  function persistFiles() {
-    var out = files.slice(0, MAX_FILES).map(function (f) {
+  function persistFiles(callback) {
+    if (files.length > MAX_FILES) {
+      if (callback) callback(false);
+      return;
+    }
+    var out = files.map(function (f) {
       return { id: f.id, name: f.name, content: f.content, attached: f.attached !== false };
     });
-    chrome.storage.local.set({ ccFiles: out });
+    chrome.storage.local.set({ ccFiles: out }, function () {
+      if (callback) callback(!chrome.runtime.lastError);
+    });
+  }
+
+  function saveFiles() {
+    persistFiles(function (ok) {
+      setDirty(!ok);
+      $('dirty').title = ok ? '' : 'Could not save editor files. Free storage space and try again.';
+    });
   }
 
   function newFile() {
+    if (files.length >= MAX_FILES) {
+      window.alert('The editor can keep up to ' + MAX_FILES + ' files. Delete one before creating another.');
+      return;
+    }
     var name = prompt('File name', 'untitled.js');
     if (!name) return;
     name = name.trim().slice(0, 60);
@@ -117,7 +134,7 @@
     var f = { id: uid(), name: name, content: '' };
     files.unshift(f);
     activeFile = f;
-    persistFiles();
+    saveFiles();
     renderFiles();
     loadEditor();
     $('editor').focus();
@@ -519,7 +536,11 @@
     $('tabName').textContent = activeFile.name;
     setDirty(true);
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(function () { persistFiles(); setDirty(false); }, 600);
+    saveTimer = setTimeout(function () { saveTimer = null; saveFiles(); }, 600);
+  });
+
+  window.addEventListener('pagehide', function () {
+    if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; saveFiles(); }
   });
 
   $('chatForm').addEventListener('submit', function (e) {
@@ -620,7 +641,11 @@
 
   /* ---------- boot ---------- */
   chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
-    files = Array.isArray(d.ccFiles) ? d.ccFiles : [];
+    files = Array.isArray(d.ccFiles) ? d.ccFiles.filter(function (f) {
+      return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
+    }).slice(0, MAX_FILES).map(function (f) {
+      return { id: f.id, name: f.name.slice(0, 60), content: f.content, attached: f.attached !== false };
+    }) : [];
     logs = Array.isArray(d.ccLogs) ? d.ccLogs : [];
     ccKey = d.ccKey || '';
     model = d.ccModel || 'claude-sonnet-5-5';
