@@ -4,7 +4,7 @@
   var input = $('q'), box = $('sugg'), form = $('searchForm');
   var shortcuts = [], sel = 0, items = [], openTabs = [];
 
-  function normalizeUrl(u) { u = u.trim(); return /^https?:\/\//i.test(u) ? u : 'https://' + u; }
+  var normalizeUrl = window.LauncherUtils.normalizeUrl;
   function looksLikeUrl(v) { return /^https?:\/\/\S+$/i.test(v) || /^[^\s\/]+\.[a-z]{2,}(\/\S*)?$/i.test(v); }
   function go(url) { location.href = url; }
 
