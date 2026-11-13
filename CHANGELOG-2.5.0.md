@@ -1,13 +1,13 @@
-# ChromeOS Efficiency Updates 2.5.1
+# ChromeOS Efficiency Updates 2.5.0
 
-## Wallpaper collections and lightweight automation
-- Added up to 8 named wallpaper collections, each holding up to 20 unique built-in wallpapers.
-- Added manual next-wallpaper selection, collection deletion, and an optional rotation switch.
-- When enabled, rotation advances once as a new-tab page starts. It uses the active collection and a saved index; no timer, alarm, or background polling is used.
-- Collection data, active collection, rotation preference and index are included in validated backups.
-- User photos remain available as individual wallpapers; collections intentionally contain built-in scenes only, avoiding duplicated large image data in backups.
+## Advanced customisation
+- Added dashboard visibility controls for Tools, Sessions, Quick note and Tasks. Hiding a section never deletes its stored data.
+- Added custom primary and secondary accent colours that work alongside the existing theme and wallpaper selection. Reset restores the selected theme's native colours.
+- Added small, default and large base text settings, compact or comfortable dashboard spacing, and a higher-contrast mode.
+- Customisation preferences are stored locally and included in validated backup/restore data.
 
 ## Compatibility and verification
 - Preserved Manifest V3 and minimum Chrome 103.
-- Added no permissions and no background worker tasks.
-- Static checks are required before release. Live ChromeOS runtime testing remains outstanding.
+- Added no new permissions or background polling.
+- Static JavaScript syntax, manifest JSON, HTML wiring, backup validation and CSS brace checks passed.
+- ChromeOS browser runtime testing has not yet been performed.
