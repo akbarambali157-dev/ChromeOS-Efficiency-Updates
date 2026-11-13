@@ -423,6 +423,22 @@
     for (var j = Math.max(d.a.length - d.tail, d.head); j < end; j++) ctx(d.a[j]);
   }
 
+  function cleanRepoPath(value) {
+    var path = String(value || '').trim();
+    while (path.charAt(0) === '/') path = path.slice(1);
+    return path;
+  }
+
+  function invalidPathSegment(part) {
+    if (!part || part === '.' || part === '..' ||
+        part.indexOf(String.fromCharCode(92)) >= 0 || part.indexOf('?') >= 0 || part.indexOf('#') >= 0) return true;
+    for (var i = 0; i < part.length; i++) {
+      var code = part.charCodeAt(i);
+      if (code < 32 || code === 127) return true;
+    }
+    return false;
+  }
+
   var pending = null, reviewSeq = 0;
 
   function invalidateReview() {
@@ -437,7 +453,7 @@
     var path = $('pushPath').value.trim().replace(/^\/+/, '');
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { say('pushStatus', 'Repository should look like owner/repo.', true); return; }
     var pathParts = path.split('/');
-    if (!path || pathParts.some(function (part) { return !part || part === '.' || part === '..' || /[\\\\?#\\x00-\\x1f]/.test(part); })) {
+    if (!path || pathParts.some(invalidPathSegment)) {
       say('pushStatus', 'Give a valid file path inside the repo. Empty, dot, query and fragment segments are not allowed.', true); return;
     }
     var apiPath = pathParts.map(encodeURIComponent).join('/');
