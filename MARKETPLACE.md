@@ -48,7 +48,7 @@ RAM and CPU figures are engineering estimates, not live per-app process telemetr
 
 ## Storage and backup
 
-Small install records and preferences remain in Chrome extension storage. App-specific records use IndexedDB, not `chrome.storage.local`. App data is not yet included in launcher backup/restore in 3.5.0-B; this must be added with bounded export/import and migration tests before the final 3.5.0 release. Large PDFs and temporary image buffers must not be copied into the app-data store.
+Small install records and preferences remain in Chrome extension storage. App-specific records use IndexedDB, not `chrome.storage.local`. App data is included in launcher backup/restore as bounded JSON records. The backup includes install registrations, favourites and resource profile; app data is stored in the backup under app IDs and validated against per-app byte limits before an IndexedDB restore. Older backups without miniAppData preserve existing app data. Large PDFs and temporary image buffers are never included. Large PDFs and temporary image buffers must not be copied into the app-data store.
 
 ## Security and compatibility
 
