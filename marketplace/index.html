@@ -1,1 +1,40 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My Launcher Marketplace</title><link rel="stylesheet" href="assets.css"><script src="store.js" defer></script></head><body><main><p class="eyebrow">MY LAUNCHER · VERCEL HOSTED</p><h1>Mini-app Marketplace</h1><p class="muted">Small tools hosted separately from the extension. Apps run as ordinary web pages and do not receive extension permissions.</p><div id="catalog" class="grid">Loading catalogue…</div><p class="small">RAM and CPU figures are engineering estimates, not live measurements. Installed-but-closed apps use no runtime RAM.</p></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101720">
+<title>My Launcher · Mini-app Marketplace</title>
+<link rel="stylesheet" href="assets.css">
+<script src="store.js" defer></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="./" aria-label="My Launcher Marketplace home"><span class="brand-mark">M</span><span>MY LAUNCHER<small>MINI-APP MARKETPLACE</small></span></a>
+  <span class="header-note">40-app ecosystem · offline-first direction</span>
+</header>
+<main>
+  <section class="hero">
+    <p class="eyebrow">A SMALLER, SMARTER APP ECOSYSTEM</p>
+    <h1>Useful tools.<br><em>One lightweight workspace.</em></h1>
+    <p class="hero-copy">Discover focused mini-apps designed for My Launcher. First-party apps run locally inside a restricted workspace, with offline support wherever the feature allows it.</p>
+    <div class="hero-points"><span>Local-first</span><span>ChromeOS friendly</span><span>No app-store account</span></div>
+  </section>
+  <section class="catalogue-section">
+    <div class="section-heading"><div><p class="eyebrow">DISCOVER</p><h2>Mini-app collection</h2></div><span id="appCount" class="count">Loading catalogue…</span></div>
+    <div class="filters">
+      <label class="search-box"><span aria-hidden="true">⌕</span><input id="search" type="search" maxlength="80" placeholder="Search apps, tools or categories" aria-label="Search apps"></label>
+      <label><span class="sr-only">Category</span><select id="category"><option value="all">All categories</option><option value="productivity">Productivity</option><option value="research">Research</option><option value="learning">Research & learning</option><option value="documents">Documents & files</option><option value="developer">Developer & data</option><option value="system">System & utilities</option><option value="creative">Creative studio</option><option value="personal">Personal organisation</option><option value="media">Media & accessibility</option></select></label>
+      <label><span class="sr-only">Sort apps</span><select id="sort"><option value="featured">Featured</option><option value="name">Name A–Z</option><option value="light">Lightest first</option></select></label>
+    </div>
+    <p id="status" class="status" role="status">Loading the latest app catalogue…</p>
+    <div id="catalog" class="app-grid" aria-live="polite"></div>
+  </section>
+  <section class="install-guide">
+    <div><p class="eyebrow">HOW INSTALLATION WORKS</p><h2>Install from inside My Launcher.</h2><p>This website is the public discovery catalogue. To install and run an app offline, open the Mini-app Store inside the My Launcher extension. Install enables first-party code bundled with your extension; it does not execute downloaded website scripts.</p></div>
+    <ol><li>Open a new tab with My Launcher.</li><li>Choose <strong>Mini-apps</strong> in the sidebar.</li><li>Select an app and choose <strong>Install</strong>.</li><li>Open it in its own restricted workspace.</li></ol>
+  </section>
+</main>
+<footer><span>MY LAUNCHER · Built for modest hardware</span><a href="https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates">Source repository</a></footer>
+</body>
+</html>
