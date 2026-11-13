@@ -19,6 +19,21 @@
     var d = new Date(p[0], p[1] - 1, p[2]);
     return d.getFullYear() === p[0] && d.getMonth() === p[1] - 1 && d.getDate() === p[2];
   }
+
+  function normalizeTasks(raw) {
+    if (!Array.isArray(raw)) return [];
+    return raw.filter(function (t) {
+      return t && typeof t.title === 'string' && t.title.trim() && t.title.length <= 160;
+    }).slice(0, 100).map(function (t, i) {
+      return {
+        id: String(t.id || ('task-' + i)).slice(0, 80),
+        title: t.title.trim(),
+        due: validDate(t.due) ? (t.due || '') : '',
+        done: !!t.done,
+        created: isFinite(+t.created) ? +t.created : Date.now()
+      };
+    });
+  }
   function dueLabel(value) {
     if (!value) return '';
     var date = new Date(value + 'T00:00:00');
@@ -113,24 +128,12 @@
     save(); render(); titleInput.focus();
   });
   chrome.storage.local.get('tasks', function (data) {
-    tasks = Array.isArray(data.tasks) ? data.tasks.filter(function (t) {
-      return t && typeof t.title === 'string' && t.title.trim() && t.title.length <= 160;
-    }).slice(0, 100).map(function (t, i) {
-      return {
-        id: String(t.id || ('task-' + i)),
-        title: t.title.trim(),
-        due: validDate(t.due) ? (t.due || '') : '',
-        done: !!t.done,
-        created: isFinite(+t.created) ? +t.created : Date.now()
-      };
-    }) : [];
+    tasks = normalizeTasks(data.tasks);
     render();
   });
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area !== 'local' || !changes.tasks) return;
-      var next = changes.tasks.newValue;
-    if (!Array.isArray(next)) return;
-    tasks = next;
+    tasks = normalizeTasks(changes.tasks.newValue);
     render();
   });
 })();
