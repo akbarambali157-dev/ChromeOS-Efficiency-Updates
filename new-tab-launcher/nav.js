@@ -7,6 +7,7 @@
      element. Pages without a <nav class="nav"> (the popup, the Claude app) are
      left alone. */
   var I = {
+    apps: '<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/>',
     home: '<path d="M3 10.6 12 3.2l9 7.4"/><path d="M5.6 9.4V21h12.8V9.4"/><path d="M9.8 21v-6h4.4v6"/>',
     github: '<circle cx="6.5" cy="6" r="2.4"/><circle cx="6.5" cy="18" r="2.4"/><circle cx="17.5" cy="8" r="2.4"/><path d="M6.5 8.4v7.2"/><path d="M17.5 10.4c0 3.2-3.4 3.6-6.6 3.6H9"/>',
     drive: '<path d="M9.4 3.4h5.2l6.2 10.8-2.6 4.5H5.8l-2.6-4.5z"/><path d="M9.4 3.4 5.8 18.7"/><path d="M14.6 3.4 18.2 18.7"/>',
@@ -19,6 +20,7 @@
 
   var APPS = [
     { id: 'home',     href: 'newtab.html',     label: 'Home',     icon: I.home },
+    { id: 'apps',     href: 'apps.html',        label: 'Mini-apps', icon: I.apps },
     { id: 'github',   href: 'github.html',     label: 'GitHub',   icon: I.github },
     { id: 'drive',    href: 'drive.html',      label: 'Drive',    icon: I.drive },
     { id: 'brewkeg',  href: 'brewkeg.html',    label: 'Brewkeg',  icon: I.brewkeg },
