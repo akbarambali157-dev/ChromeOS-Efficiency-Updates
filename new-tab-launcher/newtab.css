@@ -750,7 +750,7 @@ dialog[open]{animation:pop .22s ease-out}
 /* Keep keyboard focus visible across controls, including controls whose older
    component rules intentionally removed the browser's default outline. */
 :where(a,button,input,select,textarea,[tabindex]):focus-visible{
-  outline:2px solid var(--accent2);
+  outline:2px solid var(--accent2) !important;
   outline-offset:3px;
 }
 :where(button,input,select,textarea):disabled{
@@ -780,8 +780,8 @@ dialog[open]{animation:pop .22s ease-out}
     min-height:40px;
   }
   .tools button{
-    width:36px;
-    height:36px;
+    width:40px;
+    height:40px;
   }
   .task-delete{
     width:40px;
