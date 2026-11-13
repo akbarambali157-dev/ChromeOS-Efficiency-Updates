@@ -1,4 +1,4 @@
-My Launcher 2.0.0
+My Launcher 2.2.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -17,7 +17,7 @@ Shortcuts (change at chrome://extensions/shortcuts):
 Home page
   Four shortcut tiles, 2x2. Everything else is behind "All shortcuts", which is
   built only the first time you open it.
-  Quick note, sessions, recently closed tabs, and the settings below.
+  Quick note, a persistent task list, sessions, recently closed tabs, and the settings below.
 
 Themes
   Nine themes plus Void, a true-black night sky with white stars. Each theme has a
@@ -70,7 +70,7 @@ Files: open the Files tab, choose a folder, press Scan. Then ask the assistant
 Email: ask the assistant 'check my email'. It reads your signed-in Gmail unread
 list (read only).
 
-Backup: Settings -> Export backup saves shortcuts, notes, sessions, settings and
+Backup: Settings -> Export backup saves shortcuts, notes, tasks, sessions, settings and
 Claude Code files and conversations. Your GitHub token and brewkeg keys are never
 included.
 
