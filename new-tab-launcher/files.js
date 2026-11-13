@@ -310,7 +310,12 @@
       try { await review.removeEntry(destName); } catch (x) {}
       throw e;
     }
-    await f.parent.removeEntry(f.name);
+    try {
+      await f.parent.removeEntry(f.name);
+    } catch (e) {
+      try { await review.removeEntry(destName); } catch (cleanupError) {}
+      throw e;
+    }
   }
 
   $('moveBtn').addEventListener('click', async function () {
