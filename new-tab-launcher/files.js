@@ -82,7 +82,9 @@
 
   /* ---- protect source projects and scan ---- */
   async function hasMarker(dir, name) {
-    try { await dir.getFileHandle(name); return true; } catch (e) { return false; }
+    try { await dir.getFileHandle(name); return true; } catch (fileError) {
+      try { await dir.getDirectoryHandle(name); return true; } catch (dirError) { return false; }
+    }
   }
   async function protectedDirectory(dir, name) {
     if (/^(\.git|\.github|\.vscode|\.idea|node_modules|vendor|\.svn|ChromeOS-Efficiency-Updates)$/i.test(name)) return true;
