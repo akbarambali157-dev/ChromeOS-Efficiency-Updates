@@ -349,12 +349,23 @@
       try { localStorage.setItem('theme', at); } catch (e) {}
     }
     var mode = ls('wallMode');
-    chrome.storage.local.get('wallpaper', function (d) {
+    chrome.storage.local.get(['wallpaper', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex'], function (d) {
       custom = d.wallpaper || '';
-      if (!mode) {
-        mode = custom ? 'custom' : (THEME_WALL[ls('theme')] || 'aurora');
-        try { localStorage.setItem('wallMode', mode); } catch (e) {}
+      if (!mode) mode = custom ? 'custom' : (THEME_WALL[ls('theme')] || 'aurora');
+      /* One rotation step per new-tab startup; no timers or background worker. */
+      if (d.wallpaperRotation && Array.isArray(d.wallpaperCollections)) {
+        var active = d.wallpaperCollections.filter(function (c) { return c && c.id === d.activeWallpaperCollection; })[0];
+        var ids = active && Array.isArray(active.wallpapers) ? active.wallpapers.filter(function (id, i, a) {
+          return MODES.indexOf(id) >= 0 && id !== 'custom' && a.indexOf(id) === i;
+        }).slice(0, 20) : [];
+        if (ids.length > 1) {
+          var previous = parseInt(d.wallpaperRotationIndex, 10);
+          var nextIndex = isFinite(previous) ? (previous + 1) % ids.length : 0;
+          mode = ids[nextIndex];
+          chrome.storage.local.set({ wallpaperRotationIndex: nextIndex, wallMode: mode });
+        }
       }
+      try { localStorage.setItem('wallMode', mode); } catch (e) {}
       setWall(mode);
     });
   });
