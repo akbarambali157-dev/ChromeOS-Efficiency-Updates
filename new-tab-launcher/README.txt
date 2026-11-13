@@ -1,4 +1,4 @@
-My Launcher 3.2.0
+My Launcher 3.3.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -134,3 +134,6 @@ Cloudflare verification (Turnstile / challenge pages)
       extensions disabled. If it still fails there, the extension is not it.
     - Run Cloudflare's compatibility check:
       https://browser-compat.turnstile.workers.dev/
+
+Mini-app Store
+  Open Mini-apps in the sidebar. Research Library searches OpenAlex and filters for open-access records. PDF Reader opens a local PDF (up to 40 MB) in the current tab. Citation Manager stores up to 200 references locally. Focus Timer runs only while its mini-app is open. Markdown Editor previews escaped Markdown and saves a local draft. JSON Studio formats or minifies JSON locally. No app loads until opened; no extra permissions or dependencies are required. Research discovery links to publisher/repository pages and does not provide pirated copies.
