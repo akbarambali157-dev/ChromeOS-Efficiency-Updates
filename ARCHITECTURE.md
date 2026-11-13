@@ -148,6 +148,15 @@ The chat relay retains a 200,000-character serialized-body limit; search retains
 - The twelve current first-party experiences (Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor, JSON Studio, Quick Notes, Mini Kanban, Study Planner, Flashcard Studio, Advanced Calculator and Colour Studio) have local runtime implementations. Only Research Library's fresh search needs a network connection; PDF Reader uses a user-selected local file.
 - Existing 3.4.1 remote install records are migrated only when the app ID and version match the locally bundled allow-list. Remote catalogue versions cannot cause remote JavaScript to be executed or falsely update the local runtime.
 - Install enables a bundled app; it does not download a separate executable package. Vercel remains the metadata storefront and catalogue publisher.
-- App data is not yet included in launcher backup/restore; this is a later release gate. Uninstall now asks separately whether local app data should be deleted.
+- Launcher backup/restore now includes install registrations, favourites, resource profile and bounded app-scoped IndexedDB records. Import validates known app IDs, per-app byte limits and a 1.5 MB total app-data limit before replacing the IndexedDB object store in one transaction. Older backups without miniAppData preserve existing app data. Uninstall asks separately whether local app data should be deleted.
 
 The 40-app catalogue, initial 12 complete apps, polished storefront, full backup/restore integration, browser-level Chrome 103 QA and final version bump remain outstanding. Do not describe this stage as a completed 3.5.0 release.
+
+
+## 3.5.0-D/E integration and backup work
+
+- The Vercel storefront has been redesigned with responsive cards, search, category filtering, sorting and honest installation guidance. It reports the twelve live catalogue entries separately from the 40-app target.
+- Local-only app detail links explain that those apps run inside My Launcher instead of presenting a broken hosted copy.
+- The app bridge now exposes narrowly scoped, explicit user-triggered actions to read/copy the launcher quick note and add an item to the launcher task list. It does not expose arbitrary storage keys.
+- Workspace appearance now reads the launcher's theme, custom accent palette, text size, density, high-contrast and reduced-motion preferences and propagates them to the sandboxed app.
+- Backup/restore includes local app registrations and app data, with per-app and total byte limits. Credentials remain excluded.
