@@ -45,6 +45,7 @@
     }
     var key = cfg.city.lat + ',' + cfg.city.lon + ',' + cfg.unit;
     chrome.storage.local.get('weatherCache', function (d) {
+      if (requestId !== weatherSeq) return;
       var c = d.weatherCache;
       var same = c && c.key === key;
       if (same) show(c);
