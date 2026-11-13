@@ -1,6 +1,6 @@
 # My Launcher Mini-app Marketplace
 
-## Current 3.5.0 development architecture
+## Current 3.7.0 implementation architecture
 
 The Vercel site remains the public marketplace storefront and remote metadata catalogue. The extension reads catalogue metadata from:
 
@@ -8,7 +8,7 @@ The Vercel site remains the public marketplace storefront and remote metadata ca
 
 Production storefront: `https://chromeos-efficiency-marketplace.vercel.app/`
 
-The 3.4.1 marketplace stored a URL launch record and opened a hosted app in a separate browser tab. The 3.5.0-B development work replaces that behaviour for the six first-party apps with a **locally bundled, sandboxed runtime** inside My Launcher.
+The 3.4.1 marketplace stored a URL launch record and opened a hosted app in a separate browser tab. The 3.7.0 implementation includes all **40 first-party apps** in a **locally bundled, sandboxed runtime** inside My Launcher. The 3.8.0 milestone is the remaining marketplace-wide regression and target-device QA pass.
 
 ## What Install means now
 
@@ -19,12 +19,12 @@ The 3.4.1 marketplace stored a URL launch record and opened a hosted app in a se
 - New app code and app-code updates are delivered through a normal extension release. A remote catalogue version cannot silently replace executable code.
 - Vercel is still used for discovery and catalogue metadata. A cached validated catalogue is used when the network is unavailable.
 
-The local registry is `new-tab-launcher/miniapps/registry.json`. The first twelve local app IDs are Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor, JSON Studio, Quick Notes, Mini Kanban, Study Planner, Flashcard Studio, Advanced Calculator and Colour Studio.
+The local registry is `new-tab-launcher/miniapps/registry.json` (40 unique app IDs). The shared app frame loads the original twelve implementations plus `miniapps/extended-apps.js`, which supplies the other 28. The public catalogue metadata and local registry are kept aligned; all 40 are registered in the install map.
 
 ## Runtime isolation and message contract
 
 - The app frame uses a sandboxed iframe without `allow-same-origin`.
-- The frame CSP denies direct network access. Research Library search is routed through one narrowly defined launcher-side OpenAlex request.
+- The frame CSP denies general direct network access. Research Library search is routed through one narrowly defined launcher-side OpenAlex request; QR Studio has a narrowly allowed image source for its optional online QR rendering. Local media and PDF blob URLs are allowed only in the relevant resource directives.
 - Parent messages are accepted only from the exact iframe window and must contain the current per-launch nonce and app ID.
 - The bridge supports only theme synchronisation, app-scoped storage, the Research Library query, and close/flush lifecycle messages.
 - The app frame does not receive Chrome extension APIs, extension tokens, tabs, browser history or another app's storage.
@@ -71,7 +71,7 @@ Small install records and preferences remain in Chrome extension storage. App-sp
 ## Security and compatibility
 
 - Manifest V3 and minimum Chrome 103 remain required.
-- No new extension permission, framework or third-party dependency is introduced in 3.5.0-B.
+- No new extension permission, framework or third-party dependency was introduced for the 40-app implementation.
 - Do not weaken the iframe sandbox or permit direct arbitrary network access to app frames.
 - Catalogue metadata is untrusted input and must be validated before rendering.
 - App updates must correspond to code bundled in the extension version; metadata alone is not an executable update.
