@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "Lightweight remote mini-app marketplace with resource guidance and isolated hosted tools.",
   "minimum_chrome_version": "103",
   "permissions": ["storage","tabs","sessions","scripting","alarms","system.memory","bookmarks","history"],
