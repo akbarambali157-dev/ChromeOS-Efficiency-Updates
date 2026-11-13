@@ -47,10 +47,14 @@ For a useful comparison, take three runs and keep the median for each condition.
 
 | Version | Condition | Launcher tabs | Relevant Task Manager row | Memory (MB) | CPU (%) | Notes |
 | --- | --- | ---: | --- | ---: | ---: | --- |
+| 2.6.0 | Idle, user-reported | 1 | Task Manager row not yet identified | ~60.5 MiB (62,000 KB) | Not recorded | Initial user observation; verify exact row and repeat |
 | 2.6.0 | Idle, 60 seconds | 1 | | | | |
 | 2.6.0 | Assistant panel open | 1 | | | | |
 | 2.6.0 | Settings / wallpaper interaction | 1 | | | | |
 | 2.6.0 | Several launcher tabs | | | | | |
+| 2.7.0 | Idle, 60 seconds | 1 | | | | |
+| 2.7.0 | Assistant panel open | 1 | | | | |
+| 2.7.0 | Settings / wallpaper interaction | 1 | | | | |
 | 3.0.0 | Idle, 60 seconds | 1 | | | | |
 | 3.0.0 | Assistant panel open | 1 | | | | | |
 | 3.0.0 | Settings / wallpaper interaction | 1 | | | | | |
