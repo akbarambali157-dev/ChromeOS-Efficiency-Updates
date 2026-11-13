@@ -4,14 +4,10 @@
   var token = '';
 
   function api(path, method) {
-    return fetch('https://api.github.com' + path, {
+    return window.GitHubApi.request(token, path, {
       method: method || 'GET',
-      headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json' }
-    }).then(function (r) {
-      if (r.status === 401) throw new Error('GitHub rejected the token.');
-      if (r.status === 403 || r.status === 404) throw new Error('GitHub refused that. Check the token has the codespace scope (and repo for pull requests, commits and builds).');
-      if (!r.ok) throw new Error('GitHub returned an error (' + r.status + ').');
-      return r.status === 204 ? {} : r.json();
+      forbiddenMessage: 'GitHub refused that. Check the token has the codespace scope (and repo for pull requests, commits and builds).',
+      notFoundMessage: 'GitHub refused that. Check the token has the codespace scope (and repo for pull requests, commits and builds).'
     });
   }
   function say(id, msg, err) {
