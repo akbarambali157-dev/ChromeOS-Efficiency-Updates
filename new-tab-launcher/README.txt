@@ -1,4 +1,4 @@
-My Launcher — 3.5.0-B development (last tagged release 3.4.1)
+My Launcher 3.5.0 — 12 live mini-apps, 28 planned
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
