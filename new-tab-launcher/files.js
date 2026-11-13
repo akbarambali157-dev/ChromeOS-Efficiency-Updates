@@ -2,6 +2,7 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
   var root = null, files = [], groups = null, MAX_FILES = 4000;
+  var MAX_DUP_HASH_BYTES = 16 * 1048576;
   var DAY = 86400000;
 
   var TYPES = {
@@ -102,10 +103,10 @@
     return truncated;
   }
 
-  async function partialHash(f) {
+  async function exactHash(f) {
     var file = await f.handle.getFile();
-    var buf = await file.slice(0, 65536).arrayBuffer();
-    var d = await crypto.subtle.digest('SHA-1', buf);
+    if (file.size > MAX_DUP_HASH_BYTES) return null;
+    var d = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
     return Array.prototype.map.call(new Uint8Array(d), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
   }
 
@@ -113,7 +114,7 @@
     var g = {
       junk: { title: 'Junk and leftovers', why: 'Temporary downloads, empty files and system leftovers.', items: [], pre: true },
       installers: { title: 'Old installers', why: 'Installer files older than 30 days. You can download them again if needed.', items: [], pre: true },
-      dupes: { title: 'Likely duplicates', why: 'Same size and same start of the file. I keep the oldest copy of each.', items: [], pre: true },
+      dupes: { title: 'Exact duplicates', why: 'Full-file SHA-256 matches. Files larger than 16 MB are skipped to keep memory use low. Review the selection before moving anything.', items: [], pre: false },
       bigOld: { title: 'Big and old', why: 'Over 50 MB and not changed in 6 months. Look these over yourself.', items: [], pre: false }
     };
     var taken = {};
@@ -122,7 +123,7 @@
       if (JUNK_NAMES.test(f.name) || JUNK_EXT.indexOf(e) >= 0 || f.name.indexOf('~$') === 0 || f.size === 0) { g.junk.items.push(f); taken[i] = 1; }
       else if (TYPES.Installers.indexOf(e) >= 0 && Date.now() - f.mod > 30 * DAY) { g.installers.items.push(f); taken[i] = 1; }
     });
-    // duplicates: group by size, then confirm with a hash of the first 64 KB
+    // Exact duplicates: require matching size and a full-file SHA-256 digest.
     var bySize = {};
     files.forEach(function (f, i) { if (!taken[i] && f.size >= 1024) (bySize[f.size] = bySize[f.size] || []).push(i); });
     var sizes = Object.keys(bySize).filter(function (s) { return bySize[s].length > 1; });
@@ -130,7 +131,10 @@
       var byHash = {};
       var idxs = bySize[sizes[s]];
       for (var k = 0; k < idxs.length; k++) {
-        try { var hsh = await partialHash(files[idxs[k]]); (byHash[hsh] = byHash[hsh] || []).push(idxs[k]); } catch (e) {}
+        try {
+          var hsh = await exactHash(files[idxs[k]]);
+          if (hsh) (byHash[hsh] = byHash[hsh] || []).push(idxs[k]);
+        } catch (e) { /* unreadable or unsupported files are not treated as duplicates */ }
       }
       Object.keys(byHash).forEach(function (hk) {
         var grp = byHash[hk];
@@ -253,17 +257,55 @@
       .then(function () { $('scanBtn').disabled = false; });
   });
 
-  /* ---- move to _Review (copy, check size, then remove the original) ---- */
+  /* ---- move to _Review only after a collision-safe, byte-verified copy ---- */
+  async function uniqueReviewName(review, desired) {
+    var dot = desired.lastIndexOf('.');
+    var stem = dot > 0 ? desired.slice(0, dot) : desired;
+    var suffix = dot > 0 ? desired.slice(dot) : '';
+    var candidate = desired, n = 1;
+    while (true) {
+      try {
+        await review.getFileHandle(candidate);
+        candidate = stem + ' (' + n++ + ')' + suffix;
+      } catch (e) {
+        if (e && e.name === 'NotFoundError') return candidate;
+        if (e && e.name === 'TypeMismatchError') {
+          candidate = stem + ' (' + n++ + ')' + suffix;
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
+
+  async function streamsEqual(a, b) {
+    var ar = a.stream().getReader(), br = b.stream().getReader();
+    var ac = null, bc = null, ai = 0, bi = 0, ad = false, bd = false;
+    try {
+      while (true) {
+        if (!ad && (!ac || ai >= ac.length)) { var ax = await ar.read(); ad = ax.done; ac = ax.value || new Uint8Array(0); ai = 0; }
+        if (!bd && (!bc || bi >= bc.length)) { var bx = await br.read(); bd = bx.done; bc = bx.value || new Uint8Array(0); bi = 0; }
+        if (ad || bd) return ad === bd && (!ac || ai >= ac.length) && (!bc || bi >= bc.length);
+        var len = Math.min(ac.length - ai, bc.length - bi);
+        for (var i = 0; i < len; i++) if (ac[ai + i] !== bc[bi + i]) return false;
+        ai += len; bi += len;
+      }
+    } finally {
+      try { ar.releaseLock(); } catch (e) {}
+      try { br.releaseLock(); } catch (e) {}
+    }
+  }
+
   async function moveOne(f, review) {
-    var destName = f.path.replace(/\//g, ' - ');
-    try { await review.getFileHandle(destName); destName = Date.now() + ' ' + destName; } catch (e) {}
-    var dest = await review.getFileHandle(destName, { create: true });
+    var destName = await uniqueReviewName(review, f.path.replace(/\//g, ' - '));
     var src = await f.handle.getFile();
+    if (src.size !== f.size || src.lastModified !== f.mod) throw new Error('The source file changed after the scan. Scan again.');
+    var dest = await review.getFileHandle(destName, { create: true });
     try {
       var w = await dest.createWritable();
       await src.stream().pipeTo(w);
       var out = await dest.getFile();
-      if (out.size !== src.size) throw new Error('size');
+      if (out.size !== src.size || !(await streamsEqual(src, out))) throw new Error('The copied file did not match the original.');
     } catch (e) {
       try { await review.removeEntry(destName); } catch (x) {}
       throw e;
