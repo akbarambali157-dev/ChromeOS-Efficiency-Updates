@@ -44,7 +44,7 @@
     <div id="railPanel" class="railpanel" hidden></div>
   </section>
 
-  <section>
+  <section id="layout-tools">
     <h3 class="sec">Tools</h3>
     <div class="links">
       <button type="button" class="tool" id="tDupes">Close duplicate tabs<small>Alt+Shift+X</small></button>
@@ -54,7 +54,7 @@
     <div id="toast" class="status"></div>
   </section>
 
-  <section>
+  <section id="layout-sessions">
     <h3 class="sec">Sessions</h3>
     <div class="links">
       <button type="button" class="tool" id="sSave">Save open tabs<small>Keep them open and name the session</small></button>
@@ -69,11 +69,11 @@
     <div id="closed" class="links"></div>
   </section>
 
-  <section class="notes">
+  <section class="notes" id="layout-notes">
     <label for="note">Quick note</label>
     <textarea id="note" rows="4" placeholder="Jot something down. It saves automatically."></textarea>
   </section>
-  <section class="tasks" aria-labelledby="tasksHeading">
+  <section class="tasks" id="layout-tasks" aria-labelledby="tasksHeading">
     <div class="task-heading">
       <div>
         <h3 class="sec" id="tasksHeading">Tasks</h3>
@@ -107,6 +107,30 @@
       <select id="motionSel"><option value="on">Lively</option><option value="off">Off (lighter)</option></select>
     </label>
     <div id="lookStatus" class="status"></div>
+
+    <h4 class="sub">Custom colours</h4>
+    <p class="hint">Choose your own accent colours. Your selected theme and wallpaper stay in place.</p>
+    <div class="custom-colours">
+      <label>Primary accent <input type="color" id="accentColor" value="#7fd1b9"></label>
+      <label>Secondary accent <input type="color" id="accent2Color" value="#5aa9ff"></label>
+      <button type="button" class="filebtn" id="resetColours">Reset colours</button>
+    </div>
+    <div id="customColourStatus" class="status" aria-live="polite"></div>
+
+    <h4 class="sub">Dashboard layout</h4>
+    <p class="hint">Hide sections you do not use. Your data stays saved when a section is hidden.</p>
+    <div id="layoutControls" class="layout-controls"></div>
+    <div id="layoutStatus" class="status" aria-live="polite"></div>
+
+    <h4 class="sub">Accessibility and spacing</h4>
+    <label class="setrow">Text size
+      <select id="textSizeSel"><option value="small">Small</option><option value="normal">Default</option><option value="large">Large</option></select>
+    </label>
+    <label class="setrow">Dashboard spacing
+      <select id="densitySel"><option value="comfortable">Comfortable</option><option value="compact">Compact</option></select>
+    </label>
+    <label class="sw-row"><span>Higher contrast</span><span class="switch"><input type="checkbox" id="highContrast"><span></span></span></label>
+    <div id="accessibilityStatus" class="status" aria-live="polite"></div>
 
     <h4 class="sub">Dark mode for websites</h4>
     <label class="sw-row"><span>Dark mode on all sites</span><span class="switch"><input type="checkbox" id="dmOn"><span></span></span></label>
@@ -213,6 +237,7 @@
 <script src="sessions.js"></script>
 <script src="gauge.js"></script>
 <script src="home-settings.js"></script>
+<script src="customization.js"></script>
 <script src="home-dark.js"></script>
 <script src="home-look.js"></script>
 <script src="assistant-intents.js"></script>
