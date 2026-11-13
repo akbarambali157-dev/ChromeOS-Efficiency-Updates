@@ -1,4 +1,4 @@
-My Launcher 3.4.1
+My Launcher — 3.5.0-B development (last tagged release 3.4.1)
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -137,3 +137,15 @@ Cloudflare verification (Turnstile / challenge pages)
 
 Mini-app Store
   The catalogue is fetched as metadata from the repository's GitHub Raw URL. Install saves a small record (app ID, version, URL and timestamp); hosted app code is not copied into or executed by the extension. Six apps open in separate tabs on the Vercel-hosted marketplace: Research Library (OpenAlex open-access discovery), PDF Reader (local file selection), Citation Manager, Focus Timer, Markdown Editor and JSON Studio. App data on the Vercel origin is separate from extension data. Data saved on the former GitHub Pages origin is not migrated automatically. Resource profiles: Conservative (20 MB estimated RAM), Balanced (35 MB), and Unrestricted (warnings only). These are estimates, not live measurements; closed apps use no app runtime RAM. The Vercel project deploys the marketplace/ directory from the repository's main branch. No additional extension permissions or dependencies are required.
+
+
+Mini-apps — 3.5.0-B development
+  The marketplace catalogue remains remote metadata, with a local cached fallback.
+  Install enables a first-party app bundled with the extension; it does not download
+  remote executable code. The first six apps open in a restricted launcher workspace
+  and work offline, except fresh Research Library searches (OpenAlex).
+  Theme values are synchronised from the launcher. App data is stored separately
+  per app in IndexedDB. Closing an app flushes pending edits. Uninstall asks whether
+  to delete or retain that app's local data.
+  The final 3.5.0 release still needs the 12-app set, 40-app catalogue, backup/restore
+  integration, and full Chrome 103 and target-device testing.
