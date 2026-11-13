@@ -126,6 +126,7 @@ new-tab-launcher/
   manifest.json        MV3 manifest, commands, permissions
   newtab.html/.js/.css home page
   nav.js               left sidebar nav: registry of id -> page, with icons
+  common.js            identical page helpers shared without a framework
   theme.js             theme and wallpaper engine + shared identifier catalog
   customization.js     dashboard layout, colour and accessibility preferences
   background.js        service worker: dark mode, tab tools, chat relay
