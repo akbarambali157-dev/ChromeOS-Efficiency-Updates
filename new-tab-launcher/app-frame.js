@@ -15,6 +15,34 @@ var registry={
 'flashcard-studio':{name:'Flashcard Studio',desc:'Create and practise question-and-answer cards.',network:false},
 'advanced-calculator':{name:'Advanced Calculator',desc:'Scientific calculations without an expression evaluator.',network:false},
 'colour-studio':{name:'Colour Studio',desc:'Generate and copy colour harmonies.',network:false}
+,'calendar-mini':{name:'Calendar Mini',desc:'Monthly events and deadlines stored offline.',network:false},
+'habit-tracker':{name:'Habit Tracker',desc:'Track daily habits and completion history locally.',network:false},
+'quiz-builder':{name:'Quiz Builder',desc:'Create multiple-choice quizzes and practise recall offline.',network:false},
+'mind-map':{name:'Mind Map',desc:'Build a simple branching map of ideas and export JSON.',network:false},
+'document-studio':{name:'Document Studio',desc:'Draft plain-text and Markdown documents with templates.',network:false},
+'text-csv-viewer':{name:'Text & CSV Viewer',desc:'Preview local text and CSV files without uploading them.',network:false},
+'file-toolkit':{name:'File Toolkit',desc:'Clean, sort and transform pasted text locally.',network:false},
+'code-playground':{name:'Code Playground',desc:'Edit HTML and CSS with a sandboxed preview and a JavaScript scratchpad.',network:false},
+'regex-tester':{name:'Regex Tester',desc:'Test regular expressions against bounded sample text.',network:false},
+'csv-data-studio':{name:'CSV Data Studio',desc:'Filter and export small local CSV datasets.',network:false},
+'diff-checker':{name:'Diff Checker',desc:'Compare two text versions line by line.',network:false},
+'system-monitor':{name:'System Monitor',desc:'View browser-reported device capabilities and connection state.',network:false},
+'storage-dashboard':{name:'Storage Dashboard',desc:'Estimate this app’s saved data and inspect browser storage quota.',network:false},
+'unit-converter':{name:'Unit Converter',desc:'Convert common length, mass, temperature, volume and time units.',network:false},
+'qr-studio':{name:'QR Studio',desc:'Save QR payloads offline and generate QR images with an optional online service.',network:true},
+'image-studio':{name:'Image Studio',desc:'Adjust brightness and contrast on a local image and export PNG.',network:false},
+'drawing-pad':{name:'Drawing Pad',desc:'Draw with touch or pointer and export a PNG.',network:false},
+'diagram-maker':{name:'Diagram Maker',desc:'Create simple flow diagrams and export SVG.',network:false},
+'svg-icon-studio':{name:'SVG Icon Studio',desc:'Create and export simple vector icons.',network:false},
+'expense-tracker':{name:'Expense Tracker',desc:'Record expenses, view totals and export CSV.',network:false},
+'reading-tracker':{name:'Reading Tracker',desc:'Track books by reading status.',network:false},
+'bookmark-library':{name:'Bookmark Library',desc:'Save and organise HTTPS bookmarks locally.',network:false},
+'daily-journal':{name:'Daily Journal',desc:'Write dated journal entries stored on this device.',network:false},
+'audio-player':{name:'Audio Player',desc:'Play locally selected audio files.',network:false},
+'video-library':{name:'Video Library',desc:'Play locally selected video files.',network:false},
+'image-viewer':{name:'Image Viewer',desc:'Browse locally selected images.',network:false},
+'text-to-speech':{name:'Text-to-Speech',desc:'Read text aloud using browser speech support.',network:false},
+'accessibility-checker':{name:'Accessibility Checker',desc:'Run basic static checks on pasted HTML markup.',network:false}
 };
 function send(type,payload){parent.postMessage({channel:'my-launcher-miniapp',nonce:nonce,appId:id,type:type,payload:payload||{}},'*');}
 function setStatus(s,bad){status.textContent=s;status.className='status'+(bad?' error':'');}
@@ -26,6 +54,7 @@ var saveTimer=null;function save(){if(saveTimer)clearTimeout(saveTimer);saveTime
 
 function draw(){
 root.textContent='';
+if(window.MyLauncherMiniApps&&window.MyLauncherMiniApps({id:id,root:root,data:data,node:node,field:field,button:button,panel:panel,save:save,setStatus:setStatus,send:send}))return;
 if(id==='json-studio'){
 var p=panel(),src=field(p,'JSON input','textarea'),out=node('pre','');p.appendChild(out);var row=node('div',undefined,'actions');p.appendChild(row);
 function run(mode){try{var value=JSON.parse(src.value);out.textContent=JSON.stringify(value,null,mode==='minify'?'':2);setStatus(mode==='validate'?'Valid JSON.':'Completed.');}catch(e){out.textContent='';setStatus('Invalid JSON: '+e.message,true);}}
