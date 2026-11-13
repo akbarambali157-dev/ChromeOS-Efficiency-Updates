@@ -2,7 +2,7 @@
 
 **Catalogue status:** 40 entries published; all 40 implementations bundled and registered; final QA in progress.  
 **Target hardware:** Acer Chromebook 15 CB3-532, 2 GB RAM, ChromeOS 103.  
-**Policy:** offline-first, small packages, one foreground app by default. A planned listing is not an installable app.
+**Policy:** offline-first, small packages, one foreground app by default. All 40 catalogue entries are bundled and locally installable; the final device QA pass is still pending.
 
 ## Productivity
 | # | App | Status |
@@ -86,4 +86,4 @@ Estimates in catalogue metadata are planning estimates, not measured process RAM
 
 ## Offline policy
 
-The core app must work without a network unless its feature inherently requires a remote source. Research Library's fresh search is an explicitly disclosed online feature. QR camera scanning may require a user-granted camera permission. Other planned permissions and data handling must be reviewed before an app is marked live.
+The core app works without a network unless its feature inherently requires a remote source. Research Library search and QR image rendering are disclosed online features. QR Studio stores the payload locally but sends it to the QR image service when the user chooses Generate. Text-to-Speech depends on the browser's available speech engine and voices.
