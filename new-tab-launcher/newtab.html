@@ -103,6 +103,21 @@
     <div id="wallModes" class="btnrow" style="margin-top:14px">
       <label class="filebtn">Your photo<input id="wallPick" type="file" accept="image/*"></label>
     </div>
+    <h4 class="sub">Wallpaper collections</h4>
+    <p class="hint">Save groups of built-in wallpapers for different moods. Collections stay on this device and can be included in backups.</p>
+    <div class="wall-collections">
+      <input id="wallCollectionName" type="text" maxlength="24" placeholder="Collection name" aria-label="New wallpaper collection name">
+      <button type="button" class="filebtn" id="wallCollectionCreate">Save current wallpaper</button>
+    </div>
+    <div class="wall-collections">
+      <label class="sr-only" for="wallCollectionSelect">Wallpaper collection</label>
+      <select id="wallCollectionSelect" aria-label="Wallpaper collection"><option value="">No collections yet</option></select>
+      <button type="button" class="filebtn" id="wallCollectionAdd" disabled>Add current</button>
+      <button type="button" class="filebtn" id="wallCollectionApply" disabled>Apply next</button>
+      <button type="button" class="linkbtn" id="wallCollectionDelete" disabled>Delete</button>
+    </div>
+    <label class="sw-row wall-rotate"><span>Rotate through this collection on each new tab</span><span class="switch"><input type="checkbox" id="wallRotate"><span></span></span></label>
+    <div id="wallCollectionStatus" class="status" aria-live="polite"></div>
     <label class="setrow" style="margin-top:4px">Animations
       <select id="motionSel"><option value="on">Lively</option><option value="off">Off (lighter)</option></select>
     </label>
