@@ -79,12 +79,14 @@ function syncTabs() {
 
 function applyDark() { return registerDark().then(syncTabs).catch(noop); }
 
-chrome.runtime.onInstalled.addListener(function () { applyDark(); touchBorn(); });
-chrome.runtime.onStartup.addListener(function () { applyDark(); touchBorn(); });
+chrome.runtime.onInstalled.addListener(function () { applyDark(); touchBorn(); configureAutoSuspend(); });
+chrome.runtime.onStartup.addListener(function () { applyDark(); touchBorn(); configureAutoSuspend(); });
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-  if (!msg) return;
-  if (msg.type === 'darkSync' || msg.type === 'reregister') { applyDark(); return; }
+  if (!msg || !sender || sender.id !== chrome.runtime.id) return;
+  if (msg.type === 'darkSync') { applyDark(); return; }
+  if (msg.type === 'reregister') { applyDark(); configureAutoSuspend(); return; }
+  if (msg.type === 'autoSuspendConfigChanged') { configureAutoSuspend(); return; }
   /* Lazy tab suggestions for the command bar. The page asks only when the
      search box is focused, so idle new tabs never scan every open tab. */
   if (msg.type === 'getTabs') {
@@ -100,10 +102,21 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
      "Failed to fetch". The service worker is not bound by page-origin CORS, so
      the POST is made here and the raw status and body are relayed back. */
   if (msg.type === 'chat') {
+    if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 ||
+        !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+      sendResponse({ status: 400, text: 'Invalid chat request.' }); return;
+    }
+    var chatPayload;
+    try { chatPayload = JSON.stringify(msg.body); } catch (e) {
+      sendResponse({ status: 400, text: 'Invalid chat request.' }); return;
+    }
+    if (chatPayload.length > 200000) {
+      sendResponse({ status: 413, text: 'Chat request is too large.' }); return;
+    }
     fetch('https://brewkeg.dev/v1/chat/completions', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + msg.key, 'Content-Type': 'application/json' },
-      body: JSON.stringify(msg.body)
+      body: chatPayload
     }).then(function (r) {
       return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
     }).catch(function (e) {
@@ -115,11 +128,21 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
      made from the worker so the page never has to satisfy CORS. The key comes
      from extension storage, is passed through and is never logged. */
   if (msg.type === 'search') {
-    if (!msg.key) { sendResponse({ status: 401, text: 'No Parallel API key saved.' }); return; }
+    if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 ||
+        !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+      sendResponse({ status: 400, text: 'Invalid search request.' }); return;
+    }
+    var searchPayload;
+    try { searchPayload = JSON.stringify(msg.body); } catch (e) {
+      sendResponse({ status: 400, text: 'Invalid search request.' }); return;
+    }
+    if (searchPayload.length > 100000) {
+      sendResponse({ status: 413, text: 'Search request is too large.' }); return;
+    }
     fetch('https://api.parallel.ai/v1/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key },
-      body: JSON.stringify(msg.body || {})
+      body: searchPayload
     }).then(function (r) {
       return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
     }).catch(function (e) {
@@ -162,10 +185,11 @@ function touchBorn() {
   }).catch(noop);
 }
 chrome.tabs.onCreated.addListener(function (t) {
-  chrome.storage.session.get('born').then(function (r) {
-    var b = r.born || {};
-    b[t.id] = Date.now();
-    return chrome.storage.session.set({ born: b });
+  chrome.storage.session.get(['born', 'seen']).then(function (r) {
+    var now = Date.now(), b = r.born || {}, s = r.seen || {};
+    b[t.id] = now;
+    if (t.active) s[t.id] = now;
+    return chrome.storage.session.set({ born: b, seen: s });
   }).catch(noop);
 });
 chrome.tabs.onRemoved.addListener(function (id) {
@@ -178,29 +202,56 @@ chrome.tabs.onRemoved.addListener(function (id) {
 
 /* ---------- Auto-suspend idle tabs ---------- */
 var CHECK = 'autosuspend-check';
-chrome.alarms.get(CHECK).then(function (a) {
-  if (!a) chrome.alarms.create(CHECK, { periodInMinutes: 1 });
-});
+
+/* The alarm exists only while the user has enabled auto-suspend. A disabled
+   feature should cost no periodic tab queries or storage reads. */
+function configureAutoSuspend() {
+  return chrome.storage.local.get('autoSuspend').then(function (d) {
+    var cfg = d.autoSuspend;
+    if (!cfg || cfg.on !== true) return chrome.alarms.clear(CHECK);
+    return chrome.alarms.get(CHECK).then(function (alarm) {
+      if (!alarm) return chrome.alarms.create(CHECK, { delayInMinutes: 1, periodInMinutes: 1 });
+    });
+  }).catch(noop);
+}
+
 chrome.alarms.onAlarm.addListener(function (a) {
-  if (a.name === CHECK) { touchBorn(); sweep(); }
+  if (a.name === CHECK) sweep();
+});
+
+/* Keep the last-activated timestamp for each tab. The timestamp is refreshed
+   when a tab becomes active, so its idle age starts when the user leaves it. */
+chrome.tabs.onActivated.addListener(function (info) {
+  chrome.storage.session.get('seen').then(function (r) {
+    var seen = r.seen || {};
+    seen[info.tabId] = Date.now();
+    return chrome.storage.session.set({ seen: seen });
+  }).catch(noop);
 });
 
 function sweep() {
   return chrome.storage.local.get('autoSuspend').then(function (d) {
     var cfg = d.autoSuspend;
-    var now = Date.now();
+    if (!cfg || cfg.on !== true) return;
+    var minutes = Number(cfg.minutes);
+    if ([10, 20, 30, 60].indexOf(minutes) < 0) minutes = 20;
+    var limit = minutes * 60000, now = Date.now();
     return Promise.all([
       chrome.tabs.query({ active: false, audible: false, pinned: false, discarded: false }),
       chrome.storage.session.get('seen')
     ]).then(function (r) {
       var seen = r[1].seen || {}, next = {};
-      var limit = cfg && cfg.on ? (cfg.minutes || 20) * 60000 : 0;
       r[0].forEach(function (t) {
         var ts = seen[t.id] || now;
         next[t.id] = ts;
-        if (limit && !neverSuspend(t.url || t.pendingUrl || '') && now - ts > limit) chrome.tabs.discard(t.id).catch(noop);
+        if (!neverSuspend(t.url || t.pendingUrl || '') && now - ts > limit) {
+          chrome.tabs.discard(t.id).catch(noop);
+        }
       });
       return chrome.storage.session.set({ seen: next });
     });
   }).catch(noop);
 }
+
+/* Re-check whenever the service worker wakes, including after a browser restart. */
+configureAutoSuspend();
