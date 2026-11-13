@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 3.7.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (final QA in progress)
+**Version 3.8.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated release checks added; device QA in progress)
 
 ---
 
@@ -71,12 +71,12 @@ to the exact file contents and destination reviewed.
 
 **Claude upgrade roadmap** — Claude file reading and integrations are intentionally scheduled after the full 40-app marketplace is implemented and passes final QA. The current coding workspace remains available; the next Claude milestone is 3.9.0, not the next release. See [the Claude mini-app roadmap](CLAUDE-MINI-APP-ROADMAP.md) for the corrected sequence.
 
-**Mini-app Store** — a remote Vercel storefront and cached metadata catalogue with 40 first-party apps bundled in the extension. All 40 entries are registered, locally installable and open in the restricted launcher workspace. Apps share the theme bridge and use app-specific IndexedDB storage; user data remains local and can be included in bounded launcher backups. Apps are designed offline-first; Research Library search and QR image generation are disclosed online features. The Code Playground provides sandboxed HTML/CSS preview and a JavaScript scratchpad without executing user scripts. System Monitor displays browser-reported capabilities, not live CPU/RAM telemetry; Accessibility Checker provides basic static heuristics, not a WCAG certification. Resource figures remain estimates until measured on the Chromebook. Use the [40-app manual QA checklist](MINI-APP-3.8.0-QA-CHECKLIST.md) for the device test pass. See [the 40-app catalogue and release gates](MINI-APP-CATALOGUE-40.md), [the 3.5.0 audit](MINI-APP-3.5.0-AUDIT.md) and [marketplace architecture](MARKETPLACE.md).
+**Mini-app Store** — a remote Vercel storefront and cached metadata catalogue with 40 first-party apps bundled in the extension. All 40 entries are registered, locally installable and open in the restricted launcher workspace. Apps share the theme bridge and use app-specific IndexedDB storage; user data remains local and can be included in bounded launcher backups. Apps are designed offline-first; Research Library search and QR image generation are disclosed online features. The Code Playground provides sandboxed HTML/CSS preview and a JavaScript scratchpad without executing user scripts. System Monitor displays browser-reported capabilities, not live CPU/RAM telemetry; Accessibility Checker provides basic static heuristics, not a WCAG certification. Resource figures remain estimates until measured on the Chromebook. Run the automated checks with `node scripts/validate-miniapps.mjs`, then use the [40-app manual QA checklist](MINI-APP-3.8.0-QA-CHECKLIST.md) for the device test pass. See [the 40-app catalogue and release gates](MINI-APP-CATALOGUE-40.md), [the 3.5.0 audit](MINI-APP-3.5.0-AUDIT.md) and [marketplace architecture](MARKETPLACE.md).
 
 **Tab tools** — close duplicate tabs, suspend background tabs to free memory,
 and a memory monitor that shows which sites are using the most.
 
-**Files** — duplicate candidates are confirmed with a full-file SHA-256 digest for files up to 16 MB, and are not selected automatically. Moves to `_Review` use collision-safe names and verify the copied bytes before removing the original.
+**Files** — duplicate candidates are confirmed with a full-file SHA-256 digest for files up to 16 MB, and are not selected automatically. The Files page only copies selected files into `_Review`, verifies the copied bytes and leaves originals untouched. Source-code projects and extension folders are skipped.
 
 **Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions, supported settings, mini-app install registrations, favourites and bounded app-scoped data as JSON. Import validates each app ID and per-app size limit before restoring IndexedDB. Older backups without mini-app data preserve existing app data. Theme timing and editor attachment preferences are preserved. API credentials and GitHub tokens are excluded.
 
