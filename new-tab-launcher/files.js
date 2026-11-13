@@ -80,9 +80,24 @@
     root.requestPermission({ mode: 'readwrite' }).then(refreshPerm);
   });
 
+  /* ---- protect source projects and scan ---- */
+  async function hasMarker(dir, name) {
+    try { await dir.getFileHandle(name); return true; } catch (e) { return false; }
+  }
+  async function protectedDirectory(dir, name) {
+    if (/^(\.git|\.github|\.vscode|\.idea|node_modules|vendor|\.svn|ChromeOS-Efficiency-Updates)$/i.test(name)) return true;
+    if (await hasMarker(dir, '.git') || await hasMarker(dir, '.hg') || await hasMarker(dir, '.svn')) return true;
+    if (await hasMarker(dir, 'manifest.json')) return true;
+    if (await hasMarker(dir, 'package.json') && (await hasMarker(dir, 'src') || await hasMarker(dir, 'index.html'))) return true;
+    return false;
+  }
+
   /* ---- scan ---- */
   async function scan() {
     files = [];
+    if (await hasMarker(root, 'manifest.json') || await hasMarker(root, '.git')) {
+      throw new Error('This looks like an extension or source-code project. Choose its parent folder (such as Downloads) instead; project folders are protected.');
+    }
     var stack = [{ h: root, p: '' }], truncated = false, n = 0;
     while (stack.length) {
       var cur = stack.pop();
@@ -90,7 +105,7 @@
         var name = entry[0], h = entry[1];
         if (cur.p === '' && name === '_Review') continue;
         if (h.kind === 'directory') {
-          if (cur.p.split('/').length < 5 && !/^(node_modules|\.git)$/.test(name)) stack.push({ h: h, p: cur.p + name + '/' });
+          if (cur.p.split('/').length < 5 && !(await protectedDirectory(h, name))) stack.push({ h: h, p: cur.p + name + '/' });
         } else {
           if (n >= MAX_FILES) { truncated = true; continue; }
           var f = await h.getFile();
@@ -112,8 +127,8 @@
 
   async function analyze() {
     var g = {
-      junk: { title: 'Junk and leftovers', why: 'Temporary downloads, empty files and system leftovers.', items: [], pre: true },
-      installers: { title: 'Old installers', why: 'Installer files older than 30 days. You can download them again if needed.', items: [], pre: true },
+      junk: { title: 'Junk and leftovers', why: 'Temporary downloads, empty files and system leftovers.', items: [], pre: false },
+      installers: { title: 'Old installers', why: 'Installer files older than 30 days. You can download them again if needed.', items: [], pre: false },
       dupes: { title: 'Exact duplicates', why: 'Full-file SHA-256 matches. Files larger than 16 MB are skipped to keep memory use low. Review the selection before moving anything.', items: [], pre: false },
       bigOld: { title: 'Big and old', why: 'Over 50 MB and not changed in 6 months. Look these over yourself.', items: [], pre: false }
     };
@@ -253,11 +268,11 @@
     scan().then(function (t) { truncated = t; say('Checking for duplicates\u2026'); return analyze(); }).then(function (g) {
       groups = g; render(truncated); saveSummary(truncated);
       say('Scanned ' + files.length + ' files' + (truncated ? ' (stopped at ' + MAX_FILES + ')' : '') + '.');
-    }).catch(function () { say('Something went wrong while scanning. Try Reconnect, then Scan again.', true); })
+    }).catch(function (e) { say(e && e.message ? e.message : 'Something went wrong while scanning. Try Reconnect, then Scan again.', true); })
       .then(function () { $('scanBtn').disabled = false; });
   });
 
-  /* ---- move to _Review only after a collision-safe, byte-verified copy ---- */
+  /* ---- copy to _Review only; originals are deliberately never removed ---- */
   async function uniqueReviewName(review, desired) {
     var dot = desired.lastIndexOf('.');
     var stem = dot > 0 ? desired.slice(0, dot) : desired;
@@ -296,7 +311,7 @@
     }
   }
 
-  async function moveOne(f, review) {
+  async function copyOne(f, review) {
     var destName = await uniqueReviewName(review, f.path.replace(/\//g, ' - '));
     var src = await f.handle.getFile();
     if (src.size !== f.size || src.lastModified !== f.mod) throw new Error('The source file changed after the scan. Scan again.');
@@ -310,27 +325,23 @@
       try { await review.removeEntry(destName); } catch (x) {}
       throw e;
     }
-    try {
-      await f.parent.removeEntry(f.name);
-    } catch (e) {
-      try { await review.removeEntry(destName); } catch (cleanupError) {}
-      throw e;
-    }
+    // Keep the source file unchanged. The user can inspect the review copy first.
+    return destName;
   }
 
   $('moveBtn').addEventListener('click', async function () {
     var s = selected();
     if (!s.length) return;
-    if (!window.confirm('Move ' + s.length + ' files (' + fmt(sumBytes(s)) + ') into a folder called _Review inside "' + root.name + '"? Nothing is permanently deleted.')) return;
+    if (!window.confirm('Copy ' + s.length + ' selected files (' + fmt(sumBytes(s)) + ') into _Review inside "' + root.name + '"? Original files will stay exactly where they are.')) return;
     $('moveBtn').disabled = true;
     var review, ok = 0, failed = 0;
     try { review = await root.getDirectoryHandle('_Review', { create: true }); }
     catch (e) { say('I could not create the _Review folder. Try Reconnect.', true); $('moveBtn').disabled = false; return; }
     for (var i = 0; i < s.length; i++) {
       say('Moving ' + (i + 1) + ' of ' + s.length + '\u2026');
-      try { await moveOne(s[i], review); ok++; } catch (e) { failed++; }
+      try { await copyOne(s[i], review); ok++; } catch (e) { failed++; }
     }
-    say('Moved ' + ok + ' files to _Review' + (failed ? '. ' + failed + ' could not be moved.' : '.') + ' Press Scan to refresh.', failed > 0);
+    say('Copied ' + ok + ' files to _Review. Originals were not changed.' + (failed ? ' ' + failed + ' could not be copied.' : ' Press Scan to refresh.'), failed > 0);
     $('results').hidden = true;
     $('moveBtn').disabled = false;
   });
