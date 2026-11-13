@@ -81,14 +81,16 @@
     $('wName').focus();
   });
   $('wCancel').addEventListener('click', function () { workspaceDialog.close(); });
-  $('dlgWForm').addEventListener('submit', function () {
+  $('dlgWForm').addEventListener('submit', function (event) {
     var name = $('wName').value.trim().slice(0, 24);
     if (!name) return;
     if (workspaces.some(function (w) { return w.name.toLowerCase() === name.toLowerCase(); })) {
-      $('workspaceStatus').textContent = 'A workspace with that name already exists.';
+      event.preventDefault();
+      $('workspaceStatus').textContent = 'A workspace with that name already exists. Choose another name.';
+      $('wName').focus();
       return;
     }
-    if (workspaces.length >= 8) return;
+    if (workspaces.length >= 8) { event.preventDefault(); $('workspaceStatus').textContent = 'You can keep up to 8 workspaces.'; return; }
     workspaces.push({ name: name, shortcuts: shortcuts.map(function (s) { return { name: s.name, url: s.url }; }) });
     activeWorkspace = name;
     chrome.storage.local.set({ workspaces: workspaces, activeWorkspace: activeWorkspace, shortcuts: shortcuts });
