@@ -43,7 +43,17 @@
       open.addEventListener('click', function () { openSession(s); });
       var del = document.createElement('button');
       del.type = 'button'; del.className = 'x'; del.title = 'Delete session'; del.textContent = '\u00D7';
-      del.addEventListener('click', function () { sessions.splice(i, 1); save(); render(); });
+      del.addEventListener('click', function () {
+        var removed = sessions.splice(i, 1)[0];
+        render();
+        save(function (ok) {
+          if (!ok) {
+            sessions.splice(i, 0, removed);
+            render();
+            say('Could not delete the saved session. Try again.');
+          }
+        });
+      });
       btns.appendChild(open); btns.appendChild(del);
 
       row.appendChild(left); row.appendChild(btns);
