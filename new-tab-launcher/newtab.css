@@ -294,14 +294,8 @@ button.filebtn{border:0;font:inherit;font-size:15px;color:var(--text)}
 :root[data-theme="dayviolet"]{--w-sky:#f2eefb;--w-far:#cfc6e8;--w-mid:#9a8cc4;--w-near:#5a4c86;--w-light:#fff;--w-shadow:#241a3d}
 
 
-/* Scenic wallpapers use their own restrained landscape palettes. The UI keeps
-   its selected theme colours, while the wallpaper's sky and terrain stay in a
-   compatible family even when a user manually chooses a different scene. */
-#wall.dunes{--w-sky:#33251f;--w-far:#8d6447;--w-mid:#674832;--w-near:#3e2b24;--w-light:#f2c58a;--w-shadow:#17110f}
-#wall.mountains{--w-sky:#182735;--w-far:#526d7b;--w-mid:#344d5d;--w-near:#203543;--w-light:#d7e5e8;--w-shadow:#0b141b}
-#wall.ridges{--w-sky:#111e2b;--w-far:#45586a;--w-mid:#2e4051;--w-near:#1b2b39;--w-light:#a8c1cf;--w-shadow:#080e14}
-#wall.waves{--w-sky:#092533;--w-far:#1e6170;--w-mid:#164958;--w-near:#0c303e;--w-light:#a1e2e4;--w-shadow:#04131c}
-#wall.canopy{--w-sky:#101f1c;--w-far:#34594a;--w-mid:#244438;--w-near:#142c25;--w-light:#a8c99a;--w-shadow:#07110e}
+/* Wallpaper layers inherit the active theme's six palette slots. This keeps
+   manual wallpaper choices coordinated with the current launcher theme. */
 
 body.has-wall{--panel:rgba(var(--panel-rgb),.78);--panel-hi:rgba(var(--panel-hi-rgb),.9)}
 
