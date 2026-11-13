@@ -43,7 +43,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | sessions.js, sessions-page.js | Bounded browser tab-session save/restore and validated, streamed Claude usage imports |
 | memory.js | System memory and tab-level memory view |
 | weather.js | Weather forecast and secondary timezone clock |
-| apps.js | On-demand Mini-app Store, open-access research search, local PDF reader, citations, focus timer, Markdown and JSON tools |
+| apps.js | Remote catalogue validation, install records, resource profiles, favourites, update review and hosted-app launching |
 | popup.js | Toolbar popup controls and Cloudflare diagnostic |
 | defer.js | Defers non-critical home-page scripts until idle |
 
@@ -119,6 +119,10 @@ The chat relay retains a 200,000-character serialized-body limit; search retains
 ## 3.0 foundations
 
 3.0 established module responsibilities, shared page helpers and catalogs, a consolidated background API-relay path, and documented storage/message contracts.
+
+## 3.4 remote mini-app marketplace
+
+3.4 moves the mini-app catalogue to a public metadata file and hosts app pages separately under the repository's GitHub Pages site. The extension fetches and validates JSON metadata only; it does not execute remotely fetched JavaScript. Apps open in ordinary browser tabs and cannot access extension APIs or extension credentials. Install state is a small `chrome.storage.local` record containing app ID, version, approved URL and timestamp. Hosted package size and install-record size are shown separately. Resource thresholds are advisory estimates (Conservative 20 MB, Balanced 35 MB, Unrestricted), not live process measurements. App data stored by the Pages origin is separate from the extension's previous 3.3 app data; no automatic migration is claimed.
 
 ## 3.3 mini-app expansion
 
