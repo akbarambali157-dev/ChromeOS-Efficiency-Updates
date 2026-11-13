@@ -699,3 +699,17 @@ dialog[open]{animation:pop .22s ease-out}
   .task-form input[type=date]{grid-column:1;max-width:none}
   .task-form button{grid-column:2;grid-row:1 / span 2}
 }
+
+/* ---------- Workspace profiles (2.3.0) ---------- */
+.workspace-switcher{margin:0 0 18px;padding:14px;border:1px solid rgba(var(--accent-rgb),.16);border-radius:14px;background:rgba(var(--panel-rgb),.48)}
+.workspace-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.workspace-top .sec{margin:0 0 4px}
+.workspace-top .hint{margin:0}
+.workspace-count{font-size:11px;color:var(--muted);white-space:nowrap}
+.workspace-controls{display:flex;align-items:center;gap:8px;margin-top:12px}
+.workspace-controls select{flex:1;min-width:0;padding:9px 12px;border:1px solid var(--panel-hi);border-radius:10px;background:var(--panel);color:var(--text);font:inherit}
+.workspace-controls select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.workspace-controls .railbtn{margin:0;white-space:nowrap}
+.workspace-controls .railbtn:disabled{opacity:.45;cursor:not-allowed}
+.workspace-switcher .status{margin-top:5px}
+@media(max-width:520px){.workspace-controls{flex-wrap:wrap}.workspace-controls select{flex-basis:100%}.workspace-controls .railbtn{flex:1;justify-content:center}}
