@@ -21,7 +21,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | --- | --- |
 | background.js | MV3 service-worker events, dark-mode registration/synchronisation, tab age, auto-suspend, chat/search relay |
 | tools.js | Shared tab operations: duplicate closing, safe suspension predicate, manual memory freeing |
-| theme.js | Theme engine, wallpaper rendering, day/night selection, shared theme and wallpaper identifier catalog |
+| common.js | Shared, identical page helpers: safe text-node element factory, GiB formatter, plural formatter and URL normaliser |\n| theme.js | Theme engine, wallpaper rendering, day/night selection, shared theme and wallpaper identifier catalog |
 | nav.js | Builds the sidebar from the page data-app identifier |
 | gauge.js | Shared SVG memory gauge renderer |
 | newtab.js | Home clock, shortcuts, workspace profiles, notes and dashboard rendering |
@@ -46,7 +46,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 
 ## Shared identifiers and logic
 
-- theme.js is the source of truth for theme IDs and built-in wallpaper IDs. It exposes LAUNCHER_THEME_IDS and WALLPAPER_MODES for settings, assistant intents and backup validation. The custom-photo mode is deliberately excluded from the built-in wallpaper list.
+- common.js owns the small helpers that were byte-for-byte duplicated across page controllers. It is loaded only on pages that consume those helpers. Page-specific selectors, status setters and URL-host policies remain local.\n- theme.js is the source of truth for theme IDs and built-in wallpaper IDs. It exposes LAUNCHER_THEME_IDS and WALLPAPER_MODES for settings, assistant intents and backup validation. The custom-photo mode is deliberately excluded from the built-in wallpaper list.
 - tools.js is the source of truth for duplicate-tab closing, the neverSuspend() safety predicate, and manual memory freeing. The worker and extension pages use the same predicate rather than maintaining competing versions.
 - assistant-core.js is shared by the full assistant page and floating orb. View-specific rendering stays in assistant.js and orb.js.
 - Chat and search use one relayRequest() implementation in the service worker. Endpoint, authentication header and size limit remain explicit per request type.
