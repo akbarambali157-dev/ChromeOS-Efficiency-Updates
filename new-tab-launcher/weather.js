@@ -113,5 +113,9 @@
     loadWeather();
     tickClock2();
   });
-  setInterval(tickClock2, 15000);
+  /* A minute-resolution clock does not need four updates per minute. */
+  setInterval(function () { if (!document.hidden) tickClock2(); }, 60000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) tickClock2();
+  });
 })();
