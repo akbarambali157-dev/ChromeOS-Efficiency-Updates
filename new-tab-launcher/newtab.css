@@ -672,3 +672,31 @@ dialog[open]{animation:pop .22s ease-out}
 .orb-ask input{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid rgba(var(--accent-rgb),.2);background:var(--panel-hi);color:var(--text);font:inherit;font-size:13px}
 .orb-ask input:focus{outline:none;border-color:var(--accent)}
 .orb-ask .primary{padding:8px 14px;border:0;border-radius:10px;cursor:pointer;font-size:13px}
+
+/* ---------- Lightweight task list (2.2.0) ---------- */
+.task-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.task-heading .sec{margin-bottom:4px}
+.task-count{flex-shrink:0;padding:5px 10px;border-radius:999px;background:var(--panel);color:var(--muted);font-size:12px}
+.task-form{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;margin:12px 0}
+.task-form input{min-width:0;width:100%;padding:10px 12px;border:1px solid var(--panel-hi);border-radius:10px;background:var(--panel);color:var(--text);font:inherit}
+.task-form input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.task-form input[type=date]{max-width:150px;color-scheme:dark}
+.task-form button{white-space:nowrap}
+.task-list{display:flex;flex-direction:column;gap:7px}
+.task-item{display:flex;align-items:center;gap:10px;min-width:0;padding:10px 12px;border-radius:11px;background:var(--panel)}
+.task-check{width:18px;height:18px;flex:0 0 auto;accent-color:var(--accent)}
+.task-copy{flex:1;min-width:0}
+.task-title{display:block;overflow-wrap:anywhere;font-size:14px}
+.task-item.done .task-title{text-decoration:line-through;color:var(--muted)}
+.task-meta{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+.task-item.overdue .task-meta{color:var(--danger)}
+.task-delete{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
+.task-delete:hover{background:var(--panel-hi);color:var(--danger)}
+.task-empty{margin:0;padding:14px;border:1px dashed var(--panel-hi);border-radius:10px;color:var(--muted);font-size:13px;text-align:center}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:520px){
+  .task-form{grid-template-columns:minmax(0,1fr) auto}
+  .task-form input[type=date]{grid-column:1;max-width:none}
+  .task-form button{grid-column:2;grid-row:1 / span 2}
+}
+@media(prefers-color-scheme:light){.task-form input[type=date]{color-scheme:light}}
