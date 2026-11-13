@@ -54,10 +54,17 @@
     if (palette && palette.accent2 && rgb(palette.accent2)) root.style.setProperty('--accent2-rgb', rgb(palette.accent2));
     else root.style.removeProperty('--accent2-rgb');
   }
+  function colorHex(name, fallback) {
+    var parts = getComputedStyle(document.documentElement).getPropertyValue(name).match(/\\d+/g);
+    return parts && parts.length >= 3 ? '#' + parts.slice(0, 3).map(function (v) {
+      return ('0' + Math.max(0, Math.min(255, +v)).toString(16)).slice(-2);
+    }).join('') : fallback;
+  }
+  var baseAccent = '#7fd1b9', baseAccent2 = '#5aa9ff';
   function savePalette() {
     var palette = {};
-    if ($('accentColor').value.toLowerCase() !== '#7fd1b9') palette.accent = $('accentColor').value.toLowerCase();
-    if ($('accent2Color').value.toLowerCase() !== '#5aa9ff') palette.accent2 = $('accent2Color').value.toLowerCase();
+    if ($('accentColor').value.toLowerCase() !== baseAccent) palette.accent = $('accentColor').value.toLowerCase();
+    if ($('accent2Color').value.toLowerCase() !== baseAccent2) palette.accent2 = $('accent2Color').value.toLowerCase();
     applyPalette(palette);
     chrome.storage.local.set({ customPalette: palette });
     $('customColourStatus').textContent = 'Custom colours saved.';
@@ -65,9 +72,11 @@
   $('accentColor').addEventListener('input', savePalette);
   $('accent2Color').addEventListener('input', savePalette);
   $('resetColours').addEventListener('click', function () {
-    $('accentColor').value = '#7fd1b9';
-    $('accent2Color').value = '#5aa9ff';
     applyPalette(null);
+    baseAccent = colorHex('--accent-rgb', '#7fd1b9');
+    baseAccent2 = colorHex('--accent2-rgb', '#5aa9ff');
+    $('accentColor').value = baseAccent;
+    $('accent2Color').value = baseAccent2;
     chrome.storage.local.remove('customPalette');
     $('customColourStatus').textContent = 'Theme colours restored.';
   });
@@ -103,8 +112,10 @@
       ? data.layoutPrefs.hidden.filter(function (id) { return SECTIONS.some(function (item) { return item[0] === id; }); }) : [];
     renderLayout();
     var palette = data.customPalette && typeof data.customPalette === 'object' ? data.customPalette : {};
-    if (/^#[0-9a-f]{6}$/i.test(palette.accent || '')) $('accentColor').value = palette.accent;
-    if (/^#[0-9a-f]{6}$/i.test(palette.accent2 || '')) $('accent2Color').value = palette.accent2;
+    baseAccent = colorHex('--accent-rgb', '#7fd1b9');
+    baseAccent2 = colorHex('--accent2-rgb', '#5aa9ff');
+    $('accentColor').value = /^#[0-9a-f]{6}$/i.test(palette.accent || '') ? palette.accent : baseAccent;
+    $('accent2Color').value = /^#[0-9a-f]{6}$/i.test(palette.accent2 || '') ? palette.accent2 : baseAccent2;
     applyPalette(palette);
     applyAccessibility(data.accessibilityPrefs);
   });
