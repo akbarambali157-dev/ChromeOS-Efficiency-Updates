@@ -142,10 +142,10 @@ Mini-app Store
 Mini-apps — 3.5.0-B development
   The marketplace catalogue remains remote metadata, with a local cached fallback.
   Install enables a first-party app bundled with the extension; it does not download
-  remote executable code. The first six apps open in a restricted launcher workspace
+  remote executable code. The first twelve apps open in a restricted launcher workspace
   and work offline, except fresh Research Library searches (OpenAlex).
   Theme values are synchronised from the launcher. App data is stored separately
   per app in IndexedDB. Closing an app flushes pending edits. Uninstall asks whether
   to delete or retain that app's local data.
-  The final 3.5.0 release still needs the 12-app set, 40-app catalogue, backup/restore
+  The final 3.5.0 release still needs the 40-app catalogue, backup/restore
   integration, and full Chrome 103 and target-device testing.
