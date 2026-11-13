@@ -7,7 +7,6 @@
   var dueInput = $('taskDue');
   var list = $('taskList');
   var tasks = [];
-  var saveTimer = null;
 
   function todayKey() {
     var d = new Date();
@@ -24,6 +23,15 @@
     if (!value) return '';
     var date = new Date(value + 'T00:00:00');
     return 'Due ' + date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function save() {
+    var snapshot = tasks.map(function (t) {
+      return { id: t.id, title: t.title, due: t.due || '', done: !!t.done, created: +t.created || Date.now() };
+    });
+    chrome.storage.local.set({ tasks: snapshot }, function () {
+      if (chrome.runtime.lastError) $('taskSummary').textContent = 'Could not save tasks. Your changes are still visible in this tab.';
+    });
   }
   function render() {
     list.textContent = '';
@@ -120,8 +128,7 @@
   });
   chrome.storage.onChanged.addListener(function (changes, area) {
     if (area !== 'local' || !changes.tasks) return;
-    if (saveTimer) return;
-    var next = changes.tasks.newValue;
+      var next = changes.tasks.newValue;
     if (!Array.isArray(next)) return;
     tasks = next;
     render();
