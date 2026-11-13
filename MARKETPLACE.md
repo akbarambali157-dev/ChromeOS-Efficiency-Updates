@@ -10,7 +10,7 @@ An extension-side Install action stores only an app ID, pinned version, approved
 - Catalogue and app data are rendered as text; no remote commands are interpreted.
 - Remote code executes only as a normal hosted web page, not in the extension context.
 - Apps receive no extension tokens, browser history, tabs, local storage, or extension permissions.
-- App versions are pinned in install records; updates require user review.
+- App URLs are versioned (for example, /apps/v1.0.0/). Publish every release to a new version folder and never overwrite an existing version folder; the install record keeps the exact version URL, and updates require user review.
 
 ## Resource budgets
 RAM is estimated incremental tab memory while running, not total Chrome process memory. CPU values represent expected idle and short-burst percentages of one logical core; they are estimates, not live telemetry. Actual use varies with content, PDF size, network results, Chrome and other tabs. Chrome Task Manager is the practical measurement reference.
