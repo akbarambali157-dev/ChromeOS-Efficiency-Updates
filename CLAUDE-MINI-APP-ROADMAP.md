@@ -39,134 +39,49 @@ Design principles:
 
 ## 3. Release schedule
 
-Versions are milestones, not calendar promises. A feature is marked complete only after implementation, syntax checks, regression tests and target-Chromebook QA.
+The mini-app platform is the active priority. Claude upgrades are deliberately scheduled **after all 40 mini-apps are implemented and the marketplace has passed its release QA**. Version numbers are milestones, not calendar promises. A count changes only after implementation and acceptance tests pass.
 
-### 3.5.1 — Claude File Reader
+### 3.5.1 — Complete the existing 12 and deliver apps 13–20
 
-**Primary goal:** let the user open files already on the Chromebook and ask Claude to explain or work with them.
+**Primary goal:** stabilise the twelve existing apps before expanding the catalogue.
 
-Implementation:
-- Add an **Open file** control to the Claude file sidebar.
-- Use a user-initiated file picker; use the Chrome 103-compatible fallback where needed.
-- First support text/code formats: TXT, MD, HTML, CSS, JS, JSON, CSV, XML, YAML, Python and common source files.
-- Show a preview and metadata before adding a file to the workspace.
-- Add imported files to the existing editor file list with clear source labels.
-- Reuse the existing per-file attach/detach control so nothing is sent without being attached.
-- Support multiple selected files with a combined context budget.
-- Handle unsupported binary formats honestly; do not send raw binary bytes as text.
-- Add explicit limits: maximum 8 files per import action, 1 MiB per text file, 4 MiB combined imported text by default, with safe truncation warnings and a way to inspect what was omitted.
-- Keep the existing 40-file workspace cap; prevent duplicate imports from creating confusing copies.
-- Preserve imported content in the existing bounded editor storage and backups only after verifying backup size behaviour.
-- Update the banner and help text to say that user-selected local text files can be opened; do not claim full filesystem access.
+- Audit all twelve current apps for broken controls, data persistence, keyboard/touch usability, empty states, export/import and theme integration.
+- Fix the existing workspace/runtime issues before adding more surface area.
+- Implement: Calendar Mini, Habit Tracker, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester? 
 
-Acceptance tests:
-- Open one file, several files, an empty file, a large file, an unsupported binary file and a file with Unicode text.
-- Cancel the picker without changing the workspace.
-- Verify no file content is sent until its attachment toggle is enabled and the user sends a message.
-- Verify limits, truncation notices, storage errors and reload persistence.
-- Verify credentials never appear in the attachment context.
-- Verify the app still works offline for editing and viewing imported files.
+**Correction:** the eight additions in this milestone are Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester. Habit Tracker remains in the 3.7.0 wave with the final personal-organisation group so the published catalogue count remains consistent.
 
-### 3.6.0 — Project Workspace and Folder Reader
+**Acceptance:** 20 apps appear in the catalogue; all 20 are bundled, installable, launchable offline where declared, theme-aware, data-isolated and individually tested. No planned app is labelled installable.
 
-**Primary goal:** browse a project folder and attach selected files without turning Claude into an unrestricted file scanner.
+### 3.6.0 — Apps 21–30
 
-Implementation:
-- Add an explicit **Open project folder** action using the File System Access API where supported.
-- Request read-only access; request write permission only in a later, separately reviewed feature.
-- Build a lazy, collapsible file tree. Do not recursively read every file on folder selection.
-- Let the user select individual files or a small group for import.
-- Exclude common heavy/noisy folders by default (for example node_modules, .git, build output and caches), with visible explanations.
-- Enforce depth, file-count, per-file and combined-context budgets.
-- Remember the directory handle only where browser support permits, and show a Reconnect action when permission expires.
-- Add a context panel showing included files and the estimated characters sent.
-- Keep one project workspace active at a time to protect memory on the target Chromebook.
+Implement: CSV Data Studio, Diff Checker, System Monitor, Storage Dashboard, Unit Converter, QR Studio, Image Studio, Drawing Pad, Diagram Maker and SVG Icon Studio.
 
-Acceptance tests:
-- Permission granted, denied, revoked and re-granted.
-- Large project with thousands of files; lazy listing and limits must remain responsive.
-- Hidden and excluded folders; unusual filenames; nested folders.
-- File changed or removed after listing; show a clear refresh/error message.
-- No background scan or polling after the workspace closes.
+**Acceptance:** 30 working apps, with documented input limits, local data handling, export paths, resource estimates and any unavoidable browser/network requirements.
 
-### 3.6.1 — Safe Code Changes
+### 3.7.0 — Apps 31–40
 
-**Primary goal:** move beyond advice while keeping every change reviewable.
+Implement: Habit Tracker, Expense Tracker, Reading Tracker, Bookmark Library, Daily Journal, Audio Player, Video Library, Image Viewer, Text-to-Speech and Accessibility Checker.
 
-Implementation:
-- Let Claude propose a structured patch for the currently open file.
-- Show additions, removals and unchanged context before applying.
-- Apply only after explicit user confirmation.
-- Keep undo/restore for the previous editor buffer.
-- Support Save As/download first; do not silently overwrite the source file.
-- Reuse the GitHub snapshot-bound review flow for repository pushes.
-- Reject malformed, oversized or mismatched patches.
+**Acceptance:** all 40 catalogue entries are implemented, bundled and installable. Media apps release object URLs and playback resources when closed; accessibility and speech features disclose browser support limitations.
 
-Acceptance tests:
-- Add, remove, replace, empty-file and multi-hunk changes.
-- Stale patch after editor changes must be rejected.
-- Cancel leaves the original buffer untouched.
-- Save/export and GitHub push operate on the exact reviewed snapshot.
+### 3.8.0 — Marketplace-wide hardening and final 40-app QA
 
-### 3.7.0 — Curated Skills and Tool Connections
+- Audit every app against its advertised feature list; no placeholder-only or misleading controls.
+- Verify all 40 app IDs, metadata, bundled registry entries and install/open/close/uninstall flows.
+- Verify theme, accent, text size, density, contrast and reduced-motion preferences in every app.
+- Verify app-scoped storage, backup/restore bounds, retained/deleted data choices and offline behavior.
+- Run syntax, HTML/CSS, JSON, CSP/sandbox, message-bridge and regression checks.
+- Profile representative light, medium and heavier apps on the target Chromebook; retain estimates unless actual measurements are recorded.
+- Publish a concise manual test checklist for the user and resolve issues found in that pass.
 
-**Primary goal:** add useful integrations without pretending arbitrary Claude plugins can run inside this mini-app.
+### 3.9.0 — Claude File Reader (only after 40-app QA)
 
-Implementation:
-- Introduce a small, versioned capability catalogue with publisher, description, permissions, data sent, network requirements and compatibility status.
-- Start with built-in prompt skills and user-invoked commands that are declarative data, not executable remote code.
-- Add a narrow GitHub read integration: inspect repository files and metadata with user-selected repository scope; preserve the existing reviewed write path.
-- Add optional, user-configured remote tool connections only where a compatible server and secure authentication flow exist.
-- Require per-tool confirmation before a tool reads or changes user data.
-- Show tool activity and results in the conversation.
+Add user-initiated local text/code file selection, preview, bounded multi-file context and explicit attach/detach. Keep binary files unsupported unless a safe format-specific reader is added. Preserve read-only-by-default behavior and the existing reviewed GitHub write flow.
 
-Not included:
-- Running arbitrary plugin JavaScript from GitHub.
-- Installing VS Code extensions or terminal binaries.
-- Running local plugin hooks or shell commands in the extension.
-- Exposing Chrome extension APIs or stored credentials to a plugin.
+### 4.0.0 — Claude project workspace and safe integrations
 
-Acceptance tests:
-- Unknown or malformed capability definitions are rejected.
-- A tool cannot exceed its declared scope.
-- Tool calls require user invocation/confirmation.
-- Credentials are never exposed to model-visible plugin metadata or logs.
-- Disconnecting a tool removes its access.
-
-### 3.8.0 — Compatible Plugin and MCP Catalogue
-
-**Primary goal:** support a carefully selected subset of the wider Claude plugin ecosystem.
-
-Implementation:
-- Define a compatibility profile for this mini-app; do not label every Claude Code plugin as supported.
-- Support curated skill/command packages after manifest and content validation.
-- Investigate remote MCP connections through a trusted broker. Do not assume a browser extension can safely host arbitrary local MCP processes.
-- Add install, enable, disable, update, remove and permission-review screens.
-- Pin package versions and require review before updates.
-- Keep a local allowlist and cached metadata for offline browsing; network-dependent tools clearly show offline state.
-- Publish a security review checklist and a supported/unsupported integration list.
-
-Acceptance tests:
-- Malicious or malformed manifests, oversized packages, untrusted publishers and version changes.
-- Permission changes require renewed consent.
-- Disabled or removed integrations cannot be invoked.
-- Offline catalogue fallback works without executing stale remote code.
-
-### 3.9.0 — Workflow and Reliability Pass
-
-**Primary goal:** make longer coding sessions manageable without increasing idle resource use.
-
-Implementation:
-- Optional task/checklist panel for multi-step coding work.
-- Context manager showing included files, history size and estimated request size.
-- Clear conversation export/import with schema and size validation.
-- Better request cancellation, retry and recoverable error states.
-- Performance pass on the 2 GB Chromebook; no background agent loops.
-
-Acceptance tests:
-- Long conversations, interrupted requests, offline/online transitions and storage quota errors.
-- No credential leakage in exports.
-- No idle timers or background polling.
+Only after 3.9.0 acceptance: lazy folder browsing, reviewed patch application, curated declarative skills and carefully scoped compatible tool connections. This remains a lightweight browser workspace, not the official Claude Code CLI or unrestricted plugin runtime.
 
 ## 4. Resource and compatibility budget
 
