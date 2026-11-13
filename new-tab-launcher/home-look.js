@@ -162,26 +162,42 @@
     saved(rotationOn ? 'Wallpaper rotates when you open a new tab.' : 'Automatic wallpaper rotation is off.');
   });
 
-  // custom photo, shrunk to 1280px wide so it stays light on a 2GB Chromebook
+  // Custom photos are bounded before saving so large images do not create
+  // oversized canvas allocations or storage writes on low-memory Chromebooks.
   $('wallPick').addEventListener('change', function (e) {
     var f = e.target.files[0];
     e.target.value = '';
     if (!f) return;
+    if (f.size > 20 * 1048576) { say('Choose an image smaller than 20 MB.', true); return; }
     say('Preparing photo\u2026');
     var img = new Image(), url = URL.createObjectURL(f);
     img.onload = function () {
-      var w = Math.min(1280, img.naturalWidth), h = Math.round(img.naturalHeight * w / img.naturalWidth);
-      var cv = document.createElement('canvas');
-      cv.width = w; cv.height = h;
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      URL.revokeObjectURL(url);
-      var data = cv.toDataURL('image/jpeg', 0.72);
-      chrome.storage.local.set({ wallpaper: data }, function () {
-        if (chrome.runtime.lastError) { say('That image is too large to save. Try a smaller one.', true); return; }
-        window.setCustomWall(data);
-        chooseWall('custom');
-        say('Photo set as wallpaper.');
-      });
+      try {
+        var sourceW = img.naturalWidth, sourceH = img.naturalHeight;
+        if (!sourceW || !sourceH || sourceW * sourceH > 40000000) {
+          say('That image has too many pixels. Choose a smaller image.', true);
+          return;
+        }
+        var scale = Math.min(1, 1280 / Math.max(sourceW, sourceH));
+        var w = Math.max(1, Math.round(sourceW * scale));
+        var h = Math.max(1, Math.round(sourceH * scale));
+        var cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        var ctx = cv.getContext('2d');
+        if (!ctx) throw new Error('Canvas is unavailable.');
+        ctx.drawImage(img, 0, 0, w, h);
+        var data = cv.toDataURL('image/jpeg', 0.72);
+        chrome.storage.local.set({ wallpaper: data }, function () {
+          if (chrome.runtime.lastError) { say('That image is too large to save. Try a smaller one.', true); return; }
+          window.setCustomWall(data);
+          chooseWall('custom');
+          say('Photo set as wallpaper.');
+        });
+      } catch (err) {
+        say('Could not prepare that image. Try a smaller JPG or PNG.', true);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
     };
     img.onerror = function () { URL.revokeObjectURL(url); say('Could not open that image.', true); };
     img.src = url;
