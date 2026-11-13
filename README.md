@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: nothing polls
 in a hidden tab, nothing animates off screen, and a new tab does only the work a
 new tab needs.
 
-**Version 2.5.1** · Manifest V3 · minimum Chrome 103
+**Version 2.6.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -76,6 +76,14 @@ page so a new tab never parses markup it does not need.
 and a memory monitor that shows which sites are using the most.
 
 **Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions and supported settings as JSON, then import a validated backup. API credentials and GitHub tokens are excluded.
+
+## Credential handling
+
+GitHub, Brewkeg and Parallel credentials are stored in Chrome extension local storage so their features can work. They are excluded from backup exports, but this storage is **not an encrypted password vault**. Keep your Chrome profile private, use the narrowest token permissions the provider supports, and revoke a credential if you think it has been exposed. Do not paste credentials into assistant conversations or project files.
+
+## Performance measurement
+
+Use the [performance baseline guide](PERFORMANCE-BASELINE.md) to record Chrome Task Manager memory and CPU readings. The project does not claim a memory or CPU target until readings have been collected on the actual Chromebook.
 
 ## Keyboard shortcuts
 
