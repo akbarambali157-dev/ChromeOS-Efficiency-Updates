@@ -1,7 +1,7 @@
 /* Decides what a spoken or typed sentence means. Pure function, no browser calls. */
 (function (g) {
   'use strict';
-  var THEMES = ['slate', 'aurora', 'sunset', 'ocean', 'neon', 'midnight', 'forest', 'plum', 'ember'];
+  var THEMES = (g.LAUNCHER_THEME_IDS || ['slate', 'aurora', 'sunset', 'ocean', 'neon', 'midnight', 'forest', 'plum', 'ember']).slice();
   function intent(raw) {
     var s = String(raw || '').toLowerCase().replace(/[?.!,]+/g, ' ').replace(/\s+/g, ' ').trim();
     var m;
