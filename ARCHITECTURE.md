@@ -1,6 +1,7 @@
 # My Launcher architecture
 
-**Release baseline:** 3.3.0  
+**Last tagged release baseline:** 3.4.1  
+**Current development stage:** 3.5.0-B  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
 
@@ -43,8 +44,8 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | sessions.js, sessions-page.js | Bounded browser tab-session save/restore and validated, streamed Claude usage imports |
 | memory.js | System memory and tab-level memory view |
 | weather.js | Weather forecast and secondary timezone clock |
-| apps.js | Remote catalogue validation, install records, resource profiles, favourites, update review and hosted-app launching |
-| popup.js | Toolbar popup controls and Cloudflare diagnostic |
+| apps.js | Remote catalogue validation/cache, bundled-app install records, resource profiles, favourites and local workspace launching |
+| app-workspace.js | Local app workspace lifecycle, theme bridge, app-scoped IndexedDB broker and bounded message validation |\n| app-frame.js | Sandboxed first-party mini-app UI; no direct extension API access |\n| popup.js | Toolbar popup controls and Cloudflare diagnostic |
 | defer.js | Defers non-critical home-page scripts until idle |
 
 ## Shared identifiers and logic
@@ -131,3 +132,20 @@ The chat relay retains a 200,000-character serialized-body limit; search retains
 ## 3.2 deep-refactor boundaries
 
 3.2 strengthens the editor/GitHub approval boundary, centralises GitHub REST handling, makes theme metadata single-source, verifies file moves and exact duplicate candidates, bounds usage imports and session restores, and repairs task persistence. It preserves the existing feature set, Manifest V3, Chrome 103 minimum, storage keys and formats, and the no-new-dependencies/no-new-permissions constraints.
+
+## 3.5.0-B local mini-app runtime foundation (in progress)
+
+3.5.0-B adds a first-party local runtime foundation while preserving the 3.4.1 tagged manifest version until the complete 3.5.0 release gates pass.
+
+- `miniapps/registry.json` is the local allow-list for bundled app IDs, versions, data limits and network disclosures.
+- `app-workspace.html` is the launcher-owned workspace. It opens a local `app-frame.html` inside a sandboxed iframe with scripts/forms/downloads and user-requested popups only; it does not grant `allow-same-origin`.
+- The frame uses a nonce-bound `postMessage` contract. The parent checks the exact iframe `contentWindow`, nonce and app ID. Only known message types are accepted.
+- The frame's CSP denies direct network access. Research Library search is a narrowly validated parent-side request to OpenAlex; returned records are reduced to a small, fixed data shape before being sent to the frame.
+- App data is stored in IndexedDB database `my-launcher-miniapps`, object store `apps`, keyed by app ID. The bridge serialises and enforces each app's byte limit. Apps cannot request another app's namespace.
+- Theme values are sent from the launcher to the active app. A close handshake flushes debounced app edits before leaving the workspace.
+- The six current first-party experiences (Research Library, PDF Reader, Citation Manager, Focus Timer, Markdown Editor and JSON Studio) have local runtime implementations. Only Research Library's fresh search needs a network connection; PDF Reader uses a user-selected local file.
+- Existing 3.4.1 remote install records are migrated only when the app ID and version match the locally bundled allow-list. Remote catalogue versions cannot cause remote JavaScript to be executed or falsely update the local runtime.
+- Install enables a bundled app; it does not download a separate executable package. Vercel remains the metadata storefront and catalogue publisher.
+- App data is not yet included in launcher backup/restore; this is a later release gate. Uninstall now asks separately whether local app data should be deleted.
+
+The 40-app catalogue, initial 12 complete apps, polished storefront, full backup/restore integration, browser-level Chrome 103 QA and final version bump remain outstanding. Do not describe this stage as a completed 3.5.0 release.
