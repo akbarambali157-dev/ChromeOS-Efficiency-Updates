@@ -3,8 +3,9 @@ Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this fol
 After updating files, press the reload arrow on the extension.
 
 Built for an Acer Chromebook 15 CB3-532 (2 GB RAM, ChromeOS 103). Everything here
-is written to stay light on that machine: no polling in hidden tabs, no animation
-that is not on screen, and no work on a new tab that the new tab does not need.
+is written to stay light on that machine: dashboard timers stop while hidden,
+off-screen animation is avoided, and the optional auto-suspend alarm runs only
+when that feature is enabled.
 
 Command bar: click the search box (or press /) and type "gh prs", "drive new sheet",
 a tab name, or a shortcut name.
