@@ -55,6 +55,9 @@ For a useful comparison, take three runs and keep the median for each condition.
 | 2.7.0 | Idle, 60 seconds | 1 | | | | |
 | 2.7.0 | Assistant panel open | 1 | | | | |
 | 2.7.0 | Settings / wallpaper interaction | 1 | | | | |
+| 2.9.0 | Idle, 60 seconds | 1 | | | | |
+| 2.9.0 | Assistant panel open | 1 | | | | |
+| 2.9.0 | Settings / wallpaper interaction | 1 | | | | |
 | 3.0.0 | Idle, 60 seconds | 1 | | | | |
 | 3.0.0 | Assistant panel open | 1 | | | | | |
 | 3.0.0 | Settings / wallpaper interaction | 1 | | | | | |
