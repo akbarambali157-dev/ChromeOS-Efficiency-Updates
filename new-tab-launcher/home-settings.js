@@ -170,7 +170,8 @@
         name: String(a.name || 'Nova').slice(0, 20),
         model: /^[\w.:\/-]+$/.test(String(a.model || '')) ? String(a.model).slice(0, 60) : 'claude-haiku-4-5',
         speak: a.speak !== false,
-        wake: !!a.wake
+        wake: !!a.wake,
+        contextEnabled: !!a.contextEnabled
       };
     }
     if (d.autoSuspend && typeof d.autoSuspend === 'object') {
