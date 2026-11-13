@@ -1,61 +1,14 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "3.3.0",
-  "description": "Mini-app expansion: research, PDF reading, citations, focus, Markdown and JSON tools.",
+  "version": "3.4.0",
+  "description": "Lightweight remote mini-app marketplace with resource guidance and isolated hosted tools.",
   "minimum_chrome_version": "103",
-  "permissions": [
-    "storage",
-    "tabs",
-    "sessions",
-    "scripting",
-    "alarms",
-    "system.memory",
-    "bookmarks",
-    "history"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
-  "icons": {
-    "16": "icons/app-16.png",
-    "32": "icons/app-32.png",
-    "48": "icons/app-48.png",
-    "128": "icons/app-128.png"
-  },
-  "action": {
-    "default_title": "Launcher",
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/bar-16.png",
-      "32": "icons/bar-32.png",
-      "48": "icons/bar-48.png"
-    }
-  },
-  "commands": {
-    "close-dupes": {
-      "suggested_key": {
-        "default": "Alt+Shift+X"
-      },
-      "description": "Close duplicate tabs in this window"
-    },
-    "free-memory": {
-      "suggested_key": {
-        "default": "Alt+Shift+F"
-      },
-      "description": "Free up memory by suspending background tabs"
-    },
-    "toggle-dark": {
-      "suggested_key": {
-        "default": "Alt+Shift+D"
-      },
-      "description": "Toggle dark mode on this site"
-    }
-  }
+  "permissions": ["storage","tabs","sessions","scripting","alarms","system.memory","bookmarks","history"],
+  "host_permissions": ["<all_urls>"],
+  "background": {"service_worker": "background.js"},
+  "chrome_url_overrides": {"newtab": "newtab.html"},
+  "icons": {"16":"icons/app-16.png","32":"icons/app-32.png","48":"icons/app-48.png","128":"icons/app-128.png"},
+  "action": {"default_title":"Launcher","default_popup":"popup.html","default_icon":{"16":"icons/bar-16.png","32":"icons/bar-32.png","48":"icons/bar-48.png"}},
+  "commands": {"close-dupes":{"suggested_key":{"default":"Alt+Shift+X"},"description":"Close duplicate tabs in this window"},"free-memory":{"suggested_key":{"default":"Alt+Shift+F"},"description":"Free up memory by suspending background tabs"},"toggle-dark":{"suggested_key":{"default":"Alt+Shift+D"},"description":"Toggle dark mode on this site"}}
 }
