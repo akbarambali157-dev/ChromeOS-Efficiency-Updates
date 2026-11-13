@@ -1,4 +1,4 @@
-My Launcher 3.0.0
+My Launcher 3.2.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -72,13 +72,14 @@ Claude Code
   model is told to cite the URLs it used. The search runs from the background
   worker, so it is not blocked by CORS.
   Push writes the file in the editor to a repo you name, after showing you the
-  change. It needs the GitHub token from the GitHub tab.
+  change. The push is tied to the exact file and destination reviewed; edits after review require a new review. It needs the GitHub token from the GitHub tab.
   Honest limits: VS Code extensions and Claude Code plugins cannot be installed
   here. This is an editor, a chat and a push button, not a Codespace. The banner
   in the app links to a real Codespace when you need one.
 
-Files: open the Files tab, choose a folder, press Scan. Then ask the assistant
-'what files do I have'.
+Files: open the Files tab, choose a folder, press Scan. Duplicate candidates are checked with a full-file SHA-256 digest up to 16 MB and are not selected automatically. Files are copied into _Review and byte-verified before the original is removed. Then ask the assistant 'what files do I have'.
+
+Sessions: usage JSONL imports are streamed and bounded by file count, total size, line length and record count. Browser sessions are limited to 100 saved sessions and 200 web tabs per session; tabs are not closed unless saving succeeds.
 Email: ask the assistant 'check my email'. It reads your signed-in Gmail unread
 list (read only).
 
@@ -92,7 +93,7 @@ Performance: see PERFORMANCE-BASELINE.md for a repeatable Chrome Task Manager
 memory and CPU measurement process.
 
 Backup: Settings -> Export backup saves shortcuts, workspaces, notes, tasks, sessions, settings and
-Claude Code files and conversations. Your GitHub token and brewkeg keys are never
+Claude Code files and conversations. Theme timing and per-file chat attachment preferences are preserved. Your GitHub token and brewkeg keys are never
 included.
 
 Cloudflare verification (Turnstile / challenge pages)
