@@ -8,7 +8,13 @@ var registry={
 'citation-manager':{name:'Citation Manager',desc:'Build and save a small local bibliography.',network:false},
 'focus-timer':{name:'Focus Timer',desc:'A lightweight focus timer that pauses when hidden.',network:false},
 'markdown-editor':{name:'Markdown Editor',desc:'Write Markdown with a safe local preview and autosave.',network:false},
-'json-studio':{name:'JSON Studio',desc:'Format, minify and validate JSON locally.',network:false}
+'json-studio':{name:'JSON Studio',desc:'Format, minify and validate JSON locally.',network:false},
+'quick-notes':{name:'Quick Notes',desc:'A private local scratchpad with autosave.',network:false},
+'mini-kanban':{name:'Mini Kanban',desc:'A compact three-column personal task board.',network:false},
+'study-planner':{name:'Study Planner',desc:'Plan study sessions by subject and date.',network:false},
+'flashcard-studio':{name:'Flashcard Studio',desc:'Create and practise question-and-answer cards.',network:false},
+'advanced-calculator':{name:'Advanced Calculator',desc:'Scientific calculations without an expression evaluator.',network:false},
+'colour-studio':{name:'Colour Studio',desc:'Generate and copy colour harmonies.',network:false}
 };
 function send(type,payload){parent.postMessage({channel:'my-launcher-miniapp',nonce:nonce,appId:id,type:type,payload:payload||{}},'*');}
 function setStatus(s,bad){status.textContent=s;status.className='status'+(bad?' error':'');}
@@ -49,6 +55,37 @@ var p=panel(),f=field(p,'Choose PDF (maximum 40 MB)','input');f.type='file';f.ac
 }
 if(id==='research-library'){
 var p=panel(),q=field(p,'Search open-access scholarly works'),results=node('div');p.appendChild(results);q.maxLength=180;button(p,'Search OpenAlex',function(){var term=q.value.trim();if(!term)return setStatus('Enter a search term.',true);results.textContent='Searching…';send('research.search',{query:term});});return;
+}
+if(id==='quick-notes'){
+var p=panel(),title=field(p,'Note title'),src=field(p,'Your note','textarea');title.maxLength=80;src.maxLength=12000;title.value=data.title||'';src.value=data.text||'';
+title.addEventListener('input',function(){data.title=title.value;save();});src.addEventListener('input',function(){data.text=src.value;save();});button(p,'Download note',function(){var a=document.createElement('a'),u=URL.createObjectURL(new Blob([('# '+(title.value||'Quick note')+'\n\n')+src.value],{type:'text/markdown'}));a.href=u;a.download='quick-note.md';a.click();setTimeout(function(){URL.revokeObjectURL(u);},1000);},true);return;
+}
+if(id==='mini-kanban'){
+var p=panel(),name=field(p,'New task'),add=node('div',undefined,'actions');p.appendChild(add);var board=node('div');board.style.display='grid';board.style.gridTemplateColumns='repeat(auto-fit,minmax(150px,1fr))';board.style.gap='10px';p.appendChild(board);
+function drawBoard(){board.textContent='';[['todo','To Do'],['doing','In Progress'],['done','Done']].forEach(function(col){var box=node('section',undefined,'panel'),h=node('strong',col[1]);box.appendChild(h);(data.items||[]).filter(function(x){return x.state===col[0];}).forEach(function(x){var row=node('div',undefined,'reference'),label=node('span',x.title);row.appendChild(label);var next=node('button',col[0]==='todo'?'→':col[0]==='doing'?'✓':'↺','secondary');next.title='Move task';next.addEventListener('click',function(){x.state=col[0]==='todo'?'doing':col[0]==='doing'?'done':'todo';save();drawBoard();});var del=node('button','×','secondary');del.title='Delete task';del.addEventListener('click',function(){data.items=data.items.filter(function(y){return y.id!==x.id;});save();drawBoard();});row.appendChild(next);row.appendChild(del);box.appendChild(row);});board.appendChild(box);});}
+button(add,'Add task',function(){var t=name.value.trim();if(!t)return setStatus('Enter a task.',true);data.items=(data.items||[]).slice(0,79).concat([{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),title:t.slice(0,120),state:'todo'}]);name.value='';save();drawBoard();});drawBoard();return;
+}
+if(id==='study-planner'){
+var p=panel(),subject=field(p,'Subject'),date=field(p,'Study date'),duration=field(p,'Duration (minutes)');date.type='date';duration.type='number';duration.min='5';duration.max='480';duration.value='30';var list=node('div');p.appendChild(list);
+function drawSessions(){list.textContent='';(data.sessions||[]).slice().sort(function(a,b){return a.date.localeCompare(b.date);}).forEach(function(x){var row=node('div',undefined,'reference');row.appendChild(node('span',x.subject+' · '+x.date+' · '+x.minutes+' min'));var del=node('button','Remove','secondary');del.addEventListener('click',function(){data.sessions=data.sessions.filter(function(y){return y.id!==x.id;});save();drawSessions();});row.appendChild(del);list.appendChild(row);});}
+button(p,'Add study session',function(){var s=subject.value.trim(),d=Number(duration.value);if(!s||!date.value)return setStatus('Add a subject and date.',true);if(!Number.isInteger(d)||d<5||d>480)return setStatus('Duration must be 5–480 minutes.',true);data.sessions=(data.sessions||[]).slice(-99).concat([{id:String(Date.now()),subject:s.slice(0,80),date:date.value,minutes:d}]);save();drawSessions();setStatus('Study session saved.');});drawSessions();return;
+}
+if(id==='flashcard-studio'){
+var p=panel(),question=field(p,'Question','textarea'),answer=field(p,'Answer','textarea'),list=node('div');p.appendChild(list);var study=node('section',undefined,'panel');p.appendChild(study);var index=0,revealed=false;
+function showCard(){study.textContent='';var cards=data.cards||[];if(!cards.length){study.appendChild(node('p','Create your first flashcard above.'));return;}if(index>=cards.length)index=0;study.appendChild(node('p','Card '+(index+1)+' of '+cards.length,'muted'));study.appendChild(node('h2',cards[index].q));if(revealed)study.appendChild(node('p',cards[index].a));button(study,revealed?'Hide answer':'Reveal answer',function(){revealed=!revealed;showCard();});button(study,'Next card',function(){index=(index+1)%cards.length;revealed=false;showCard();},true);}
+button(p,'Add flashcard',function(){var q=question.value.trim(),a=answer.value.trim();if(!q||!a)return setStatus('Both question and answer are required.',true);data.cards=(data.cards||[]).slice(-99).concat([{q:q.slice(0,500),a:a.slice(0,1000)}]);question.value='';answer.value='';save();showCard();setStatus('Flashcard saved.');});showCard();return;
+}
+if(id==='advanced-calculator'){
+var p=panel(),x=field(p,'First value'),y=field(p,'Second value (for binary operations)'),op=field(p,'Operation','select'),out=node('pre','Result appears here.');x.type='number';y.type='number';[['add','Add'],['subtract','Subtract'],['multiply','Multiply'],['divide','Divide'],['power','Power'],['sqrt','Square root of first value'],['sin','Sine (degrees)'],['cos','Cosine (degrees)'],['tan','Tangent (degrees)'],['log10','Log base 10'],['ln','Natural logarithm']].forEach(function(v){var o=node('option',v[1]);o.value=v[0];op.appendChild(o);});p.appendChild(out);
+button(p,'Calculate',function(){var a=Number(x.value),b=Number(y.value),v,mode=op.value;if(!x.value||!Number.isFinite(a))return setStatus('Enter a valid first value.',true);if(['add','subtract','multiply','divide','power'].indexOf(mode)>=0&&!y.value)return setStatus('Enter a second value.',true);if(mode==='add')v=a+b;else if(mode==='subtract')v=a-b;else if(mode==='multiply')v=a*b;else if(mode==='divide'){if(b===0)return setStatus('Cannot divide by zero.',true);v=a/b;}else if(mode==='power')v=Math.pow(a,b);else if(mode==='sqrt')v=Math.sqrt(a);else if(mode==='sin')v=Math.sin(a*Math.PI/180);else if(mode==='cos')v=Math.cos(a*Math.PI/180);else if(mode==='tan')v=Math.tan(a*Math.PI/180);else if(mode==='log10')v=Math.log10(a);else v=Math.log(a);if(!Number.isFinite(v))return setStatus('This operation has no finite real result for that input.',true);out.textContent=String(Number(v.toPrecision(12)));setStatus('Calculated locally.');});return;
+}
+if(id==='colour-studio'){
+var p=panel(),input=field(p,'Base HEX colour'),out=node('div');p.appendChild(out);input.value=data.hex||'#7fd1b9';
+function toRgb(hex){var h=hex.replace('#','');if(!/^[0-9a-fA-F]{6}$/.test(h))return null;return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function toHsl(rgb){var r=rgb[0]/255,g=rgb[1]/255,b=rgb[2]/255,max=Math.max(r,g,b),min=Math.min(r,g,b),h=0,s=0,l=(max+min)/2;if(max!==min){var d=max-min;s=l>.5?d/(2-max-min):d/(max+min);if(max===r)h=(g-b)/d+(g<b?6:0);else if(max===g)h=(b-r)/d+2;else h=(r-g)/d+4;h/=6;}return[h*360,s*100,l*100];}
+function toHex(hsl){var h=hsl[0]/360,s=hsl[1]/100,l=hsl[2]/100,r,g,b;if(s===0)r=g=b=l;else{var q=l<.5?l*(1+s):l+s-l*s,p2=2*l-q;function hue(p,q2,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q2-p)*6*t;if(t<1/2)return q2;if(t<2/3)return p+(q2-p)*(2/3-t)*6;return p;}r=hue(p2,q,h+1/3);g=hue(p2,q,h);b=hue(p2,q,h-1/3);}return '#'+[r,g,b].map(function(v){return Math.round(v*255).toString(16).padStart(2,'0');}).join('');}
+function drawPalette(){var rgb=toRgb(input.value);out.textContent='';if(!rgb)return setStatus('Enter a six-digit HEX value such as #7fd1b9.',true);data.hex=input.value.toLowerCase();save();var hsl=toHsl(rgb);[['Base',0],['Analogous −30',-30],['Analogous +30',30],['Complement',180],['Triadic',120]].forEach(function(v){var hex=toHex([(hsl[0]+v[1]+360)%360,hsl[1],hsl[2]]),row=node('div',undefined,'reference'),sw=node('span',v[0]+' · '+hex);sw.style.display='flex';sw.style.alignItems='center';var chip=node('span');chip.style.cssText='display:inline-block;width:22px;height:22px;border-radius:6px;margin-right:9px;background:'+hex;sw.prepend(chip);row.appendChild(sw);button(row,'Copy',function(){if(navigator.clipboard)navigator.clipboard.writeText(hex).then(function(){setStatus(hex+' copied.');},function(){setStatus('Clipboard unavailable.',true);});},true);out.appendChild(row);});setStatus('Palette generated locally.');}
+button(p,'Generate palette',drawPalette);drawPalette();return;
 }
 setStatus('This app is not available in this runtime.',true);
 }
