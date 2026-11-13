@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: nothing polls
 in a hidden tab, nothing animates off screen, and a new tab does only the work a
 new tab needs.
 
-**Version 2.4.0** · Manifest V3 · minimum Chrome 103
+**Version 2.5.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -35,6 +35,8 @@ recently closed tabs, and settings.
 
 **Command bar** — click the search box or press `/`. Search shortcuts, open tabs, bookmarks and history, or type `gh prs`,
 `drive new sheet`, a tab name, or a shortcut name.
+
+**Customisation** — hide or show Tools, Sessions, Quick note and Tasks independently; changes do not delete their saved data. Choose custom primary and secondary accent colours, adjust text size and dashboard spacing, or enable higher contrast. These preferences are included in validated backups.
 
 **Themes** — 14 themes (10 dark, 4 light) each with a matching wallpaper, plus
 **Void**, a true-black night sky with sparse sharp stars. *Day / night* mode
@@ -116,6 +118,7 @@ new-tab-launcher/
   nav.js               left sidebar nav: registry of id -> page, with icons
   store.js             read-through cache over chrome.storage.local
   theme.js             themes, wallpapers, day/night
+  customization.js     dashboard layout, colour and accessibility preferences
   background.js        service worker: dark mode, tab tools, chat relay
   dark-*.js/.css       dark mode injection and detection
   assistant-*.js       shared assistant core, intents, full page
