@@ -1,4 +1,4 @@
-My Launcher 3.4.0
+My Launcher 3.4.1
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -136,4 +136,4 @@ Cloudflare verification (Turnstile / challenge pages)
       https://browser-compat.turnstile.workers.dev/
 
 Mini-app Store
-  The catalogue is fetched as metadata from the repository's GitHub Raw URL. Install saves a small record (app ID, version, URL and timestamp); hosted app code is not copied into or executed by the extension. Six apps open in separate tabs on the repository's GitHub Pages site: Research Library (OpenAlex open-access discovery), PDF Reader (local file selection), Citation Manager, Focus Timer, Markdown Editor and JSON Studio. App data on the Pages origin is separate from extension data. Resource profiles: Conservative (20 MB estimated RAM), Balanced (35 MB), and Unrestricted (warnings only). These are estimates, not live measurements; closed apps use no app runtime RAM. Enable GitHub Pages for this repository (main branch, root folder) before using hosted apps. No additional extension permissions or dependencies are required.
+  The catalogue is fetched as metadata from the repository's GitHub Raw URL. Install saves a small record (app ID, version, URL and timestamp); hosted app code is not copied into or executed by the extension. Six apps open in separate tabs on the Vercel-hosted marketplace: Research Library (OpenAlex open-access discovery), PDF Reader (local file selection), Citation Manager, Focus Timer, Markdown Editor and JSON Studio. App data on the Vercel origin is separate from extension data. Data saved on the former GitHub Pages origin is not migrated automatically. Resource profiles: Conservative (20 MB estimated RAM), Balanced (35 MB), and Unrestricted (warnings only). These are estimates, not live measurements; closed apps use no app runtime RAM. The Vercel project deploys the marketplace/ directory from the repository's main branch. No additional extension permissions or dependencies are required.
