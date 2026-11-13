@@ -1,22 +1,7 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  var THEMES = [
-    { id: 'slate', name: 'Slate', a: '#7fd1b9', b: '#5aa9ff', bg: '#13212b' },
-    { id: 'aurora', name: 'Aurora', a: '#7cf2c9', b: '#8a7dff', bg: '#091020' },
-    { id: 'sunset', name: 'Sunset', a: '#ff9a76', b: '#ff5d8f', bg: '#1c0f21' },
-    { id: 'ocean', name: 'Ocean', a: '#4fd1ff', b: '#3a7bff', bg: '#061620' },
-    { id: 'neon', name: 'Neon', a: '#ff5cee', b: '#4df0ff', bg: '#0d0b1a' },
-    { id: 'midnight', name: 'Midnight', a: '#9db4ff', b: '#be96ff', bg: '#0f1424' },
-    { id: 'forest', name: 'Forest', a: '#9fdc8f', b: '#f0d66e', bg: '#0f1f17' },
-    { id: 'plum', name: 'Plum', a: '#e3a6f0', b: '#ff8cb4', bg: '#1c1423' },
-    { id: 'ember', name: 'Ember', a: '#f0b36b', b: '#ff785a', bg: '#211812' },
-    { id: 'void', name: 'Void', a: '#e6edf5', b: '#93a7bd', bg: '#000000' },
-    { id: 'dayblue', name: 'Day Blue', a: '#2f7fe0', b: '#5aa9ff', bg: '#eaf2fb' },
-    { id: 'daygold', name: 'Day Gold', a: '#c98a12', b: '#e8b23a', bg: '#fdf6e6' },
-    { id: 'dayamber', name: 'Day Amber', a: '#d2691e', b: '#f0913f', bg: '#fdf0e4' },
-    { id: 'dayviolet', name: 'Day Violet', a: '#7b5cd6', b: '#a98cf0', bg: '#f2eefb' }
-  ];
+  var THEMES = window.LAUNCHER_THEMES;
   var WALL_LABELS = {
     none: 'None', aurora: 'Aurora', ridges: 'Ridges', dunes: 'Dunes', waves: 'Waves',
     grid: 'Grid', stars: 'Stars', canopy: 'Canopy', bloom: 'Bloom', embers: 'Embers',
