@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: nothing polls
 in a hidden tab, nothing animates off screen, and a new tab does only the work a
 new tab needs.
 
-**Version 2.0.0** · Manifest V3 · minimum Chrome 103
+**Version 2.2.0** · Manifest V3 · minimum Chrome 103
 
 ---
 
@@ -28,10 +28,10 @@ icons alone under 820px wide.
 
 **Home page** — clock, weather, a command bar, and exactly four shortcut tiles
 in a 2×2 grid. Everything else lives behind *All shortcuts*, a rail that is
-built only the first time you open it. Below that: quick note, sessions,
+built only the first time you open it. Below that: quick note, a persistent task list, sessions,
 recently closed tabs, and settings.
 
-**Command bar** — click the search box or press `/`. Type `gh prs`,
+**Command bar** — click the search box or press `/`. Search shortcuts, open tabs, bookmarks and history, or type `gh prs`,
 `drive new sheet`, a tab name, or a shortcut name.
 
 **Themes** — 14 themes (10 dark, 4 light) each with a matching wallpaper, plus
@@ -120,7 +120,7 @@ new-tab-launcher/
 
 ## Notes
 
-- Backup export covers shortcuts, notes, sessions, settings, and Claude Code
+- Backup export covers shortcuts, notes, tasks, sessions, settings, and Claude Code
   files and conversations. **GitHub tokens and brewkeg keys are never included.**
 - `new-tab-launcher (2).zip` in the repo root is the original upload and
   duplicates the source folder.
