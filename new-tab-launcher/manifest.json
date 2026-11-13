@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "2.8.0",
-  "description": "Lightweight ChromeOS workspace with keyboard and touch accessibility refinements, reduced idle polling, performance and reliability improvements, custom dashboard layouts, wallpaper collections, optional AI context, shortcut workspaces, tasks, themes, website dark mode and mini apps.",
+  "version": "2.9.0",
+  "description": "Lightweight ChromeOS workspace with improved backup validation, wallpaper rotation reliability, and performance refinements.",
   "minimum_chrome_version": "103",
   "permissions": [
     "storage",
