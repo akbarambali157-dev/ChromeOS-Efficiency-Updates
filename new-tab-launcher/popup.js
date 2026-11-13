@@ -33,7 +33,7 @@
     chrome.storage.local.set({ darkSkip: skip }, sync);
   });
 
-  function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+  var plural = window.LauncherUtils.plural;
   $('pDupes').addEventListener('click', function () {
     closeDupes().then(function (n) { say(n ? 'Closed ' + plural(n, 'duplicate tab') + '.' : 'No duplicate tabs.'); });
   });
