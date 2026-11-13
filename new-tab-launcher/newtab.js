@@ -123,12 +123,12 @@
     var tools = document.createElement('div');
     tools.className = 'tools';
     var ed = document.createElement('button');
-    ed.type = 'button'; ed.title = 'Edit'; ed.textContent = '\u270E';
+    ed.type = 'button'; ed.title = 'Edit'; ed.setAttribute('aria-label', 'Edit ' + shortcuts[i].name); ed.textContent = '\u270E';
     ed.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation(); openDialog(i);
     });
     var del = document.createElement('button');
-    del.type = 'button'; del.className = 'del'; del.title = 'Remove'; del.textContent = '\u00D7';
+    del.type = 'button'; del.className = 'del'; del.title = 'Remove'; del.setAttribute('aria-label', 'Remove ' + shortcuts[i].name); del.textContent = '\u00D7';
     del.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation();
       shortcuts.splice(i, 1); save(); render();
