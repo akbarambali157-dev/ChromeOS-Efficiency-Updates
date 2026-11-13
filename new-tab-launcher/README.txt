@@ -70,7 +70,7 @@ Files: open the Files tab, choose a folder, press Scan. Then ask the assistant
 Email: ask the assistant 'check my email'. It reads your signed-in Gmail unread
 list (read only).
 
-Backup: Settings -> Export backup saves shortcuts, notes, tasks, sessions, settings and
+Backup: Settings -> Export backup saves shortcuts, workspaces, notes, tasks, sessions, settings and
 Claude Code files and conversations. Your GitHub token and brewkeg keys are never
 included.
 
