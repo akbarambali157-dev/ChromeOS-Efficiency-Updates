@@ -116,7 +116,7 @@
     });
 
     // by site, counting identical readings once (tabs sharing one process)
-    var sites = {};
+    var sites = Object.create(null);
     rows.forEach(function (r) {
       var k = r.host || 'Browser pages';
       var s = sites[k] || (sites[k] = { host: r.host, tabs: 0, seen: {}, bytes: 0, oldest: 0 });
