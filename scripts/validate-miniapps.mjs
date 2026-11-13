@@ -2,9 +2,10 @@
 'use strict';
 
 // Dependency-free repository contract checks for My Launcher 3.8.0.
-const fs = require('node:fs');
-const path = require('node:path');
-const root = path.resolve(__dirname, '..');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const json = (p) => JSON.parse(read(p));
 const failures = [];
