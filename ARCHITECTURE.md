@@ -45,7 +45,9 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | memory.js | System memory and tab-level memory view |
 | weather.js | Weather forecast and secondary timezone clock |
 | apps.js | Remote catalogue validation/cache, bundled-app install records, resource profiles, favourites and local workspace launching |
-| app-workspace.js | Local app workspace lifecycle, theme bridge, app-scoped IndexedDB broker and bounded message validation |\n| app-frame.js | Sandboxed first-party mini-app UI; no direct extension API access |\n| popup.js | Toolbar popup controls and Cloudflare diagnostic |
+| app-workspace.js | Local app workspace lifecycle, theme bridge, app-scoped IndexedDB broker and bounded message validation |
+| app-frame.js | Sandboxed first-party mini-app UI; no direct extension API access |
+| popup.js | Toolbar popup controls and Cloudflare diagnostic |
 | defer.js | Defers non-critical home-page scripts until idle |
 
 ## Shared identifiers and logic
