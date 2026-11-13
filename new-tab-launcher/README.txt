@@ -147,6 +147,7 @@ Mini-apps — 3.5.0-B development
   Theme values are synchronised from the launcher. App data is stored separately
   per app in IndexedDB. Closing an app flushes pending edits. Uninstall asks whether
   to delete or retain that app's local data.
-  The final 3.5.0 release still needs the 40-app catalogue and full Chrome 103
-  and target-device testing. Mini-app registrations and bounded local app data are
+  The public catalogue lists 40 entries (12 working, 28 planned). The final 3.5.0
+  release still needs the remaining app implementations and full Chrome 103 and
+  target-device testing. Mini-app registrations and bounded local app data are
   included in launcher backup/restore.
