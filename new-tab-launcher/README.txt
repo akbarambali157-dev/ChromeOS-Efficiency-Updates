@@ -1,4 +1,4 @@
-My Launcher 2.2.0
+My Launcher 2.3.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -17,7 +17,7 @@ Shortcuts (change at chrome://extensions/shortcuts):
 Home page
   Four shortcut tiles, 2x2. Everything else is behind "All shortcuts", which is
   built only the first time you open it.
-  Quick note, a persistent task list, sessions, recently closed tabs, and the settings below.
+  Workspace profiles for separate shortcut collections; quick note, persistent tasks, sessions, recently closed tabs, and settings.
 
 Themes
   Nine themes plus Void, a true-black night sky with white stars. Each theme has a
