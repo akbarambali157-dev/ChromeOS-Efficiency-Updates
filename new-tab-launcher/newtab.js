@@ -10,6 +10,8 @@
   ];
 
   var shortcuts = [];
+  var workspaces = [];
+  var activeWorkspace = 'Default';
   var editIndex = -1;
   var rendered = false;
 
@@ -38,7 +40,67 @@
   function hostOf(u) {
     try { return new URL(u).hostname; } catch (e) { return ''; }
   }
-  function save() { chrome.storage.local.set({ shortcuts: shortcuts }); }
+  function persistWorkspace() {
+    var current = workspaces.find(function (w) { return w.name === activeWorkspace; });
+    if (current) current.shortcuts = shortcuts.map(function (s) { return { name: s.name, url: s.url }; });
+    chrome.storage.local.set({ shortcuts: shortcuts, workspaces: workspaces, activeWorkspace: activeWorkspace });
+  }
+  function save() { persistWorkspace(); }
+  function renderWorkspaceControls() {
+    var select = $('workspaceSelect');
+    select.textContent = '';
+    workspaces.forEach(function (w) {
+      var option = document.createElement('option');
+      option.value = w.name;
+      option.textContent = w.name;
+      select.appendChild(option);
+    });
+    select.value = activeWorkspace;
+    $('workspaceCount').textContent = workspaces.length + (workspaces.length === 1 ? ' profile' : ' profiles');
+    $('workspaceDelete').disabled = workspaces.length <= 1;
+  }
+  function setWorkspace(name) {
+    var target = workspaces.find(function (w) { return w.name === name; });
+    if (!target) return;
+    activeWorkspace = target.name;
+    shortcuts = target.shortcuts.map(function (s) { return { name: s.name, url: s.url }; });
+    chrome.storage.local.set({ shortcuts: shortcuts, workspaces: workspaces, activeWorkspace: activeWorkspace });
+    renderWorkspaceControls();
+    render();
+    $('workspaceStatus').textContent = 'Switched to ' + activeWorkspace + '.';
+  }
+  $('workspaceSelect').addEventListener('change', function () {
+    persistWorkspace();
+    setWorkspace($('workspaceSelect').value);
+  });
+  var workspaceDialog = $('dlgW');
+  $('workspaceSave').addEventListener('click', function () {
+    if (workspaces.length >= 8) { $('workspaceStatus').textContent = 'You can keep up to 8 workspaces.'; return; }
+    $('wName').value = '';
+    workspaceDialog.showModal();
+    $('wName').focus();
+  });
+  $('wCancel').addEventListener('click', function () { workspaceDialog.close(); });
+  $('dlgWForm').addEventListener('submit', function () {
+    var name = $('wName').value.trim().slice(0, 24);
+    if (!name) return;
+    if (workspaces.some(function (w) { return w.name.toLowerCase() === name.toLowerCase(); })) {
+      $('workspaceStatus').textContent = 'A workspace with that name already exists.';
+      return;
+    }
+    if (workspaces.length >= 8) return;
+    workspaces.push({ name: name, shortcuts: shortcuts.map(function (s) { return { name: s.name, url: s.url }; }) });
+    activeWorkspace = name;
+    chrome.storage.local.set({ workspaces: workspaces, activeWorkspace: activeWorkspace, shortcuts: shortcuts });
+    renderWorkspaceControls();
+    $('workspaceStatus').textContent = 'Created ' + name + '.';
+  });
+  $('workspaceDelete').addEventListener('click', function () {
+    if (workspaces.length <= 1) return;
+    if (!window.confirm('Delete the ' + activeWorkspace + ' workspace? Its shortcut collection will be removed.')) return;
+    workspaces = workspaces.filter(function (w) { return w.name !== activeWorkspace; });
+    setWorkspace(workspaces[0].name);
+  });
 
   var RAIL_MAX = 4;
   var railBuilt = false;
@@ -165,10 +227,35 @@
   });
 
   /* ---------- Load ---------- */
-  store.get(['shortcuts', 'note'], function (data) {
-    shortcuts = Array.isArray(data.shortcuts) ? data.shortcuts : DEFAULTS.slice();
-    if (!Array.isArray(data.shortcuts)) save();
+  store.get(['shortcuts', 'note', 'workspaces', 'activeWorkspace'], function (data) {
+    var saved = Array.isArray(data.workspaces) ? data.workspaces : [];
+    var usedNames = {};
+    workspaces = saved.filter(function (w) {
+      if (!w || typeof w.name !== 'string' || !w.name.trim() || !Array.isArray(w.shortcuts)) return false;
+      var key = w.name.trim().toLowerCase();
+      if (usedNames[key]) return false;
+      usedNames[key] = true;
+      return true;
+    }).slice(0, 8).map(function (w) {
+      return {
+        name: w.name.trim().slice(0, 24),
+        shortcuts: w.shortcuts.filter(function (s) {
+          return s && typeof s.name === 'string' && typeof s.url === 'string' && /^https?:\/\//i.test(s.url);
+        }).slice(0, 80).map(function (s) { return { name: s.name.slice(0, 24), url: s.url }; })
+      };
+    });
+    if (!workspaces.length) workspaces = [{
+      name: 'Default',
+      shortcuts: Array.isArray(data.shortcuts) ? data.shortcuts : DEFAULTS.slice()
+    }];
+    activeWorkspace = typeof data.activeWorkspace === 'string' &&
+      workspaces.some(function (w) { return w.name === data.activeWorkspace; })
+      ? data.activeWorkspace : workspaces[0].name;
+    var current = workspaces.find(function (w) { return w.name === activeWorkspace; });
+    shortcuts = current.shortcuts.map(function (s) { return { name: s.name, url: s.url }; });
     $('note').value = data.note || '';
+    renderWorkspaceControls();
+    chrome.storage.local.set({ shortcuts: shortcuts, workspaces: workspaces, activeWorkspace: activeWorkspace });
     render();
   });
 })();
