@@ -1,15 +1,9 @@
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
-  /* Every wallpaper the engine can draw. Kept in sync with theme.js MODES; a
-     backup that carries an unknown mode falls back rather than restoring a
-     blank wall. */
-  var WALL_IDS = [
-    'none', 'aurora', 'mountains', 'stars', 'ridges', 'dunes', 'waves', 'grid',
-    'canopy', 'bloom', 'embers', 'void', 'felt', 'fluted', 'thermal', 'ripple',
-    'speckle', 'monohue', 'blueprint', 'halftone', 'grass', 'dither', 'paper',
-    'contour', 'clouds'
-  ];
+  /* The theme engine owns the allow-lists; backup validation reuses them. */
+  var WALL_IDS = window.WALLPAPER_MODES;
+  var THEMES = window.LAUNCHER_THEME_IDS;
 
   /* ---------- Memory gauge ---------- */
   var gauge = makeGauge($('memGauge'));
@@ -64,12 +58,6 @@
 
   /* ---------- Backup ---------- */
   var KEYS = ['layoutPrefs', 'accessibilityPrefs', 'customPalette', 'wallpaperCollections', 'activeWallpaperCollection', 'wallpaperRotation', 'wallpaperRotationIndex', 'shortcuts', 'workspaces', 'activeWorkspace', 'note', 'tasks', 'sessions', 'ccSessions', 'darkMode', 'darkSkip', 'autoSuspend', 'theme', 'weather', 'wallMode', 'motion', 'assistant', 'ccFiles', 'ccLogs'];
-  /* All fourteen themes, day pair included: a backup used to silently drop a
-     day theme because only the nine night ones were listed here. */
-  var THEMES = [
-    'slate', 'aurora', 'sunset', 'ocean', 'neon', 'midnight', 'forest', 'plum', 'ember',
-    'void', 'dayblue', 'daygold', 'dayamber', 'dayviolet'
-  ];
   function say(msg, err) { var s = $('bkStatus'); s.textContent = msg || ''; s.className = 'status' + (err ? ' err' : ''); }
   function isWeb(u) { return typeof u === 'string' && /^https?:\/\//i.test(u); }
   function isDateKey(v) {
