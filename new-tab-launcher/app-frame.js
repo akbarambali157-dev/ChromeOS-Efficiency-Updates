@@ -16,8 +16,8 @@ function node(tag,txt,cls){var n=document.createElement(tag);if(txt!==undefined)
 function panel(){var p=node('section',undefined,'panel');root.appendChild(p);return p;}
 function button(p,label,fn,secondary){var b=node('button',label,secondary?'secondary':'');b.type='button';b.addEventListener('click',fn);p.appendChild(b);return b;}
 function field(p,label,tag){var w=node('div',undefined,'field'),l=node('label',label),i=document.createElement(tag||'input');i.id='f'+Math.random().toString(36).slice(2);l.htmlFor=i.id;w.appendChild(l);w.appendChild(i);p.appendChild(w);return i;}
-function save(){send('storage.set',{value:data});}
-function load(done){send('storage.get',{},);window.__miniLoaded=done;}
+var saveTimer=null;function save(){if(saveTimer)clearTimeout(saveTimer);saveTimer=setTimeout(function(){send('storage.set',{value:data});},250);}
+
 function draw(){
 root.textContent='';
 if(id==='json-studio'){
@@ -48,13 +48,13 @@ if(id==='pdf-reader'){
 var p=panel(),f=field(p,'Choose PDF (maximum 40 MB)','input');f.type='file';f.accept='application/pdf,.pdf';var frame=node('iframe');frame.className='reader';frame.title='Selected PDF';frame.hidden=true;p.appendChild(frame);var url='';function release(){if(url)URL.revokeObjectURL(url);url='';frame.removeAttribute('src');}f.addEventListener('change',function(){release();var file=f.files&&f.files[0];if(!file)return;if(file.size>41943040)return setStatus('PDF exceeds 40 MB.',true);if(file.type!=='application/pdf'&&!/\.pdf$/i.test(file.name))return setStatus('Choose a PDF file.',true);url=URL.createObjectURL(file);frame.src=url;frame.hidden=false;setStatus('Opened locally: '+file.name);});window.addEventListener('pagehide',release);return;
 }
 if(id==='research-library'){
-var p=panel(),q=field(p,'Search open-access scholarly works'),results=node('div');p.appendChild(results);q.maxLength=180;button(p,'Search OpenAlex',function(){var term=q.value.trim();if(!term)return setStatus('Enter a search term.',true);results.textContent='Searching…';fetch('https://api.openalex.org/works?search='+encodeURIComponent(term)+'&filter=is_oa:true&per-page=8&select=id,doi,title,publication_year,authorships,open_access').then(function(r){if(!r.ok)throw Error('OpenAlex request failed');return r.json();}).then(function(d){results.textContent='';(d.results||[]).forEach(function(w){var a=node('a',w.title||'Untitled');a.href=(w.open_access&&w.open_access.oa_url)||w.id;a.target='_blank';a.rel='noopener noreferrer';var item=node('article',undefined,'result');item.appendChild(a);item.appendChild(node('p',(w.publication_year||'Year unknown')+' · Open access'));results.appendChild(item);});setStatus((d.results||[]).length+' results.');}).catch(function(e){setStatus(e.message+' Check your connection.',true);});});return;
+var p=panel(),q=field(p,'Search open-access scholarly works'),results=node('div');p.appendChild(results);q.maxLength=180;button(p,'Search OpenAlex',function(){var term=q.value.trim();if(!term)return setStatus('Enter a search term.',true);results.textContent='Searching…';send('research.search',{query:term});});return;
 }
 setStatus('This app is not available in this runtime.',true);
 }
 function receive(event){var m=event.data;if(event.source!==parent||!m||m.channel!=='my-launcher-miniapp'||m.nonce!==nonce||m.appId!==id)return;
 if(m.type==='theme'){var t=m.payload||{};document.documentElement.style.setProperty('--bg',t.background||'#10151c');document.documentElement.style.setProperty('--panel',t.panel||'#19222d');document.documentElement.style.setProperty('--text',t.text||'#e8eef5');document.documentElement.style.setProperty('--muted',t.muted||'#a8b6c5');document.documentElement.style.setProperty('--accent',t.accent||'#83d6bd');document.documentElement.style.colorScheme=t.colorScheme==='light'?'light':'dark';}
-if(m.type==='storage.result'){data=m.payload&&m.payload.value&&typeof m.payload.value==='object'?m.payload.value:{};draw();}
+if(m.type==='storage.result'){data=m.payload&&m.payload.value&&typeof m.payload.value==='object'?m.payload.value:{};draw();}\nif(m.type==='research.results'){var p=root.querySelector('.panel'),list=root.querySelector('.panel');if(!list)return;var box=list.querySelector('.research-results');if(!box){box=node('div',undefined,'research-results');list.appendChild(box);}box.textContent='';if(m.payload&&m.payload.error){setStatus(m.payload.error,true);return;}(m.payload.items||[]).forEach(function(w){var item=node('article',undefined,'result'),a=node('a',w.title);a.href=typeof w.url==='string'&&/^https:\\/\\//.test(w.url)?w.url:'#';a.target='_blank';a.rel='noopener noreferrer';item.appendChild(a);item.appendChild(node('p',(w.year||'Year unknown')+' · Open access'));box.appendChild(item);});setStatus((m.payload.items||[]).length+' open-access records found.');}
 }
 window.addEventListener('message',receive);
 if(!registry[id]||!nonce||nonce.length<20){$('appTitle').textContent='App unavailable';setStatus('Invalid app launch context.',true);return;}
