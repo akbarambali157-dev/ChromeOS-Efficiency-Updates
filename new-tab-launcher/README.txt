@@ -1,4 +1,4 @@
-My Launcher 2.4.0
+My Launcher 2.5.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -18,6 +18,12 @@ Home page
   Four shortcut tiles, 2x2. Everything else is behind "All shortcuts", which is
   built only the first time you open it.
   Workspace profiles for separate shortcut collections; quick note, persistent tasks, sessions, recently closed tabs, and settings.
+
+Customisation
+  Hide or show Tools, Sessions, Quick note and Tasks without deleting their data.
+  Set your own primary and secondary accent colours, choose small/default/large text,
+  use compact or comfortable spacing, and enable higher contrast.
+  These settings are saved locally and included in validated backups.
 
 Themes
   Nine themes plus Void, a true-black night sky with white stars. Each theme has a
