@@ -10,17 +10,31 @@
     'halftone', 'grass', 'dither', 'paper', 'contour', 'clouds',
     'custom'
   ];
-  /* Each theme owns a wallpaper. Picking a theme picks its wallpaper; the user
-     can still override it afterwards. */
-  var THEME_WALL = {
-    slate: 'ridges', aurora: 'aurora', sunset: 'dunes', ocean: 'waves', neon: 'grid',
-    midnight: 'stars', forest: 'canopy', plum: 'bloom', ember: 'embers', void: 'void',
-    dayblue: 'waves', daygold: 'dunes', dayamber: 'bloom', dayviolet: 'aurora'
-  };
+  /* One theme catalog owns the swatch metadata and its default wallpaper.
+     The settings page derives its controls from this list rather than copying IDs. */
+  var LAUNCHER_THEMES = [
+    { id: 'slate', name: 'Slate', a: '#7fd1b9', b: '#5aa9ff', bg: '#13212b', wall: 'ridges' },
+    { id: 'aurora', name: 'Aurora', a: '#7cf2c9', b: '#8a7dff', bg: '#091020', wall: 'aurora' },
+    { id: 'sunset', name: 'Sunset', a: '#ff9a76', b: '#ff5d8f', bg: '#1c0f21', wall: 'dunes' },
+    { id: 'ocean', name: 'Ocean', a: '#4fd1ff', b: '#3a7bff', bg: '#061620', wall: 'waves' },
+    { id: 'neon', name: 'Neon', a: '#ff5cee', b: '#4df0ff', bg: '#0d0b1a', wall: 'grid' },
+    { id: 'midnight', name: 'Midnight', a: '#9db4ff', b: '#be96ff', bg: '#0f1424', wall: 'stars' },
+    { id: 'forest', name: 'Forest', a: '#9fdc8f', b: '#f0d66e', bg: '#0f1f17', wall: 'canopy' },
+    { id: 'plum', name: 'Plum', a: '#e3a6f0', b: '#ff8cb4', bg: '#1c1423', wall: 'bloom' },
+    { id: 'ember', name: 'Ember', a: '#f0b36b', b: '#ff785a', bg: '#211812', wall: 'embers' },
+    { id: 'void', name: 'Void', a: '#e6edf5', b: '#93a7bd', bg: '#000000', wall: 'void' },
+    { id: 'dayblue', name: 'Day Blue', a: '#2f7fe0', b: '#5aa9ff', bg: '#eaf2fb', wall: 'waves' },
+    { id: 'daygold', name: 'Day Gold', a: '#c98a12', b: '#e8b23a', bg: '#fdf6e6', wall: 'dunes' },
+    { id: 'dayamber', name: 'Day Amber', a: '#d2691e', b: '#f0913f', bg: '#fdf0e4', wall: 'bloom' },
+    { id: 'dayviolet', name: 'Day Violet', a: '#7b5cd6', b: '#a98cf0', bg: '#f2eefb', wall: 'aurora' }
+  ];
+  var THEME_WALL = {};
+  LAUNCHER_THEMES.forEach(function (theme) { THEME_WALL[theme.id] = theme.wall; });
+  window.LAUNCHER_THEMES = LAUNCHER_THEMES;
   window.THEME_WALL = THEME_WALL;
+  window.LAUNCHER_THEME_IDS = LAUNCHER_THEMES.map(function (theme) { return theme.id; });
   /* Shared catalog identifiers: settings, backups and voice intents consume
      these instead of maintaining independent allow-lists. */
-  window.LAUNCHER_THEME_IDS = Object.keys(THEME_WALL);
   window.WALLPAPER_MODES = MODES.filter(function (mode) { return mode !== 'custom'; });
   /* 07:00–19:00 counts as day. */
   function autoTheme() {
