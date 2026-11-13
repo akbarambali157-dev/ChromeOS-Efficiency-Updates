@@ -744,3 +744,53 @@ dialog[open]{animation:pop .22s ease-out}
 .wall-collections button{white-space:nowrap}
 .wall-collections button:disabled{opacity:.4;cursor:not-allowed}
 .wall-rotate{margin-top:12px}
+
+
+/* ---------- Interface refinement 2.8.0 ---------- */
+/* Keep keyboard focus visible across controls, including controls whose older
+   component rules intentionally removed the browser's default outline. */
+:where(a,button,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid var(--accent2);
+  outline-offset:3px;
+}
+:where(button,input,select,textarea):disabled{
+  cursor:not-allowed;
+}
+:where(input,select,textarea){
+  max-width:100%;
+}
+.skip-link{
+  position:fixed;
+  top:8px;
+  left:8px;
+  z-index:100;
+  transform:translateY(-160%);
+  padding:10px 14px;
+  border-radius:10px;
+  background:var(--accent);
+  color:#0b1a22;
+  font-weight:700;
+  text-decoration:none;
+}
+.skip-link:focus{
+  transform:translateY(0);
+}
+@media (hover:none) and (pointer:coarse){
+  button,.filebtn,.linkbtn{
+    min-height:40px;
+  }
+  .tools button{
+    width:36px;
+    height:36px;
+  }
+  .task-delete{
+    width:40px;
+    height:40px;
+  }
+}
+@media(max-width:520px){
+  .workspace-switcher{padding:12px}
+  .wall-collections>*{min-width:0}
+  .wall-collections input,.wall-collections select{flex-basis:100%}
+  .custom-colours{align-items:flex-start}
+}
