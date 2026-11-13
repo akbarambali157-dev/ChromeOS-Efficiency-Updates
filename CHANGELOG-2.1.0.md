@@ -12,7 +12,7 @@
 - Refined mountain layers with more irregular peaks, distant depth and restrained highlights.
 - Added a gentle fade between wallpaper changes and when removing a wallpaper.
 - Slowed landscape movement to reduce the sense of abrupt scene resets.
-- Added dedicated, restrained palettes for dunes, mountains, ridges, waves and canopy so manually selected landscape wallpapers remain visually coherent with the launcher.
+- Kept wallpaper colours linked to the active theme's six palette slots, so manually selected wallpapers adapt when the launcher theme changes.
 - Kept all existing themes, wallpaper choices, motion controls and reduced-motion support.
 
 ## Compatibility and verification
