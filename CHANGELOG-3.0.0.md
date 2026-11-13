@@ -9,7 +9,7 @@
 ## Duplicate and unnecessary code
 
 - Removed the single-consumer store.js cache. It had only one caller and did not provide cross-page caching; the command bar now reads shortcuts directly from chrome.storage.local.
-- Removed the redundant save() alias in newtab.js; call sites now invoke the actual workspace persistence function.
+- Removed the redundant save() alias in newtab.js; call sites now invoke the actual workspace persistence function.\n- Consolidated identical element creation, GiB formatting, pluralisation and URL normalisation helpers into common.js; only pages that use them load it.
 - Retained small page-local helpers where they are intentionally scoped to separate pages or have different semantics. This avoids introducing global dependencies solely to eliminate short, unrelated functions.
 
 ## Compatibility and data safety
@@ -23,7 +23,7 @@
 
 ## Verification
 
-- Shared catalog consumers are loaded after theme.js on the pages that use them.
+- Shared catalog consumers are loaded after theme.js on the pages that use them.\n- Shared utility consumers load common.js before their page controllers.
 - Background relay call sites retain the original chat and search endpoints and respective 200,000 / 100,000 character serialized payload limits.
 - The command bar no longer references store.js; the file and script include are removed.
 - Full release checks include manifest validation, syntax checks for all JavaScript files, HTML script-reference checks, CSS structural checks, duplicate-function review and documentation/version consistency.
