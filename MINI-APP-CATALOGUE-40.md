@@ -78,7 +78,14 @@
 
 ## Implementation waves
 
-- **3.5.0:** runtime foundation and the original twelve apps.\n- **3.5.1:** audit/fix the original twelve and deliver Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester (20 total).\n- **3.6.0:** add CSV Data Studio, Diff Checker, System Monitor, Storage Dashboard, Unit Converter, QR Studio, Image Studio, Drawing Pad, Diagram Maker and SVG Icon Studio (30 total).\n- **3.7.0:** add Habit Tracker, Expense Tracker, Reading Tracker, Bookmark Library, Daily Journal, Audio Player, Video Library, Image Viewer, Text-to-Speech and Accessibility Checker (40 total).\n- **3.8.0:** complete marketplace-wide regression, accessibility, storage, offline, security and target-device QA.\n- **3.9.0:** begin the Claude file-reader upgrade only after the 40-app QA gate passes.\n\nThe current 3.7.0 implementation candidate registers all 40 apps as bundled. A release count is not a claim of target-device verification: the 3.8.0 gate must still validate every app on Chrome 103 and the target Chromebook. QR image generation is an optional online feature; its payload editor remains local. Code Playground intentionally does not execute user JavaScript.
+- **3.5.0:** runtime foundation and the original twelve apps.
+- **3.5.1:** audit/fix the original twelve and deliver Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester (20 total).
+- **3.6.0:** add CSV Data Studio, Diff Checker, System Monitor, Storage Dashboard, Unit Converter, QR Studio, Image Studio, Drawing Pad, Diagram Maker and SVG Icon Studio (30 total).
+- **3.7.0:** add Habit Tracker, Expense Tracker, Reading Tracker, Bookmark Library, Daily Journal, Audio Player, Video Library, Image Viewer, Text-to-Speech and Accessibility Checker (40 total).
+- **3.8.0:** complete marketplace-wide regression, accessibility, storage, offline, security and target-device QA.
+- **3.9.0:** begin the Claude file-reader upgrade only after the 40-app QA gate passes.
+
+The current 3.7.0 implementation candidate registers all 40 apps as bundled. A release count is not a claim of target-device verification: the 3.8.0 gate must still validate every app on Chrome 103 and the target Chromebook. QR image generation is an optional online feature; its payload editor remains local. Code Playground intentionally does not execute user JavaScript.
 
 ## Resource policy
 
