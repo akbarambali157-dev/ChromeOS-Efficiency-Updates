@@ -82,6 +82,39 @@ function applyDark() { return registerDark().then(syncTabs).catch(noop); }
 chrome.runtime.onInstalled.addListener(function () { applyDark(); touchBorn(); configureAutoSuspend(); });
 chrome.runtime.onStartup.addListener(function () { applyDark(); touchBorn(); configureAutoSuspend(); });
 
+/* Validate and send a page-originated API request without duplicating
+   credential, payload-size, and response-relay handling. */
+function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label) {
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 ||
+      !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid ' + label.toLowerCase() + ' request.' });
+    return true;
+  }
+  var payload;
+  try { payload = JSON.stringify(msg.body); } catch (e) {
+    sendResponse({ status: 400, text: 'Invalid ' + label.toLowerCase() + ' request.' });
+    return true;
+  }
+  if (typeof payload !== 'string') {
+    sendResponse({ status: 400, text: 'Invalid ' + label.toLowerCase() + ' request.' });
+    return true;
+  }
+  if (payload.length > maxLength) {
+    sendResponse({ status: 413, text: label + ' request is too large.' });
+    return true;
+  }
+  var headers = { 'Content-Type': 'application/json' };
+  headers[authHeader] = authHeader === 'Authorization' ? 'Bearer ' + msg.key : msg.key;
+  fetch(endpoint, { method: 'POST', headers: headers, body: payload })
+    .then(function (r) {
+      return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
+    })
+    .catch(function (e) {
+      sendResponse({ status: 0, text: String((e && e.message) || e) });
+    });
+  return true;
+}
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
   if (msg.type === 'darkSync') { applyDark(); return; }
@@ -97,58 +130,15 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     }).catch(function () { sendResponse([]); });
     return true;
   }
-  /* Chat relay. brewkeg.dev sends no Access-Control-Allow-Origin header, so a
-     fetch from the assistant page is blocked by the browser and rejects as
-     "Failed to fetch". The service worker is not bound by page-origin CORS, so
-     the POST is made here and the raw status and body are relayed back. */
+  /* Chat and search use the same validated relay path. Endpoint-specific
+     headers and payload limits remain explicit at each call site. */
   if (msg.type === 'chat') {
-    if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 ||
-        !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
-      sendResponse({ status: 400, text: 'Invalid chat request.' }); return;
-    }
-    var chatPayload;
-    try { chatPayload = JSON.stringify(msg.body); } catch (e) {
-      sendResponse({ status: 400, text: 'Invalid chat request.' }); return;
-    }
-    if (chatPayload.length > 200000) {
-      sendResponse({ status: 413, text: 'Chat request is too large.' }); return;
-    }
-    fetch('https://brewkeg.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + msg.key, 'Content-Type': 'application/json' },
-      body: chatPayload
-    }).then(function (r) {
-      return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
-    }).catch(function (e) {
-      sendResponse({ status: 0, text: String((e && e.message) || e) });
-    });
-    return true;
+    return relayRequest(msg, sendResponse, 'https://brewkeg.dev/v1/chat/completions',
+      'Authorization', 200000, 'Chat');
   }
-  /* Parallel web search relay. Same reason as the chat relay: the request is
-     made from the worker so the page never has to satisfy CORS. The key comes
-     from extension storage, is passed through and is never logged. */
   if (msg.type === 'search') {
-    if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 ||
-        !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
-      sendResponse({ status: 400, text: 'Invalid search request.' }); return;
-    }
-    var searchPayload;
-    try { searchPayload = JSON.stringify(msg.body); } catch (e) {
-      sendResponse({ status: 400, text: 'Invalid search request.' }); return;
-    }
-    if (searchPayload.length > 100000) {
-      sendResponse({ status: 413, text: 'Search request is too large.' }); return;
-    }
-    fetch('https://api.parallel.ai/v1/search', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key },
-      body: searchPayload
-    }).then(function (r) {
-      return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
-    }).catch(function (e) {
-      sendResponse({ status: 0, text: String((e && e.message) || e) });
-    });
-    return true;
+    return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
+      'x-api-key', 100000, 'Search');
   }
 });
 
