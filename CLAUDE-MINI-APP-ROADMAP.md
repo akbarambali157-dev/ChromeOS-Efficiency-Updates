@@ -1,6 +1,6 @@
 # Claude mini-app — file access and upgrade roadmap
 
-**Current baseline:** My Launcher 3.5.0  
+**Current baseline:** My Launcher 3.7.0 implementation candidate  
 **Target device:** Acer Chromebook 15 CB3-532, 2 GB RAM, ChromeOS 103  
 **Runtime constraints:** Manifest V3, classic JavaScript, no build step, no new dependency or permission without a demonstrated need.
 
