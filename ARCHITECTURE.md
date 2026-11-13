@@ -1,7 +1,7 @@
 # My Launcher architecture
 
-**Last tagged release baseline:** 3.4.1  
-**Current development stage:** 3.5.0-B  
+**Release baseline:** 3.5.0  
+**Implementation note:** target-device browser QA remains pending  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
 
