@@ -40,11 +40,10 @@ function registerDark() {
       var excl = NEVER.concat(c.skip.map(function (h) { return '*://' + h + '/*'; }));
       var base = { matches: ['http://*/*', 'https://*/*'], runAt: 'document_start', allFrames: false, matchAboutBlank: false };
       var main = { id: 'dark-all', css: ['dark.css'], js: ['dark-detect.js'], matches: base.matches, runAt: base.runAt, allFrames: base.allFrames, matchAboutBlank: base.matchAboutBlank };
-      var page = { id: 'dark-main', js: ['dark-main.js'], matches: base.matches, runAt: base.runAt, world: 'MAIN', allFrames: base.allFrames, matchAboutBlank: base.matchAboutBlank };
-      main.excludeMatches = excl; page.excludeMatches = excl;
-      return chrome.scripting.registerContentScripts([main]).then(function () {
-        return chrome.scripting.registerContentScripts([page]).catch(noop);
-      });
+      main.excludeMatches = excl;
+      /* Do not patch page.matchMedia(). Faking the operating-system colour
+         preference is invasive and can break site theme controls and widgets. */
+      return chrome.scripting.registerContentScripts([main]);
     });
   });
 }
@@ -65,7 +64,13 @@ function syncTabs() {
           }
         }).catch(noop);
       }
-      return chrome.scripting.insertCSS({ target: target, files: ['dark.css'] })
+      return chrome.scripting.executeScript({ target: target, func: function () {
+          /* Clear stale opt-out markers before the detector runs. This also
+             handles tabs first visited while global dark mode was disabled. */
+          document.documentElement.removeAttribute('data-dark-off');
+          document.documentElement.removeAttribute('data-nodark');
+        }
+      }).then(function () { return chrome.scripting.insertCSS({ target: target, files: ['dark.css'] }); })
         .then(function () { return chrome.scripting.executeScript({ target: target, files: ['dark-detect.js'] }); })
         .catch(noop);
     }));
