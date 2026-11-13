@@ -68,6 +68,8 @@ page so a new tab never parses markup it does not need.
 **Tab tools** — close duplicate tabs, suspend background tabs to free memory,
 and a memory monitor that shows which sites are using the most.
 
+**Backup and restore** — export shortcuts, workspace profiles, notes, tasks, sessions and supported settings as JSON, then import a validated backup. API credentials and GitHub tokens are excluded.
+
 ## Keyboard shortcuts
 
 Change these at `chrome://extensions/shortcuts`.
