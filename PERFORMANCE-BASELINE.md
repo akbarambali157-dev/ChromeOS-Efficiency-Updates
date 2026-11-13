@@ -1,6 +1,6 @@
 # Performance baseline and Chrome Task Manager guide
 
-The goal for version 3.0 is to have repeatable, real-device CPU and memory readings for My Launcher on the target Chromebook. Do not substitute estimates or JavaScript heap figures for Task Manager measurements.
+Use this guide to collect repeatable, real-device CPU and memory readings for each My Launcher release on the target Chromebook. Do not substitute estimates or JavaScript heap figures for Task Manager measurements.
 
 ## What to measure
 
