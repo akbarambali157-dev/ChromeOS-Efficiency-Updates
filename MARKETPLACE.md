@@ -34,6 +34,24 @@ The local registry is `new-tab-launcher/miniapps/registry.json`. The first twelv
 
 This is a first-party runtime, not an unrestricted third-party developer platform. Do not add arbitrary remote code execution to the frame.
 
+## Launcher Integration API
+
+The current bridge is deliberately small and versioned by its channel name:
+
+| Message | Direction | Purpose |
+|---|---|---|
+| `theme` | Launcher → app | Send background, panel, text, muted, accent, colour scheme, text size, density, contrast and motion preferences |
+| `storage.get` / `storage.result` | App ↔ launcher | Read the current app's own IndexedDB namespace |
+| `storage.set` | App → launcher | Save JSON data within the app's registered byte limit |
+| `app.flush` / `app.flushed` | Launcher ↔ app | Pause transient work and acknowledge a completed data write before closing |
+| `app.suspend` | Launcher → app | Pause time-sensitive work when the workspace is minimised |
+| `research.search` / `research.results` | App ↔ launcher | Submit a bounded OpenAlex query and receive a reduced result set |
+| `launcher.notes.get` / `launcher.notes.result` | App ↔ launcher | Explicitly load the launcher's quick note |
+| `launcher.notes.set` / `launcher.notes.saved` | App ↔ launcher | Explicitly copy text into the launcher's quick note |
+| `launcher.tasks.add` / `launcher.tasks.added` | App ↔ launcher | Explicitly add one bounded task to the launcher's task list |
+
+Every message includes the fixed channel, current app ID and per-launch nonce. The launcher accepts messages only from the active iframe's exact `contentWindow`. No arbitrary storage key, Chrome API method, URL fetch or cross-app read is exposed.
+
 ## Offline behaviour
 
 - Installed bundled apps work without Vercel or GitHub connectivity.
