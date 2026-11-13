@@ -1,7 +1,7 @@
 (function(){
 'use strict';
 var CATALOG_URL='https://raw.githubusercontent.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/main/marketplace/catalogue/index.json';
-var APP_PREFIX='https://akbarambali157-dev.github.io/ChromeOS-Efficiency-Updates/marketplace/apps/';
+var APP_PREFIX='https://chromeos-efficiency-marketplace.vercel.app/apps/';
 var $=function(id){return document.getElementById(id);},apps=[],installed={},favourites=[],profile='conservative';
 var limits={conservative:20,balanced:35,unrestricted:Infinity};
 function el(t,c,x){var n=document.createElement(t);if(c)n.className=c;if(x!==undefined)n.textContent=x;return n;}
