@@ -31,7 +31,7 @@
     if (d < 700) return Math.round(d / 30) + ' months old';
     return Math.round(d / 365) + ' years old';
   }
-  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var el = window.LauncherUtils.el;
 
   /* ---- remember the chosen folder ---- */
   function idb() {
