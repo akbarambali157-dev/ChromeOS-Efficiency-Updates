@@ -1,4 +1,4 @@
-My Launcher 2.7.0
+My Launcher 2.8.0
 Install: chrome://extensions -> Developer mode -> Load unpacked -> pick this folder.
 After updating files, press the reload arrow on the extension.
 
@@ -28,7 +28,7 @@ Customisation
   Hide or show Tools, Sessions, Quick note and Tasks without deleting their data.
   Set your own primary and secondary accent colours, choose small/default/large text,
   use compact or comfortable spacing, and enable higher contrast.
-  These settings are saved locally and included in validated backups.
+  These settings are saved locally and included in validated backups. Keyboard focus is consistently visible, shortcut edit/remove buttons have descriptive labels, and touch devices receive larger controls.
 
 Themes
   Nine themes plus Void, a true-black night sky with white stars. Each theme has a
