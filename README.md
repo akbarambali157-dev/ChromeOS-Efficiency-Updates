@@ -137,7 +137,8 @@ new-tab-launcher/
   assistant-*.js       shared assistant core, intents, full page
   orb.js               floating assistant panel
   claude-app.*         Claude Code editor, chat and GitHub push
-  github-api.js         shared GitHub REST request and error handling\n  github/drive/brewkeg/sessions/memory/files  mini app pages
+  github-api.js         shared GitHub REST request and error handling
+  github/drive/brewkeg/sessions/memory/files  mini app pages
   popup.*              toolbar popup
 ```
 
