@@ -1,5 +1,7 @@
 # My Launcher — 40-app catalogue and release roadmap
 
+**Current release:** 3.8.0 quality gate. Automated repository validation is being added; target-device QA remains pending.
+
 **Catalogue status:** 40 entries published; all 40 implementations bundled and registered; final QA in progress.  
 **Target hardware:** Acer Chromebook 15 CB3-532, 2 GB RAM, ChromeOS 103.  
 **Policy:** offline-first, small packages, one foreground app by default. All 40 catalogue entries are bundled and locally installable; the final device QA pass is still pending.
@@ -82,7 +84,7 @@
 - **3.5.1:** audit/fix the original twelve and deliver Calendar Mini, Quiz Builder, Mind Map, Document Studio, Text & CSV Viewer, File Toolkit, Code Playground and Regex Tester (20 total).
 - **3.6.0:** add CSV Data Studio, Diff Checker, System Monitor, Storage Dashboard, Unit Converter, QR Studio, Image Studio, Drawing Pad, Diagram Maker and SVG Icon Studio (30 total).
 - **3.7.0:** add Habit Tracker, Expense Tracker, Reading Tracker, Bookmark Library, Daily Journal, Audio Player, Video Library, Image Viewer, Text-to-Speech and Accessibility Checker (40 total).
-- **3.8.0:** complete marketplace-wide regression, accessibility, storage, offline, security and target-device QA.
+- **3.8.0:** run automated inventory/security/syntax checks, then complete marketplace-wide regression, accessibility, storage, offline, security and target-device QA. Release remains QA-in-progress until the Chromebook checks are completed.
 - **3.9.0:** begin the Claude file-reader upgrade only after the 40-app QA gate passes.
 
 The current 3.7.0 implementation candidate registers all 40 apps as bundled. A release count is not a claim of target-device verification: the 3.8.0 gate must still validate every app on Chrome 103 and the target Chromebook. QR image generation is an optional online feature; its payload editor remains local. Code Playground intentionally does not execute user JavaScript.
