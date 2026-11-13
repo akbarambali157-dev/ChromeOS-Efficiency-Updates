@@ -38,7 +38,8 @@ frame.src='app-frame.html?id='+encodeURIComponent(id)+'&nonce='+encodeURICompone
 frame.addEventListener('load',function(){if(ready)send('theme',theme());});
 window.addEventListener('message',receive);
 chrome.storage.onChanged.addListener(function(changes,area){if(area==='local'&&ready&&(changes.theme||changes.themeMode||changes.customPalette||changes.accessibilityPrefs||changes.motion)){send('theme',theme());}});
-$('minimiseApp').addEventListener('click',function(){var shell=document.querySelector('.mini-frame-shell'),hidden=shell.hidden;shell.hidden=!hidden;$('minimiseApp').textContent=hidden?'Minimise':'Restore';say(hidden?'App restored.':'App minimised. Its workspace remains open.');});
+$('minimiseApp').addEventListener('click',function(){var shell=document.querySelector('.mini-frame-shell'),hidden=shell.hidden;shell.hidden=!hidden;$('minimiseApp').textContent=hidden?'Minimise':'Restore';if(!hidden)send('app.suspend',{});say(hidden?'App restored.':'App minimised. Its workspace remains open.');});
+$('maximizeApp').addEventListener('click',function(){var shell=document.querySelector('.mini-frame-shell'),expanded=shell.classList.toggle('expanded');$('maximizeApp').textContent=expanded?'Restore size':'Maximise';});
 $('closeApp').addEventListener('click',function(){if(ready){say('Saving app data before closing…');send('app.flush',{});}else location.href='apps.html';});
 window.addEventListener('pagehide',function(){if(db)db.close();});
 init();
