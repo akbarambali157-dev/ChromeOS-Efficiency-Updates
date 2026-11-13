@@ -43,12 +43,21 @@
 
   /* ---------- Auto-suspend settings ---------- */
   function saveAS() {
-    chrome.storage.local.set({ autoSuspend: { on: $('asOn').checked, minutes: parseInt($('asMin').value, 10) } });
+    var minutes = parseInt($('asMin').value, 10);
+    if ([10, 20, 30, 60].indexOf(minutes) < 0) minutes = 20;
+    $('asMin').value = String(minutes);
+    chrome.storage.local.set({ autoSuspend: { on: $('asOn').checked, minutes: minutes } }, function () {
+      chrome.runtime.sendMessage({ type: 'autoSuspendConfigChanged' }, function () {
+        void chrome.runtime.lastError;
+      });
+    });
   }
   chrome.storage.local.get('autoSuspend', function (d) {
     var c = d.autoSuspend || { on: false, minutes: 20 };
+    var minutes = Number(c.minutes);
+    if ([10, 20, 30, 60].indexOf(minutes) < 0) minutes = 20;
     $('asOn').checked = !!c.on;
-    $('asMin').value = String(c.minutes || 20);
+    $('asMin').value = String(minutes);
   });
   $('asOn').addEventListener('change', saveAS);
   $('asMin').addEventListener('change', saveAS);
@@ -213,7 +222,9 @@
       };
     }
     if (d.autoSuspend && typeof d.autoSuspend === 'object') {
-      out.autoSuspend = { on: !!d.autoSuspend.on, minutes: parseInt(d.autoSuspend.minutes, 10) || 20 };
+      var mins = Number(d.autoSuspend.minutes);
+      if ([10, 20, 30, 60].indexOf(mins) < 0) mins = 20;
+      out.autoSuspend = { on: !!d.autoSuspend.on, minutes: mins };
     }
     if (typeof d.theme === 'string' && THEMES.indexOf(d.theme) >= 0) out.theme = d.theme;
     if (d.weather && typeof d.weather === 'object') {
