@@ -359,8 +359,13 @@
           return MODES.indexOf(id) >= 0 && id !== 'custom' && a.indexOf(id) === i;
         }).slice(0, 20) : [];
         if (ids.length > 1) {
-          var previous = parseInt(d.wallpaperRotationIndex, 10);
-          var nextIndex = isFinite(previous) ? (previous + 1) % ids.length : 0;
+          /* The saved wallpaper is the source of truth. A single global index
+             can point at the wrong item after switching to a collection with
+             a different order or length. Derive the next item from the current
+             wallpaper so each collection rotates independently. */
+          var currentMode = typeof d.wallMode === 'string' ? d.wallMode : mode;
+          var currentIndex = ids.indexOf(currentMode);
+          var nextIndex = currentIndex >= 0 ? (currentIndex + 1) % ids.length : 0;
           mode = ids[nextIndex];
           chrome.storage.local.set({ wallpaperRotationIndex: nextIndex, wallMode: mode });
         }
