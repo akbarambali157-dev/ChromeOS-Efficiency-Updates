@@ -415,7 +415,14 @@
     for (var j = Math.max(d.a.length - d.tail, d.head); j < end; j++) ctx(d.a[j]);
   }
 
-  var pending = null;
+  var pending = null, reviewSeq = 0;
+
+  function invalidateReview() {
+    reviewSeq++;
+    pending = null;
+    $('pushGo').disabled = true;
+    $('pushDiff').hidden = true;
+  }
 
   function review() {
     var repo = $('pushRepo').value.trim();
@@ -425,18 +432,27 @@
     if (!activeFile) { say('pushStatus', 'There is no file in the editor to push.', true); return; }
     if (!ghToken) { say('pushStatus', 'Connect your GitHub token on the GitHub tab first.', true); return; }
 
+    var reviewedFile = activeFile;
+    var reviewedContent = activeFile.content;
+    var sequence = ++reviewSeq;
+    pending = null;
     say('pushStatus', 'Checking what is already there…');
     $('pushGo').disabled = true;
     $('pushDiff').hidden = true;
 
     gh('/repos/' + repo + '/contents/' + path).then(function (d) {
+      if (sequence !== reviewSeq || activeFile !== reviewedFile || activeFile.content !== reviewedContent ||
+          $('pushRepo').value.trim() !== repo || $('pushPath').value.trim().replace(/^\\/+/, '') !== path) {
+        say('pushStatus', 'The file or destination changed during review. Review again before pushing.', true);
+        return;
+      }
       var oldText = '', sha = null;
       if (!d.missing) {
         sha = d.sha;
         oldText = unb64(d.content || '');
       }
       var diff = diffLines(oldText, activeFile.content);
-      pending = { repo: repo, path: path, sha: sha, diff: diff };
+      pending = { repo: repo, path: path, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
       renderDiff(diff);
       if (!diff.removed.length && !diff.added.length) {
         say('pushStatus', 'That file already matches the editor. Nothing to push.');
@@ -454,10 +470,16 @@
 
   function doPush() {
     if (!pending) return;
+    if (!activeFile || activeFile.id !== pending.fileId || activeFile.content !== pending.content ||
+        $('pushRepo').value.trim() !== pending.repo || $('pushPath').value.trim().replace(/^\\/+/, '') !== pending.path) {
+      invalidateReview();
+      say('pushStatus', 'The file or destination changed after review. Review the current version before pushing.', true);
+      return;
+    }
     var msg = $('pushMsg').value.trim() || ('Update ' + pending.path);
     $('pushGo').disabled = true;
     say('pushStatus', 'Pushing…');
-    var body = { message: msg, content: b64(activeFile.content) };
+    var body = { message: msg, content: b64(pending.content) };
     if (pending.sha) body.sha = pending.sha;
     gh('/repos/' + pending.repo + '/contents/' + pending.path, 'PUT', body).then(function (d) {
       if (d && d.content && d.content.html_url) {
@@ -492,6 +514,7 @@
   });
 
   $('editor').addEventListener('input', function () {
+    if (pending) invalidateReview();
     if (!activeFile) {
       activeFile = { id: uid(), name: 'untitled.js', content: '' };
       files.unshift(activeFile);
@@ -596,6 +619,9 @@
   $('pushCancel').addEventListener('click', function () { $('dlgPush').close(); });
   $('pushReview').addEventListener('click', review);
   $('pushGo').addEventListener('click', doPush);
+  ['pushRepo', 'pushPath'].forEach(function (id) {
+    $(id).addEventListener('input', function () { if (pending) invalidateReview(); });
+  });
 
   /* ---------- boot ---------- */
   chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
