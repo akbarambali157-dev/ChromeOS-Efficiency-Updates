@@ -13,7 +13,8 @@ function receive(event){if(event.source!==frame.contentWindow)return;var m=event
 if(m.type==='app.ready'){ready=true;send('theme',theme());readData().then(function(value){send('storage.result',{value:value});}).catch(function(e){say(e.message,true);send('storage.result',{value:{}});});say('Running locally · network access is limited to the app’s declared needs.');return;}
 if(m.type==='research.search'){var q=m.payload&&typeof m.payload.query==='string'?m.payload.query.trim().slice(0,180):'';if(!q){send('research.results',{error:'Enter a search term.'});return;}fetch('https://api.openalex.org/works?search='+encodeURIComponent(q)+'&filter=is_oa:true&per-page=8&select=id,doi,title,publication_year,open_access').then(function(r){if(!r.ok)throw Error('OpenAlex request failed.');return r.json();}).then(function(d){var rows=(d.results||[]).slice(0,8).map(function(w){return{title:String(w.title||'Untitled').slice(0,300),year:w.publication_year||null,url:(w.open_access&&w.open_access.oa_url)||w.id};});send('research.results',{items:rows});}).catch(function(){send('research.results',{error:'Search failed. Check your internet connection.'});});return;}
 if(m.type==='storage.get'){readData().then(function(value){send('storage.result',{value:value});}).catch(function(e){say(e.message,true);send('storage.result',{value:{}});});return;}
-if(m.type==='storage.set'){var value=m.payload&&m.payload.value;if(!value||typeof value!=='object'||Array.isArray(value)){say('Rejected invalid app data.',true);return;}writeData(value,app.dataLimit||65536).then(function(){say('Saved on this device.');}).catch(function(e){say(e.message,true);});return;}
+if(m.type==='storage.set'){var value=m.payload&&m.payload.value;if(!value||typeof value!=='object'||Array.isArray(value)){say('Rejected invalid app data.',true);return;}writeData(value,app.dataLimit||65536).then(function(){say('Saved on this device.');if(m.payload.flush)send('app.flushed',{});}).catch(function(e){say(e.message,true);});return;}
+if(m.type==='app.flushed'){location.href='apps.html';return;}
 if(m.type==='app.close'){location.href='apps.html';return;}
 }
 function init(){
@@ -34,7 +35,7 @@ frame.addEventListener('load',function(){if(ready)send('theme',theme());});
 window.addEventListener('message',receive);
 chrome.storage.onChanged.addListener(function(changes,area){if(area==='local'&&ready&&(changes.theme||changes.themeMode||changes.customPalette)){send('theme',theme());}});
 $('minimiseApp').addEventListener('click',function(){var shell=document.querySelector('.mini-frame-shell'),hidden=shell.hidden;shell.hidden=!hidden;$('minimiseApp').textContent=hidden?'Minimise':'Restore';say(hidden?'App restored.':'App minimised. Its workspace remains open.');});
-$('closeApp').addEventListener('click',function(){location.href='apps.html';});
+$('closeApp').addEventListener('click',function(){if(ready){say('Saving app data before closing…');send('app.flush',{});}else location.href='apps.html';});
 window.addEventListener('pagehide',function(){if(db)db.close();});
 init();
 })();
