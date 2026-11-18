@@ -9,12 +9,12 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 4.0.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated release checks added; device QA in progress)
+**Version 4.5.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed; device QA pending)
 
 ---
 
 
-**AI Development Workspace (4.0)** — the former Claude mini app now supports model/provider selection, shared editor context, bounded local text-file and folder import, AI Team workflows, independent review and a fast worker, Parallel web research, GitHub repository browsing/search/branch creation/reviewed file pushes/pull requests, Supabase table browsing and scoped Management API project discovery/read-only SQL, plus a lightweight storyboard and silent WebM animatic Video Studio. Direct provider credentials and integration tokens are stored in extension-local storage; remote write operations require explicit user actions. The Video Studio produces animatics and production packages, not Roblox gameplay capture or generated voice audio.
+**AI Development Workspace (4.5)** — model/provider selection, shared editor context, bounded local text-file and folder import, AI Team workflows, independent review, Parallel web research, GitHub repository browsing/search/branch creation/reviewed file pushes/pull requests, and Supabase table browsing with scoped Management API project discovery/read-only SQL. Version 4.5 rebuilds Video Studio as a story-to-animatic workspace with a creative brief, bounded AI Writers’ Room (writer, independent creative director, writer revision and final editor), character bible, editable storyboard, bobble-head/classic 2D/storybook procedural renderer, preview timeline, silent WebM export and project import/export. It is a lightweight procedural animation tool—not generated image/video/audio production. Direct provider credentials and integration tokens remain extension-local; remote write operations require explicit user actions.
 
 ## Install
 
@@ -72,7 +72,7 @@ GitHub push button. It uses its own brewkeg key, kept apart from the assistant's
 and never included in a backup export. Pushing shows you the diff before anything is written, and the push is bound
 to the exact file contents and destination reviewed.
 
-**Claude upgrade roadmap** — Claude file reading and integrations are intentionally scheduled after the full 40-app marketplace is implemented and passes final QA. The current coding workspace remains available; the next Claude milestone is 3.9.0, not the next release. See [the Claude mini-app roadmap](CLAUDE-MINI-APP-ROADMAP.md) for the corrected sequence.
+**Release testing** — automated syntax and mini-app contract validation runs in GitHub Actions. Browser interaction, provider-key setup, animation preview, project persistence and WebM recording still require manual ChromeOS testing. The extension is designed around the Chrome 103 baseline and uses a lightweight Canvas renderer.
 
 **Mini-app Store** — a remote Vercel storefront and cached metadata catalogue with 40 first-party apps bundled in the extension. All 40 entries are registered, locally installable and open in the restricted launcher workspace. Apps share the theme bridge and use app-specific IndexedDB storage; user data remains local and can be included in bounded launcher backups. Apps are designed offline-first; Research Library search and QR image generation are disclosed online features. The Code Playground provides sandboxed HTML/CSS preview and a JavaScript scratchpad without executing user scripts. System Monitor displays browser-reported capabilities, not live CPU/RAM telemetry; Accessibility Checker provides basic static heuristics, not a WCAG certification. Resource figures remain estimates until measured on the Chromebook. Run the automated checks with `node scripts/validate-miniapps.mjs`, then use the [40-app manual QA checklist](MINI-APP-3.8.0-QA-CHECKLIST.md) for the device test pass. See [the 40-app catalogue and release gates](MINI-APP-CATALOGUE-40.md), [the 3.5.0 audit](MINI-APP-3.5.0-AUDIT.md) and [marketplace architecture](MARKETPLACE.md).
 

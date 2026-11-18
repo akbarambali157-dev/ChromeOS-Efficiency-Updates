@@ -279,11 +279,10 @@
       try {
         chrome.runtime.sendMessage({
           type: 'search', key: pcKey, body: {
-            objective: String(q).slice(0, 1500),
+            objective: 'Find current web sources that answer this question: ' + String(q).slice(0, 1400),
             search_queries: queriesFor(q),
             mode: 'basic',
-            max_chars_total: 6000,
-            advanced_settings: { max_results: 6 }
+            advanced_settings: { max_results: 6, excerpt_settings: { max_chars_per_result: 1000 } }
           }
         }, function (res) {
           if (chrome.runtime.lastError || !res) {
@@ -292,7 +291,7 @@
           }
           if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
           if (res.status === 401 || res.status === 403) { reject(new Error('Parallel rejected that key.')); return; }
-          if (res.status >= 300) { reject(new Error('Parallel returned ' + res.status + '.')); return; }
+          if (res.status >= 300) { reject(new Error('Parallel returned ' + res.status + ': ' + String(res.text || '').slice(0, 240))); return; }
           try { resolve(JSON.parse(res.text) || {}); } catch (e) { reject(new Error('Parallel sent something unreadable.')); }
         });
       } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
@@ -328,7 +327,7 @@
     pushMessage('user', text);
 
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
-      'Answer with short, concrete code and plain explanation. No emoji. ' +
+      'Answer with short, concrete code and plain explanation. No emoji. When the user explicitly asks you to create or modify code, put the complete proposed code in a single fenced code block so the Apply code button can insert it into the editor. ' +
       'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
       'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
     var msgs = [{ role: 'system', content: sys }];
@@ -376,8 +375,8 @@
         }).catch(function (e) {
           var m = (e && e.message) || 'Web search failed';
           if (m.indexOf('net:') === 0) m = 'Web search could not reach api.parallel.ai';
-          cstat(m, true);
-          return '';
+          cstat(m + ' — chat was not sent without research.', true);
+          throw new Error('Web search failed: ' + m);
         });
       }
     }
