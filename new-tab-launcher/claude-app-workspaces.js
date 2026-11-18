@@ -78,6 +78,7 @@
     settings().then(function(s){
       var leadProvider=$('teamProvider').value||s.provider, reviewProvider=$('reviewProvider').value||s.provider;
       var keys=s.keys, lead=$('teamModel').value||s.model, reviewer=$('reviewModel').value||s.model, ctx=context(), mode=$('teamMode').value;
+      progress[2].title=mode==='audit'?'Audit completion':'Final synthesis / worker';if(mode==='audit')progress[2].detail='Not used in the two-agent audit workflow';renderTeamProgress(progress);
       var leadRole=mode==='audit'?'Independent repository auditor. Identify defects, missing tests, compatibility risks and security concerns.':'Lead developer. Analyze the task and propose a concrete plan.';
       var primary=buildMessages(leadRole,task,ctx), out=$('teamOutput');
       function runAgent(title,role,providerName,modelName,tokens,extra,stageIndex){
@@ -101,7 +102,7 @@
         if(cancelRun)throw new Error('Cancellation requested.');
         return runAgent('Agent 1 · Final synthesis','Lead developer. Reconcile the review with your original proposal. Address valid concerns, reject unsupported objections with reasons, and give a final actionable recommendation.',leadProvider,lead,4096,'Proposal:\n'+first+'\n\nReview:\n'+review,2);
       }).then(function(){status('teamStatus','Sequential AI Team review completed. No files were changed.');});
-    }).catch(function(e){if(cancelRun){progress.forEach(function(s){if(s.state==='pending')s.state='cancelled';});renderTeamProgress(progress);status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
+    }).catch(function(e){progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
   function extract(res) {
     if(!res||!res.status||res.status<200||res.status>=300)throw new Error(res&&res.text?String(res.text).slice(0,220):'Model request failed.');
