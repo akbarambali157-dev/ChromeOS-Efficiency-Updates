@@ -287,3 +287,21 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .project-task.done .task-check{border-color:#7fd1b9;background:#16342d}
 .project-notes{flex:1;min-height:180px;resize:vertical}
 @media(max-width:700px){.project-dashboard-grid{grid-template-columns:1fr}.project-overview{grid-template-columns:1fr 1fr}.project-stat:first-child{grid-column:1/-1}}
+
+/* Version 5.0 context manager + plan mode */
+.planchk{color:#7fd1b9}
+#dlgContext{width:min(680px,calc(100vw - 28px));max-height:min(80vh,720px);padding:0;border:1px solid #2b3a4b;border-radius:14px;background:#101720;color:#dce8f3;box-shadow:0 20px 70px #0009}
+#dlgContext::backdrop{background:#05080cbb}
+.context-dialog-head{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 18px 12px;border-bottom:1px solid #253241}
+.context-dialog-head h2{font-size:16px;margin:0 0 5px}
+.context-dialog-head p{font-size:12px;color:#8294a8;margin:0}
+.context-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:12px 18px}
+.context-summary .project-stat{background:#151e28}
+.context-items{padding:0 18px 12px;overflow:auto;max-height:48vh;display:flex;flex-direction:column;gap:8px}
+.context-item{border:1px solid #253241;background:#131b24;border-radius:9px;padding:10px;display:flex;gap:10px;align-items:flex-start}
+.context-item input{margin-top:3px;accent-color:#7fd1b9}
+.context-item-main{min-width:0;flex:1}
+.context-item-title{font-size:12px;color:#dce8f3;font-weight:600;overflow-wrap:anywhere}
+.context-item-meta{font-size:11px;color:#8193a7;margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
+.context-dialog-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid #253241;color:#8294a8;font-size:11px}
+@media(max-width:500px){.context-summary{grid-template-columns:1fr 1fr}.context-summary .project-stat:first-child{grid-column:1/-1}}
