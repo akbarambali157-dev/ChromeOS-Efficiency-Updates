@@ -38,13 +38,18 @@
     }
     return relay(provider === 'openai' ? 'provider.openai' : 'chat', key, body);
   }
-  function populate(select, provider, selected) {
-    if (!select) return;
-    select.textContent = '';
-    (MODELS[provider] || MODELS.brewkeg).forEach(function (m) {
-      var o = document.createElement('option'); o.value = m; o.textContent = m; select.appendChild(o);
-    });
-    if (selected && Array.prototype.some.call(select.options, function (o) { return o.value === selected; })) select.value = selected;
+  function populate(control, provider, selected) {
+    if (!control) return;
+    var list = MODELS[provider] || MODELS.brewkeg;
+    if (control.tagName === 'INPUT') {
+      var listId = control.getAttribute('list'), dl = listId && document.getElementById(listId);
+      if (dl) { dl.textContent = ''; list.forEach(function (m) { var o=document.createElement('option');o.value=m;dl.appendChild(o); }); }
+      control.value = selected || control.value || list[0];
+      return;
+    }
+    control.textContent = '';
+    list.forEach(function (m) { var o=document.createElement('option');o.value=m;o.textContent=m;control.appendChild(o); });
+    if (selected && Array.prototype.some.call(control.options,function(o){return o.value===selected;})) control.value=selected;
   }
   g.CCProviders = Object.freeze({ models: MODELS, readSettings: readSettings, request: request, populate: populate });
 })(window);
