@@ -6,6 +6,8 @@ const box={window:{}};vm.runInNewContext(source,box);const api=box.window.CCResp
 assert.equal(api.extract({status:200,text:JSON.stringify({choices:[{finish_reason:'stop',message:{content:'Readable answer'}}]})},'test','model'),'Readable answer');
 assert.equal(api.extract({status:200,text:JSON.stringify({output_text:'Responses answer',status:'completed'})},'test','model'),'Responses answer');
 assert.equal(api.extract({status:200,text:JSON.stringify({content:[{type:'text',text:'Anthropic answer'}],stop_reason:'end_turn'})},'test','model'),'Anthropic answer');
+assert.equal(api.extract({status:200,text:JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:'Gemini answer'}]}}]})},'test','model'),'Gemini answer');
+assert.throws(()=>api.extract({status:200,text:JSON.stringify({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[]}}]})},'test','model'),e=>e.finishReason==='length');
 assert.throws(()=>api.extract({status:200,text:JSON.stringify({choices:[{finish_reason:'length',message:{content:''}}]})},'reviewer','model'),e=>e.finishReason==='length'&&/no readable text/.test(e.message)&&!!e.diagnostic);
 assert.throws(()=>api.extract({status:200,text:JSON.stringify({choices:[{finish_reason:'length',message:{content:'partial'}}]})},'reviewer','model'),e=>e.partialText==='partial'&&e.finishReason==='length');
 assert.throws(()=>api.extract({status:200,text:'not json'},'test','model'),e=>/invalid response JSON/.test(e.message));
