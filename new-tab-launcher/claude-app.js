@@ -338,7 +338,7 @@
   }
   function requestAssistantWithResearch(messages,searchCount) {
     return chatPost({model:model,messages:messages,max_tokens:MAX_TOKENS}).then(function(res){
-      var out=readAssistantText(res),match=out.match(/\\[\\[WEB_SEARCH:\\s*([\\s\\S]*?)\\]\\]/i);
+      var out=readAssistantText(res),match=out.match(/\[\[WEB_SEARCH:\s*([\s\S]*?)\]\]/i);
       if(!match)return out;
       if(!pcKey)return 'I need web research for this part, but no Parallel key is saved. Add it in Settings and ask again.';
       if(searchCount>=2)return 'I reached the two-search limit for this reply. Ask a narrower follow-up for another search.';
@@ -379,7 +379,8 @@
     var head = words.slice(0, 6).join(' ');
     if (head) out.push(head.slice(0, 200));
     if (words.length > 6) out.push((words.slice(0, 3).join(' ') + ' ' + words[words.length - 1]).slice(0, 200));
-    if (!out.length) out.push(String(q).slice(0, 200));
+    if (!out.length) out.push(String(q).slice(0, 180));
+    if (out.length === 1) out.push((out[0] + ' overview').slice(0, 200));
     return out.slice(0, 3);
   }
 
@@ -390,8 +391,8 @@
           type: 'search', key: pcKey, body: {
             objective: 'Find current web sources that answer this question: ' + String(q).slice(0, 1400),
             search_queries: queriesFor(q),
-            mode: 'basic',
-            advanced_settings: { max_results: 6, excerpt_settings: { max_chars_per_result: 1000 } }
+            mode: 'fast',
+            advanced_settings: { max_results: 5 }
           }
         }, function (res) {
           if (chrome.runtime.lastError || !res) {
@@ -399,8 +400,8 @@
             return;
           }
           if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
-          if (res.status === 401 || res.status === 403) { reject(new Error('Parallel rejected that key.')); return; }
-          if (res.status >= 300) { reject(new Error('Parallel returned ' + res.status + ': ' + String(res.text || '').slice(0, 240))); return; }
+          if (res.status === 401 || res.status === 403) { reject(new Error('Parallel rejected that key (HTTP ' + res.status + '). Check the saved Parallel key and permissions.')); return; }
+          if (res.status >= 300) { var detail=String(res.text||'').slice(0,600);try{var problem=JSON.parse(detail);detail=(problem.error&&(problem.error.message||problem.error))||problem.message||problem.detail||detail;}catch(e){}reject(new Error('Parallel Search HTTP ' + res.status + ': ' + detail)); return; }
           try { resolve(JSON.parse(res.text) || {}); } catch (e) { reject(new Error('Parallel sent something unreadable.')); }
         });
       } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
@@ -427,8 +428,8 @@
   function send(text) {
     if (busy) return;
     var planMode = false;
-    if(/^\\/plan(?:\\s|$)/i.test(text)){
-      text=text.replace(/^\\/plan\\s*/i,'').trim();
+    if(/^\/plan(?:\s|$)/i.test(text)){
+      text=text.replace(/^\/plan\s*/i,'').trim();
       if(!text){planNext=true;pushMessage('user','/plan');pushMessage('assistant','Plan mode is ready. Send your task next and I will return a plan before implementation.');return;}
       planMode=true;
     }
