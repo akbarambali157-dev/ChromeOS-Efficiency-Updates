@@ -3,7 +3,7 @@
 (function (g) {
   'use strict';
   var $ = function (id) { return document.getElementById(id); }, app = null, current = 'team', cancelRun = false;
-  var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '';
+  var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '', projectNotesTimer = null;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
@@ -17,12 +17,42 @@
     $('editor').hidden=true;
     $('tabName').parentNode.hidden=true;
     $('contextStatus').hidden=true;
-    $('workspaceTitle').textContent={team:'AI Team',research:'Web Research',github:'GitHub Workspace',supabase:'Supabase Workspace',video:'Video Studio'}[name]||name;
-    $('workspaceSubtitle').textContent={team:'Coordinated model calls with independent review',research:'Search current web sources and inspect the results',github:'Read repositories and inspect files using your GitHub token',supabase:'Read table rows through the Supabase Data API and RLS',video:'Create a storyboard and lightweight animatic'}[name]||'';
+    $('workspaceTitle').textContent={team:'AI Team',research:'Web Research',github:'GitHub Workspace',supabase:'Supabase Workspace',video:'Video Studio',project:'Project Dashboard'}[name]||name;
+    $('workspaceSubtitle').textContent={team:'Coordinated model calls with independent review',research:'Search current web sources and inspect the results',github:'Read repositories and inspect files using your GitHub token',supabase:'Read table rows through the Supabase Data API and RLS',video:'Create a storyboard and lightweight animatic',project:'Project tasks, notes and context'}[name]||'';
     document.querySelectorAll('[data-workspace]').forEach(function(p){p.hidden=p.getAttribute('data-workspace')!==name;});
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');});
-    var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo'}[name]; if(button)$(button).classList.add('on');
+    var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo',project:'paneProject'}[name]; if(button)$(button).classList.add('on');
     if(name==='team') initTeam(); if(name==='video') drawVideo();
+  }
+  function refreshProject() {
+    if(!app||!app.getProjectInfo)return;
+    var p=app.getProjectInfo(),overview=$('projectOverview');if(!overview)return;
+    overview.textContent='';
+    [[p.name||'Untitled project','Current project'],[String(p.fileCount||0),'Local files'],[String(p.conversationCount||0),'Conversations']].forEach(function(x){var box=node('div',undefined,'project-stat');box.appendChild(node('strong',x[0]));box.appendChild(node('small',x[1]));overview.appendChild(box);});
+    var list=$('projectTaskList');list.textContent='';
+    var tasks=Array.isArray(p.tasks)?p.tasks:[];
+    if(!tasks.length)list.appendChild(node('div','No tasks yet. Add the next step for this project.','empty'));
+    tasks.forEach(function(t){
+      var row=node('div',undefined,'project-task'+(t.done?' done':'')),check=node('button','', 'task-check');check.type='button';check.title=t.done?'Mark incomplete':'Mark complete';check.setAttribute('aria-label',check.title);check.textContent=t.done?'✓':'';
+      check.addEventListener('click',function(){var next=tasks.map(function(x){return x.id===t.id?Object.assign({},x,{done:!x.done}):x;});app.updateProjectMeta({tasks:next},function(ok){if(ok)refreshProject();else status('projectNotesStatus','Could not save task.',true);});});
+      row.appendChild(check);row.appendChild(node('span',t.title,'task-title'));
+      var del=node('button','×');del.type='button';del.title='Delete task';del.setAttribute('aria-label','Delete task');del.addEventListener('click',function(){var next=tasks.filter(function(x){return x.id!==t.id;});app.updateProjectMeta({tasks:next},function(ok){if(ok)refreshProject();else status('projectNotesStatus','Could not save task.',true);});});
+      row.appendChild(del);list.appendChild(row);
+    });
+    $('projectNotes').value=p.notes||'';
+    status('projectNotesStatus',tasks.filter(function(t){return t.done;}).length+' of '+tasks.length+' tasks complete'+(p.instructions?' · project instructions active':''));
+  }
+  function addProjectTask(e) {
+    e.preventDefault();var title=$('projectTaskInput').value.trim();if(!title)return;
+    var p=app&&app.getProjectInfo?app.getProjectInfo():{};var tasks=Array.isArray(p.tasks)?p.tasks.slice():[];
+    if(tasks.length>=50)return status('projectNotesStatus','Task limit reached (50).',true);
+    tasks.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),title:title.slice(0,200),done:false,createdAt:Date.now()});
+    app.updateProjectMeta({tasks:tasks},function(ok){if(ok){$('projectTaskInput').value='';refreshProject();}else status('projectNotesStatus','Could not save task.',true);});
+  }
+  function saveProjectNotes() {
+    if(!app||!app.updateProjectMeta)return;
+    status('projectNotesStatus','Saving notes…');
+    app.updateProjectMeta({notes:$('projectNotes').value},function(ok){status('projectNotesStatus',ok?'Notes saved locally.':'Could not save notes.',!ok);});
   }
   function editorWorkspace() {
     $('workspaceExtra').hidden=true; $('editor').hidden=false; $('tabName').parentNode.hidden=false; $('contextStatus').hidden=false;
@@ -186,6 +216,9 @@
   function exportVideo(){status('videoStatus','Use the Version 4.5 Export tab.');}
   function cancelVideoExport(){}
   function init() {
+    $('paneProject').addEventListener('click',function(){setWorkspace('project');refreshProject();});
+    $('projectTaskForm').addEventListener('submit',addProjectTask);
+    $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
     ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo'].forEach(function(id){$(id).addEventListener('click',function(){setWorkspace(id==='paneTeam'?'team':id==='paneResearch'?'research':id==='paneGitHub'?'github':id==='paneSupabase'?'supabase':'video');});});
     $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
     $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
@@ -197,5 +230,5 @@
     $('videoGenerate').addEventListener('click',videoPrompt);$('videoPreview').addEventListener('click',drawVideo);$('videoExport').addEventListener('click',exportVideo);$('videoCancel').addEventListener('click',cancelVideoExport);$('videoSave').addEventListener('click',saveVideoProject);$('videoLoad').addEventListener('click',loadVideoProject);$('videoMode').addEventListener('change',drawVideo);
     chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';var end=Date.now(),start=end-3600000;$('sbLogStart').value=localDateTime(start);$('sbLogEnd').value=localDateTime(end);refreshProjects();});
   }
-  g.CCWorkspaces=Object.freeze({init:init,setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo});
+  g.CCWorkspaces=Object.freeze({init:init,setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject});
 })(window);
