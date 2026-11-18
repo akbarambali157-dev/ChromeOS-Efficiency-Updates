@@ -79,5 +79,5 @@
   <div id="setStatus" class="status"></div><div class="row"><button type="button" class="ghost" id="setCancel">Cancel</button><button type="submit" class="primary">Save</button></div>
 </form></dialog>
 <dialog id="dlgPush"><form id="pushForm" method="dialog"><h2>Push to GitHub</h2><p class="hintline">Writes the file in the editor to a repo. You'll see the change before anything is sent.</p><label>Repository<input id="pushRepo" type="text" placeholder="owner/repo" maxlength="120"></label><label>Path<input id="pushPath" type="text" placeholder="src/example.js" maxlength="200"></label><label>Branch<input id="pushBranch" type="text" maxlength="120" value="main"></label><label>Commit message<input id="pushMsg" type="text" maxlength="120"></label><div id="pushStatus" class="status"></div><div id="pushDiff" class="diffbox" hidden></div><div class="row"><button type="button" class="ghost" id="pushCancel">Cancel</button><button type="button" class="ghost" id="pushReview">Review</button><button type="button" class="primary" id="pushGo" disabled>Push</button></div></form></dialog>
-<script src="claude-app-workspaces.js"></script><script src="claude-app.js"></script>
+<script src="claude-app-providers.js"></script><script src="claude-app-workspaces.js"></script><script src="claude-app.js"></script>
 </body></html>
