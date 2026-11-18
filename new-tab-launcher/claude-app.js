@@ -109,9 +109,8 @@
   }
   function snapshotProject() {
     projectData[activeProjectId]=projectData[activeProjectId]||{};
-    projectData[activeProjectId].files=files.map(function(f){return {id:f.id,name:f.name,content:f.content,attached:f.attached!==false};});
-    projectData[activeProjectId].logs=logs.slice(0,MAX_LOGS).map(function(l){return {id:l.id,title:l.title,when:l.when,messages:l.messages.slice(-40)};});
-    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){say('chatStatus','Project storage limit reached. Current data was not saved.',true);return;}
+    var previous=projectData[activeProjectId];projectData[activeProjectId]=Object.assign({},previous||{}, {files:files.map(function(f){return {id:f.id,name:f.name,content:f.content,attached:f.attached!==false};}),logs:logs.slice(0,MAX_LOGS).map(function(l){return {id:l.id,title:l.title,when:l.when,messages:l.messages.slice(-40)};})});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){projectData[activeProjectId]=previous;say('chatStatus','Project storage limit reached. Current data was not saved.',true);return;}
     chrome.storage.local.set({ccProjectData:projectData,ccActiveProject:activeProjectId},function(){if(chrome.runtime.lastError)say('chatStatus','Could not save project data. Storage may be full.',true);});
   }
   function loadProject(id) {
@@ -762,7 +761,7 @@
     projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
     activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
     if(!projectData[activeProjectId]) projectData[activeProjectId]={files:Array.isArray(d.ccFiles)?d.ccFiles:[],logs:Array.isArray(d.ccLogs)?d.ccLogs:[]};
-    var migrationWrite={ccProjects:projects,ccProjectData:projectData,ccActiveProject:activeProjectId};if(!Array.isArray(d.ccProjects)){migrationWrite.ccFiles=[];migrationWrite.ccLogs=[];}chrome.storage.local.set(migrationWrite,function(){if(chrome.runtime.lastError)say('chatStatus','Could not complete project migration. Storage may be full.',true);});
+    var migrationWrite={ccProjects:projects,ccProjectData:projectData,ccActiveProject:activeProjectId};if(!Array.isArray(d.ccProjects)&&projectDataBytes()<=MAX_PROJECT_DATA_BYTES){migrationWrite.ccFiles=[];migrationWrite.ccLogs=[];}chrome.storage.local.set(migrationWrite,function(){if(chrome.runtime.lastError)say('chatStatus','Could not complete project migration. Storage may be full.',true);});
     files = Array.isArray(projectData[activeProjectId].files) ? projectData[activeProjectId].files.filter(function (f) {
       return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
     }).slice(0, MAX_FILES).map(function (f) {
