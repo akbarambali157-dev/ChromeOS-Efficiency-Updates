@@ -92,9 +92,14 @@
     });
   }
   function decodeContent(s) { try { return decodeURIComponent(escape(atob(String(s).replace(/\s/g,'')))); } catch(e) { try{return atob(s);}catch(err){return '[Unable to decode file]';} } }
+  function validRepoName(value) { return /^[\w.-]+\/[\w.-]+$/.test(value); }
+  function validBranchName(value) {
+    if (!value || value.length > 120 || !/^[A-Za-z0-9._/-]+$/.test(value) || value.indexOf('..') >= 0 || value.indexOf('//') >= 0 || value.indexOf('@{') >= 0 || value.charAt(0)==='/' || value.endsWith('/') || value.endsWith('.')) return false;
+    return value.split('/').every(function(part){return part && part!=='.' && part!=='..' && part.charAt(0)!=='.' && !part.endsWith('.lock');});
+  }
   function createGithubBranch() {
     var repo=$('ghRepo').value.trim(),base=$('ghBase').value.trim()||'main',branch=$('ghNewBranch').value.trim();
-    if(!/^[\\w.-]+\\/[\\w.-]+$/.test(repo)||!branch||branch.length>120||/[ ~^:?*\\[\\\\]/.test(branch)||branch.indexOf('..')>=0||branch.charAt(0)==='/'||branch.endsWith('/'))return status('ghStatus','Enter a valid repo and branch name.',true);
+    if(!validRepoName(repo)||!validBranchName(branch)||!validBranchName(base))return status('ghStatus','Enter a valid repository and branch name.',true);
     chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub first.',true);status('ghStatus','Creating branch…');
       var refPath='/repos/'+repo+'/git/ref/heads/'+base.split('/').map(encodeURIComponent).join('/');
       ghRequest(token,refPath).then(function(ref){if(ref.missing||!ref.object||!ref.object.sha)throw new Error('Base branch not found.');return ghRequest(token,'/repos/'+repo+'/git/refs',{method:'POST',body:{ref:'refs/heads/'+branch,sha:ref.object.sha}});}).then(function(){ $('ghBranch').value=branch;$('pushBranch').value=branch;status('ghStatus','Branch created: '+branch);}).catch(function(e){status('ghStatus',e.message,true);});
@@ -102,7 +107,7 @@
   }
   function createGithubPR() {
     var repo=$('ghRepo').value.trim(),head=$('ghNewBranch').value.trim(),base=$('ghBase').value.trim()||'main',title=$('ghPRTitle').value.trim(),body=$('ghPRBody').value.trim();
-    if(!/^[\\w.-]+\\/[\\w.-]+$/.test(repo)||!head||!title)return status('ghStatus','Repository, branch and PR title are required.',true);
+    if(!validRepoName(repo)||!validBranchName(head)||!validBranchName(base)||!title)return status('ghStatus','Repository, valid branches and PR title are required.',true);
     chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub first.',true);status('ghStatus','Creating pull request…');
       ghRequest(token,'/repos/'+repo+'/pulls',{method:'POST',body:{title:title,head:head,base:base,body:body}}).then(function(pr){$('ghOutput').appendChild(card('Pull request #'+pr.number,pr.title,pr.html_url));status('ghStatus','Pull request created.');}).catch(function(e){status('ghStatus',e.message,true);});
     });
