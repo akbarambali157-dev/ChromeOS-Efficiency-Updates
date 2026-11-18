@@ -7,7 +7,8 @@
 - **Project dashboard:** a bounded task list (50 items), completion tracking, and project notes persist with project metadata.
 - **Storage safety:** project data is capped at 4.3 MiB across projects; failed saves are surfaced, and migration keeps legacy data if the cap prevents copying.
 - **Context manager:** inspect project metadata and included files, toggle file inclusion, and see the context size.
-- **Plan mode:** request a numbered implementation plan with scope, risks and verification; it explicitly waits for user approval.
+- **Plan mode:** request a numbered implementation plan with scope, risks and verification; it explicitly waits for user approval and persists the preference.
+- **Code review:** assistant code blocks open in an editable review dialog; the user can insert at the cursor or explicitly replace selected text.
 - **Legacy migration:** existing scratch files and conversations are copied into the default General project on first load.
 - **Activity UI:** replaces generic loading with Thinking, Reasoning, Taking a little longer, and Still working states. Labels are elapsed-time based; the app does not claim to expose hidden model reasoning.
 - **Delegation:** AI Team roles execute sequentially. Only one delegated model request is active at a time, and the activity display names the current role and task.
@@ -25,6 +26,7 @@
 - [ ] Open Context manager; verify project instructions, notes, tasks and file inclusion.
 - [ ] Toggle a file off/on and verify the context indicator changes.
 - [ ] Enable Plan mode and verify the model returns a plan without implementation code.
+- [ ] Review an assistant code block, edit it, insert at cursor, and test selection replacement.
 - [ ] Send a short request and observe activity transitions.
 - [ ] Enable web research and verify the Researching state.
 - [ ] Run AI Team sequentially and verify only one role is active.
