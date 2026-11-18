@@ -67,8 +67,7 @@ for (const app of remote) {
   check(typeof app.data === 'string' && app.data.length > 0, `Missing data-handling disclosure for ${app.id}.`);
 }
 check(manifest.manifest_version === 3, 'Extension must remain Manifest V3.');
-const readmeVersion = readme.match(/Version ([0-9]+\.[0-9]+\.[0-9]+)/);
-check(Boolean(readmeVersion) && manifest.version === readmeVersion[1], 'Manifest version must match the README release version.');
+check(/^\d+\.\d+\.\d+$/.test(manifest.version) && readme.includes('**Version ' + manifest.version + '**'), 'Manifest version must match the README release version.');
 check(manifest.minimum_chrome_version === '103', 'Minimum Chrome version must remain 103.');
 check(frameHtml.includes("default-src 'none'") && frameHtml.includes("connect-src 'none'") && frameHtml.includes("script-src 'self'"), 'Mini-app frame CSP has weakened or is missing.');
 check(!/eval\s*\(|new Function\s*\(/.test(extendedJs), 'Extended mini-app runtime must not use eval or Function.');
