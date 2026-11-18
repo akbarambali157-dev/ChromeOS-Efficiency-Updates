@@ -137,13 +137,7 @@ function relayOpenAI(msg, sendResponse) {
       return r.text().then(function (t) {
         if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
         try {
-          var d = JSON.parse(t), output = d.output_text || '';
-          if (!output && Array.isArray(d.output)) {
-            output = d.output.map(function (item) {
-              return (item.content || []).filter(function (part) { return part.type === 'output_text'; }).map(function (part) { return part.text || ''; }).join('\n');
-            }).join('\n');
-          }
-          sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: output } }] }) });
+          var d=JSON.parse(t),output=d.output_text||'';if(!output&&Array.isArray(d.output))output=d.output.map(function(item){return(item.content||[]).filter(function(part){return part.type==='output_text'||part.type==='text';}).map(function(part){return part.text||'';}).join('\\n');}).join('\\n');var inc=d.status==='incomplete'&&d.incomplete_details,finish=inc?(inc.reason==='max_output_tokens'?'length':'incomplete'):(d.status==='completed'?'stop':'');sendResponse({status:r.status,text:JSON.stringify({id:d.id,model:d.model,usage:d.usage,status:d.status,incomplete_details:d.incomplete_details,choices:[{finish_reason:finish,message:{role:'assistant',content:output}}]})});
         } catch (e) { sendResponse({ status: r.status, text: t }); }
       });
     })
@@ -165,9 +159,7 @@ function relayAnthropic(msg, sendResponse) {
       return r.text().then(function (t) {
         if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
         try {
-          var d = JSON.parse(t);
-          var text = (d.content || []).filter(function (x) { return x.type === 'text'; }).map(function (x) { return x.text || ''; }).join('\n');
-          sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: text } }] }) });
+          var d=JSON.parse(t),text=(d.content||[]).filter(function(x){return x.type==='text';}).map(function(x){return x.text||'';}).join('\\n'),finish=d.stop_reason==='max_tokens'?'length':(d.stop_reason==='end_turn'||d.stop_reason==='stop_sequence'?'stop':(d.stop_reason||''));sendResponse({status:r.status,text:JSON.stringify({id:d.id,model:d.model,usage:d.usage,stop_reason:d.stop_reason,choices:[{finish_reason:finish,message:{role:'assistant',content:text,refusal:d.refusal||''}}]})});
         } catch (e) { sendResponse({ status: r.status, text: t }); }
       });
     })
