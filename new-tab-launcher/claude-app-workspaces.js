@@ -230,5 +230,5 @@
     $('videoGenerate').addEventListener('click',videoPrompt);$('videoPreview').addEventListener('click',drawVideo);$('videoExport').addEventListener('click',exportVideo);$('videoCancel').addEventListener('click',cancelVideoExport);$('videoSave').addEventListener('click',saveVideoProject);$('videoLoad').addEventListener('click',loadVideoProject);$('videoMode').addEventListener('change',drawVideo);
     chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';var end=Date.now(),start=end-3600000;$('sbLogStart').value=localDateTime(start);$('sbLogEnd').value=localDateTime(end);refreshProjects();});
   }
-  g.CCWorkspaces=Object.freeze({init:init,setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject});
+  g.CCWorkspaces=Object.freeze({init:init,setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject,flushProjectNotes:saveProjectNotes});
 })(window);
