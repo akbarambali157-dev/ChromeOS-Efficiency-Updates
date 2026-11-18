@@ -130,7 +130,7 @@
   }
   function manageProject() {
     var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
-    var action=prompt('Project: '+p.name+'\nType rename or delete.','rename');if(!action)return;
+    var action=prompt('Project: '+p.name+'\nType rename, instructions or delete.','rename');if(!action)return;
     action=action.trim().toLowerCase();
     if(action==='rename'){var name=prompt('New project name',p.name);if(!name)return;name=name.trim().slice(0,40);if(!name)return;p.name=name;p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},renderProjects);say('chatStatus','Project renamed.');}
     else if(action==='instructions'){var value=prompt('Project instructions (sent as context to AI; max 3000 characters)',p.instructions||'');if(value===null)return;p.instructions=String(value).slice(0,3000);p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},function(){say('chatStatus','Project instructions saved.');});}
