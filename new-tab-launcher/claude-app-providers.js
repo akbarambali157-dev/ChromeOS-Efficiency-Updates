@@ -3,8 +3,8 @@
 (function (g) {
   'use strict';
   var MODELS = {
-    brewkeg: ['claude-sonnet-5-5','claude-haiku-5-5','claude-opus-5-5','gpt-5.5','gpt-5.6','gpt-5'],
-    openai: ['gpt-5.5','gpt-5.6','gpt-5'],
+    brewkeg: ['claude-sonnet-5-5','claude-haiku-5-5','claude-opus-5-5','gpt-6-astra','gpt-6.1-sol','gpt-6.1-terra','gpt-6-luna'],
+    openai: ['gpt-6-astra','gpt-6.1-sol','gpt-6.1-terra','gpt-6-luna'],
     anthropic: ['claude-sonnet-5-5','claude-haiku-5-5','claude-opus-5-5']
   };
   var STORAGE = ['ccProvider','ccModel','ccKey','ccOpenAIKey','ccAnthropicKey'];
@@ -44,7 +44,7 @@
     if (control.tagName === 'INPUT') {
       var listId = control.getAttribute('list'), dl = listId && document.getElementById(listId);
       if (dl) { dl.textContent = ''; list.forEach(function (m) { var o=document.createElement('option');o.value=m;dl.appendChild(o); }); }
-      control.value = selected || control.value || list[0];
+      control.value = selected || (list.indexOf(control.value) >= 0 ? control.value : list[0]);
       return;
     }
     control.textContent = '';
