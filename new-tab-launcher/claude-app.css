@@ -312,3 +312,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .code-review-meta{padding:10px 18px;color:#8294a8;font-size:11px;border-bottom:1px solid #253241}
 .code-review-label{display:block;padding:10px 18px 4px;font-size:11px;color:#8b9bb0;text-transform:uppercase;letter-spacing:.06em}
 #codeReviewText{display:block;margin:0 18px;width:calc(100% - 36px);height:min(48vh,440px);resize:vertical;border:1px solid #253241;border-radius:8px;background:#0c1219;color:#dce8f3;padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2}
+
+.code-review-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 18px}
+.code-review-grid textarea{margin:0;width:100%;height:min(42vh,380px)}
+#codeReviewBefore{background:#121922;color:#9fb1c4}
+@media(max-width:600px){.code-review-grid{grid-template-columns:1fr}.code-review-grid textarea{height:24vh}}
