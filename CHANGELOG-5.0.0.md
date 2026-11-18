@@ -6,6 +6,8 @@
 - **Project isolation:** each project maintains its own editor files and conversation history.
 - **Project dashboard:** a bounded task list (50 items), completion tracking, and project notes persist with project metadata.
 - **Storage safety:** project data is capped at 4.3 MiB across projects; failed saves are surfaced, and migration keeps legacy data if the cap prevents copying.
+- **Context manager:** inspect project metadata and included files, toggle file inclusion, and see the context size.
+- **Plan mode:** request a numbered implementation plan with scope, risks and verification; it explicitly waits for user approval.
 - **Legacy migration:** existing scratch files and conversations are copied into the default General project on first load.
 - **Activity UI:** replaces generic loading with Thinking, Reasoning, Taking a little longer, and Still working states. Labels are elapsed-time based; the app does not claim to expose hidden model reasoning.
 - **Delegation:** AI Team roles execute sequentially. Only one delegated model request is active at a time, and the activity display names the current role and task.
@@ -20,6 +22,9 @@
 - [ ] Edit project instructions, notes and tasks; confirm they persist and are included in AI context.
 - [ ] Rename a project.
 - [ ] Delete a project and verify another project remains.
+- [ ] Open Context manager; verify project instructions, notes, tasks and file inclusion.
+- [ ] Toggle a file off/on and verify the context indicator changes.
+- [ ] Enable Plan mode and verify the model returns a plan without implementation code.
 - [ ] Send a short request and observe activity transitions.
 - [ ] Enable web research and verify the Researching state.
 - [ ] Run AI Team sequentially and verify only one role is active.
