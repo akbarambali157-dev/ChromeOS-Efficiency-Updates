@@ -13,7 +13,7 @@
   var MAX_FILES = 40;
 
   var files = [], logs = [], activeFile = null, activeLog = null;
-  var ccKey = '', model = 'claude-sonnet-5-5', ghToken = '', pcKey = '';
+  var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
   var saveTimer = null, busy = false;
 
@@ -202,18 +202,8 @@
 
   /* ---------- chat ---------- */
   function chatPost(body) {
-    return new Promise(function (resolve, reject) {
-      try {
-        chrome.runtime.sendMessage({ type: 'chat', key: ccKey, body: body }, function (res) {
-          if (chrome.runtime.lastError || !res) {
-            reject(new Error('net:' + ((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no response from background')));
-            return;
-          }
-          if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
-          resolve(res);
-        });
-      } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
-    });
+    return CCProviders.request(provider, body.model || model, body.messages || [], body.max_tokens || MAX_TOKENS,
+      { brewkeg: ccKey, openai: openAIKey, anthropic: anthropicKey });
   }
 
   /* ---------- Parallel web search ---------- */
@@ -301,7 +291,7 @@
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
       'Answer with short, concrete code and plain explanation. No emoji. ' +
       'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
-      'You can see every file the user has attached in this app; only the open one is shown in the editor.';
+      'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
     var msgs = [{ role: 'system', content: sys }];
 
     /* Every attached file travels with the message, open file first, under one
@@ -566,7 +556,7 @@
     send(t);
   });
 
-  $('paneFiles').addEventListener('click', function () { $('newFile').focus(); });
+  $('paneFiles').addEventListener('click', function () { CCWorkspaces.editorWorkspace(); });
   $('paneChat').addEventListener('click', function () { $('chatIn').focus(); });
   $('paneGit').addEventListener('click', function () { $('dlgPush').showModal(); });
   $('paneSet').addEventListener('click', function () {
@@ -635,7 +625,7 @@
     });
   }
 
-  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
@@ -655,7 +645,7 @@
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
     files = Array.isArray(d.ccFiles) ? d.ccFiles.filter(function (f) {
       return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
     }).slice(0, MAX_FILES).map(function (f) {
@@ -669,7 +659,7 @@
     webOn = !!d.ccWeb;
     chatH = parseInt(d.ccChatH, 10) || 250;
     applyChatH();
-    if ($('webOn')) $('webOn').checked = webOn;
+    if ($('webOn')) $('webOn').checked = webOn;\n    CCProviders.populate($('ccModel'), provider, model);
     if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
     activeFile = files[0] || null;
