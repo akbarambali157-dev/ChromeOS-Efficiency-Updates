@@ -18,7 +18,7 @@
     <a class="actbtn home" href="newtab.html" title="Back to the launcher" aria-label="Back to the launcher">⌂</a>
   </nav>
   <aside class="side">
-    <div class="sidehead"><span>Files</span><button type="button" class="mini" id="newFile" title="New file">+</button></div>
+    <div class="sidehead"><span>Files</span><div><button type="button" class="mini" id="openFiles" title="Open local text files">↥</button><button type="button" class="mini" id="newFile" title="New file">+</button></div></div><input id="filePicker" type="file" multiple hidden accept=".txt,.md,.js,.json,.css,.html,.xml,.yaml,.yml,.py,.sql,.csv,.ts,.tsx,.jsx">
     <div id="fileList" class="filelist"></div>
   </aside>
   <section class="main" id="mainWorkspace">
@@ -53,7 +53,7 @@
       <section class="workspace-panel" id="videoWorkspace" data-workspace="video" hidden>
         <div class="two-col"><div><label for="videoMode">Video mode</label><select id="videoMode" class="workspace-input"><option value="stickman">Historical stickman animation</option><option value="roblox">Roblox story production kit</option></select></div><div><label for="videoTitle">Project title</label><input id="videoTitle" class="workspace-input" maxlength="120" placeholder="Video title"></div></div>
         <label for="videoPrompt">Story idea</label><textarea id="videoPrompt" class="workspace-input" rows="3" maxlength="3000" placeholder="Describe the story or historical event…"></textarea>
-        <div class="workspace-actions"><button type="button" class="primary" id="videoGenerate">Generate storyboard</button><button type="button" class="ghost" id="videoPreview">Preview animation</button><button type="button" class="ghost" id="videoExport">Export WebM</button><span id="videoStatus" class="status"></span></div>
+        <div class="workspace-actions"><button type="button" class="primary" id="videoGenerate">Generate storyboard</button><button type="button" class="ghost" id="videoPreview">Preview animation</button><button type="button" class="ghost" id="videoExport">Export WebM</button><button type="button" class="ghost" id="videoSave">Save project</button><select id="videoProjectSelect" class="workspace-input" title="Saved video projects"></select><button type="button" class="ghost" id="videoLoad">Load</button><span id="videoStatus" class="status"></span></div>
         <canvas id="videoCanvas" width="640" height="360" class="video-canvas" aria-label="Video preview"></canvas><div id="videoScenes" class="workspace-output"></div>
       </section>
     </section>
