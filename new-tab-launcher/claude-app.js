@@ -187,7 +187,7 @@
       box.appendChild(el('div', 'msg ' + (m.role === 'user' ? 'me' : 'ai'), m.content));
     });
     var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
-    $('insertCode').disabled=!(latest&&/\`\`\`[a-z0-9_-]*[ \t]*\n[\s\S]+?\`\`\`/i.test(latest.content));
+    $('insertCode').disabled=!(latest&&extractCodeBlock(latest.content));
     box.scrollTop = box.scrollHeight;
   }
   function persistLogs() {
@@ -208,13 +208,19 @@
     $('chatIn').focus();
   }
 
+  function extractCodeBlock(content) {
+    var fence=String.fromCharCode(96,96,96),start=String(content||'').indexOf(fence);
+    if(start<0)return '';
+    var lineEnd=String(content).indexOf('\n',start+3);if(lineEnd<0)return '';
+    var end=String(content).indexOf(fence,lineEnd+1);if(end<0)return '';
+    return String(content).slice(lineEnd+1,end).replace(/\n$/,'');
+  }
   function insertLatestCode() {
     if(!activeLog||!activeFile)return;
     var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
     if(!latest)return;
-    var match=latest.content.match(/\`\`\`[a-z0-9_-]*[ \t]*\n([\s\S]+?)\n?\`\`\`/i);
-    if(!match)return;
-    var code=match[1],editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd;
+    var code=extractCodeBlock(latest.content);if(!code)return;
+    var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd;
     if(!confirm('Insert '+code.length+' characters of assistant code at the cursor or replace the selected text?'))return;
     var value=editor.value.slice(0,start)+code+editor.value.slice(end);
     editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
