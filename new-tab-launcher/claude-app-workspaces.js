@@ -166,7 +166,7 @@
     return t;
   }
   function search(q) {
-    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\\s.+#/_-]/g,' ').split(/\\s+/).filter(function(x){return x.length>2;});
+    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g,' ').split(/\s+/).filter(function(x){return x.length>2;});
     var queries=[words.slice(0,5).join(' '),words.slice(1,6).join(' ')].filter(function(x,i,a){return x&&a.indexOf(x)===i;});
     if(!queries.length)queries=[raw.slice(0,180)];if(queries.length===1)queries.push((queries[0]+' overview').slice(0,180));
     var objective='Find reliable, current sources that answer: '+raw;
