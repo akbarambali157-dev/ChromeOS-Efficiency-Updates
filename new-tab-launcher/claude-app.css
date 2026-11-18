@@ -259,3 +259,9 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .activity-time{font:10px ui-monospace,monospace;color:#6f8297;flex:0 0 auto}
 @keyframes cc-pulse{50%{opacity:.45;transform:scale(.85)}}
 @media(max-width:640px){.project-head{gap:3px}.project-head label{display:none}.activity-indicator{max-width:52%;padding:3px 5px}.activity-copy small{display:none}.activity-copy strong{max-width:130px}.panelhead{gap:5px}}
+
+#dlgProject{max-width:560px}
+#dlgProject textarea{resize:vertical;min-height:120px;line-height:1.5}
+#dlgProject .hintline{margin-top:-5px}
+#dlgProject .row{align-items:center}
+#dlgProject #projectDelete{margin-right:auto;color:#f08a7e;border-color:#5a302e}
