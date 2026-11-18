@@ -44,7 +44,7 @@
     (MODELS[provider] || MODELS.brewkeg).forEach(function (m) {
       var o = document.createElement('option'); o.value = m; o.textContent = m; select.appendChild(o);
     });
-    if (selected && Array.prototype.indexOf.call(select.options, selected) >= 0) select.value = selected;
+    if (selected && Array.prototype.some.call(select.options, function (o) { return o.value === selected; })) select.value = selected;
   }
   g.CCProviders = Object.freeze({ models: MODELS, readSettings: readSettings, request: request, populate: populate });
 })(window);
