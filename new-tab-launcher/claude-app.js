@@ -287,7 +287,7 @@
     if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
     var editor=$('editor'),code=$('codeReviewText').value,start=editor.selectionStart,end=editor.selectionEnd;
     if(mode==='replace'&&start===end){$('codeReviewInfo').textContent='Select text in the editor first, then reopen code review.';return;}
-    var value=editor.value.slice(0,start)+code+editor.value.slice(mode==='replace'?end:start);
+    var value=mode==='replace'?editor.value.slice(0,start)+code+editor.value.slice(end):editor.value.slice(0,start)+code+editor.value.slice(start);
     editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
     activeFile.content=value;setDirty(true);saveFiles();$('dlgCodeReview').close();pushMessage('assistant','Reviewed code inserted into '+activeFile.name+'. Inspect the editor and run your own checks before pushing.');
   }
