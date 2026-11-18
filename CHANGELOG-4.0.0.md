@@ -8,7 +8,7 @@
 - User-confirmed insertion of assistant code blocks into the editor.
 - Web Research workspace with source links and opt-in context attachment.
 - GitHub repository/branch browsing, code search, remote-file import, branch creation, PR creation, and branch-aware reviewed single-file pushes.
-- Supabase Data API table browsing, Management API project discovery/details, and conservative read-only SQL.
+- Supabase Data API table browsing and Storage bucket listing; Management API project discovery/details, Edge Function listing, project logs, and conservative read-only SQL.
 - Opt-in research/Supabase results for AI Team context.
 - Video Studio for Roblox-style production kits and historical stickman storyboards, editable scenes, local project persistence, Canvas previews and silent WebM animatics.
 - 4.0 workspace validation contracts and JavaScript syntax checks.
