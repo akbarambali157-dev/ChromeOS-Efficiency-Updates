@@ -650,8 +650,8 @@
     });
   }
 
-  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
-  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
+  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
