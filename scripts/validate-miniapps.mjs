@@ -93,10 +93,10 @@ check(background.includes('https://api.openai.com/v1/responses') && background.i
 check(background.includes('supabase.management') && background.includes('relaySupabaseManagement') && background.includes('read-only'), 'Supabase Management relay must be present and restricted to read-only SQL.');
 check(claudeWorkspaces.includes('function createGithubBranch') && claudeWorkspaces.includes('function createGithubPR'), 'GitHub branch and pull-request workflows must exist.');
 check(claudeVideo.includes('function exportWebm') && claudeVideo.includes('MediaRecorder'), 'Video Studio 4.5 export workflow must exist.');
-check(claudeVideo.includes('CCResponse.extract') && claudeVideo.includes('CCResponse.parseObject'), 'Video Studio must use shared response parsing.');
-check(claudeVideo.includes('id=\\"v45TestWriter\\"') && claudeVideo.includes('id=\\"v45TestReviewer\\"') && claudeVideo.includes('id=\\"v45TestEditor\\"'), 'Video Studio test controls must exist.');
-check(claudeVideo.includes('id=\\"v45Status\\"'), 'Video Studio status target must exist.');
-check(claudeWorkspaces.includes('CCResponse.extract') && !claudeWorkspaces.includes('function responseContent(d)'), 'AI Team must use shared response extraction.');
+check(claudeVideo.includes('CCResponse.request') && claudeVideo.includes('CCResponse.parseObject'), 'Video Studio must use shared response parsing.');
+check(claudeVideo.includes('id="v45TestWriter"') && claudeVideo.includes('id="v45TestReviewer"') && claudeVideo.includes('id="v45TestEditor"'), 'Video Studio test controls must exist.');
+check(claudeVideo.includes('id="v45Status"'), 'Video Studio status target must exist.');
+check(claudeWorkspaces.includes('CCResponse.request') && !claudeWorkspaces.includes('function responseContent(d)'), 'AI Team must use shared response extraction.');
 check(claudeResponse.includes('finishReason') && claudeResponse.includes('partialText') && claudeResponse.includes('parseObject'), 'Shared response module must preserve truncation metadata.');
 check(background.includes('incomplete_details') && background.includes('stop_reason') && background.includes('usage'), 'Direct relays must preserve completion metadata.');
 check(aiResponseTests.includes("finish_reason:'length'") && aiResponseTests.includes('api.parseObject'), 'Regression tests must cover truncation and JSON parsing.');
