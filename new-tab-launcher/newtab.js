@@ -229,7 +229,7 @@
   });
 
   /* ---------- Load ---------- */
-  store.get(['shortcuts', 'note', 'workspaces', 'activeWorkspace'], function (data) {
+  chrome.storage.local.get(['shortcuts', 'note', 'workspaces', 'activeWorkspace'], function (data) {
     var saved = Array.isArray(data.workspaces) ? data.workspaces : [];
     var usedNames = {};
     workspaces = saved.filter(function (w) {
