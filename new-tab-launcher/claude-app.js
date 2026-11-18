@@ -12,7 +12,7 @@
   var MAX_LOGS = 10;
   var MAX_FILES = 40;
 
-  var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {};
+  var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {}, projectModalMode = 'edit';
   var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
   var saveTimer = null, busy = false;
@@ -121,25 +121,35 @@
     $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
     chrome.storage.local.set({ccActiveProject:id});
   }
-  function createProject() {
-    if(projects.length>=12){say('chatStatus','Project limit reached (12). Delete a project first.',true);return;}
-    var name=prompt('Project name','New project');if(!name)return;
-    name=name.trim().slice(0,40);if(!name)return;
-    var id='p-'+uid();projects.push({id:id,name:name,instructions:'',createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
-    chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){loadProject(id);say('chatStatus','Created project: '+name);});
+  function openProjectSettings(createMode) {
+    projectModalMode=createMode?'create':'edit';
+    var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
+    $('projectDialogTitle').textContent=createMode?'Create project':'Project settings';
+    $('projectName').value=createMode?'':p.name||'';
+    $('projectInstructions').value=createMode?'':p.instructions||'';
+    $('projectDelete').hidden=createMode||projects.length<=1;
+    if($('dlgProject')&&!$('dlgProject').open)$('dlgProject').showModal();
+    $('projectName').focus();
   }
-  function manageProject() {
-    var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
-    var action=prompt('Project: '+p.name+'\nType rename, instructions or delete.','rename');if(!action)return;
-    action=action.trim().toLowerCase();
-    if(action==='rename'){var name=prompt('New project name',p.name);if(!name)return;name=name.trim().slice(0,40);if(!name)return;p.name=name;p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},renderProjects);say('chatStatus','Project renamed.');}
-    else if(action==='instructions'){var value=prompt('Project instructions (sent as context to AI; max 3000 characters)',p.instructions||'');if(value===null)return;p.instructions=String(value).slice(0,3000);p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},function(){say('chatStatus','Project instructions saved.');});}
-    else if(action==='delete'){
-      if(projects.length<=1){say('chatStatus','Keep at least one project.',true);return;}
-      if(!confirm('Delete '+p.name+' and its local files and conversations?'))return;
-      projects=projects.filter(function(x){return x.id!==p.id;});delete projectData[p.id];var next=projects[0].id;
-      chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){loadProject(next);say('chatStatus','Project deleted.');});
+  function saveProjectSettings() {
+    var name=$('projectName').value.trim().slice(0,40), instructions=$('projectInstructions').value.slice(0,3000);
+    if(!name){say('chatStatus','Project name is required.',true);$('projectName').focus();return;}
+    if(projectModalMode==='create'){
+      if(projects.length>=12){say('chatStatus','Project limit reached (12). Delete a project first.',true);return;}
+      var id='p-'+uid();projects.push({id:id,name:name,instructions:instructions,createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
+      chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save project. Storage may be full.',true);return;}$('dlgProject').close();loadProject(id);say('chatStatus','Project created.');});
+    } else {
+      var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
+      p.name=name;p.instructions=instructions;p.updatedAt=Date.now();
+      chrome.storage.local.set({ccProjects:projects},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save project settings.',true);return;}$('dlgProject').close();renderProjects();say('chatStatus','Project settings saved.');});
     }
+  }
+  function deleteProject() {
+    if(projects.length<=1){say('chatStatus','Keep at least one project.',true);return;}
+    var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
+    if(!confirm('Delete '+p.name+' and its local files and conversations?'))return;
+    projects=projects.filter(function(x){return x.id!==p.id;});delete projectData[p.id];var next=projects[0].id;
+    chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){if(chrome.runtime.lastError){say('chatStatus','Could not delete project.',true);return;}$('dlgProject').close();loadProject(next);say('chatStatus','Project deleted.');});
   }
   function persistFiles(callback) {
     if (files.length > MAX_FILES) {
@@ -791,8 +801,11 @@
     };
     $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
     if($('projectSel'))$('projectSel').addEventListener('change',function(){snapshotProject();loadProject(this.value);});
-    if($('newProject'))$('newProject').addEventListener('click',createProject);
-    if($('projectManage'))$('projectManage').addEventListener('click',manageProject);
+    if($('newProject'))$('newProject').addEventListener('click',function(){openProjectSettings(true);});
+    if($('projectManage'))$('projectManage').addEventListener('click',function(){openProjectSettings(false);});
+    if($('projectSave'))$('projectSave').addEventListener('click',saveProjectSettings);
+    if($('projectCancel'))$('projectCancel').addEventListener('click',function(){$('dlgProject').close();});
+    if($('projectDelete'))$('projectDelete').addEventListener('click',deleteProject);
 
     if (!ccKey && !logs.length) {
       pushMessage('assistant', 'Welcome. Add your brewkeg key in Settings (the gear on the left) to start chatting. The editor and the GitHub push work without it.');
