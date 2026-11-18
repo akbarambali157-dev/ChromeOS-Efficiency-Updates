@@ -180,14 +180,16 @@
     box.textContent = '';
     if (!activeLog || !activeLog.messages.length) {
       box.appendChild(el('div', 'msg sys', 'Ask about the file in the editor, or say what to change.'));
+      $('insertCode').disabled=true;
       return;
     }
     activeLog.messages.forEach(function (m) {
       box.appendChild(el('div', 'msg ' + (m.role === 'user' ? 'me' : 'ai'), m.content));
     });
+    var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
+    $('insertCode').disabled=!(latest&&/\`\`\`[a-z0-9_-]*[ \t]*\n[\s\S]+?\`\`\`/i.test(latest.content));
     box.scrollTop = box.scrollHeight;
   }
-
   function persistLogs() {
     var out = logs.slice(0, MAX_LOGS).map(function (l) {
       return { id: l.id, title: l.title, when: l.when, messages: l.messages.slice(-40) };
@@ -206,6 +208,18 @@
     $('chatIn').focus();
   }
 
+  function insertLatestCode() {
+    if(!activeLog||!activeFile)return;
+    var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
+    if(!latest)return;
+    var match=latest.content.match(/\`\`\`[a-z0-9_-]*[ \t]*\n([\s\S]+?)\n?\`\`\`/i);
+    if(!match)return;
+    var code=match[1],editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd;
+    if(!confirm('Insert '+code.length+' characters of assistant code at the cursor or replace the selected text?'))return;
+    var value=editor.value.slice(0,start)+code+editor.value.slice(end);
+    editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
+    activeFile.content=value;setDirty(true);saveFiles();pushMessage('assistant','Code block inserted into '+activeFile.name+'. Review it before pushing.');
+  }
   function pushMessage(role, content) {
     if (!activeLog) newLog();
     activeLog.messages.push({ role: role, content: content });
@@ -570,7 +584,7 @@
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; saveFiles(); }
   });
 
-  $('chatForm').addEventListener('submit', function (e) {
+  $('insertCode').addEventListener('click', insertLatestCode);\n  $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
     if (!t) return;
