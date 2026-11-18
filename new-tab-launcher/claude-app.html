@@ -15,6 +15,7 @@
     <button type="button" class="actbtn" id="paneSupabase" title="Supabase workspace" aria-label="Supabase">▤</button>
     <button type="button" class="actbtn" id="paneVideo" title="Video Studio" aria-label="Video Studio">▶</button>
     <button type="button" class="actbtn" id="paneSet" title="Settings" aria-label="Settings">⚙</button>
+    <button type="button" class="actbtn" id="paneDiagnostics" title="Workspace diagnostics" aria-label="Workspace diagnostics">⚒</button>
     <a class="actbtn home" href="newtab.html" title="Back to the launcher" aria-label="Back to the launcher">⌂</a>
   </nav>
   <aside class="side">
@@ -79,5 +80,6 @@
   <div id="setStatus" class="status"></div><div class="row"><button type="button" class="ghost" id="setCancel">Cancel</button><button type="submit" class="primary">Save</button></div>
 </form></dialog>
 <dialog id="dlgPush"><form id="pushForm" method="dialog"><h2>Push to GitHub</h2><p class="hintline">Writes the file in the editor to a repo. You'll see the change before anything is sent.</p><label>Repository<input id="pushRepo" type="text" placeholder="owner/repo" maxlength="120"></label><label>Path<input id="pushPath" type="text" placeholder="src/example.js" maxlength="200"></label><label>Branch<input id="pushBranch" type="text" maxlength="120" value="main"></label><label>Commit message<input id="pushMsg" type="text" maxlength="120"></label><div id="pushStatus" class="status"></div><div id="pushDiff" class="diffbox" hidden></div><div class="row"><button type="button" class="ghost" id="pushCancel">Cancel</button><button type="button" class="ghost" id="pushReview">Review</button><button type="button" class="primary" id="pushGo" disabled>Push</button></div></form></dialog>
-<script src="claude-app-providers.js"></script><script src="claude-app-workspaces.js"></script><script src="claude-app.js"></script>
+<dialog id="dlgDiagnostics" class="diag-dialog"><div class="diag-head"><h2>Workspace Diagnostics</h2><button type="button" class="mini" id="diagClose">Close</button></div><p class="hintline">Independent diagnostic tool. It checks startup, required controls, extension storage and captured JavaScript errors. It does not modify your files or settings.</p><div id="diagChecks" class="diag-checks"></div><label class="diag-report-label" for="diagOutput">Diagnostic report</label><textarea id="diagOutput" class="diag-report" rows="12" readonly></textarea><div class="workspace-actions"><button type="button" class="primary" id="diagRun">Run checks again</button><button type="button" class="ghost" id="diagCopy">Copy report</button><button type="button" class="ghost" id="diagReload">Reload workspace</button><span id="diagCopyStatus" class="status"></span></div></dialog>
+<script src="claude-app-diagnostics.js"></script><script src="claude-app-providers.js"></script><script src="claude-app-workspaces.js"></script><script src="claude-app.js"></script>
 </body></html>
