@@ -22,6 +22,11 @@ const frameHtml = read('new-tab-launcher/app-frame.html');
 const filesJs = read('new-tab-launcher/files.js');
 const filesHtml = read('new-tab-launcher/files.html');
 const readme = read('README.md');
+const claudeHtml = read('new-tab-launcher/claude-app.html');
+const claudeApp = read('new-tab-launcher/claude-app.js');
+const claudeProviders = read('new-tab-launcher/claude-app-providers.js');
+const claudeWorkspaces = read('new-tab-launcher/claude-app-workspaces.js');
+const background = read('new-tab-launcher/background.js');
 
 const localIds = local.map((app) => app.id);
 const remoteIds = remote.map((app) => app.id);
@@ -61,7 +66,7 @@ for (const app of remote) {
   check(typeof app.data === 'string' && app.data.length > 0, `Missing data-handling disclosure for ${app.id}.`);
 }
 check(manifest.manifest_version === 3, 'Extension must remain Manifest V3.');
-check(manifest.version === '3.8.0', 'Manifest version must be 3.8.0.');
+check(manifest.version === '4.0.0', 'Manifest version must be 4.0.0.');
 check(manifest.minimum_chrome_version === '103', 'Minimum Chrome version must remain 103.');
 check(frameHtml.includes("default-src 'none'") && frameHtml.includes("connect-src 'none'") && frameHtml.includes("script-src 'self'"), 'Mini-app frame CSP has weakened or is missing.');
 check(!/eval\s*\(|new Function\s*\(/.test(extendedJs), 'Extended mini-app runtime must not use eval or Function.');
@@ -69,6 +74,25 @@ check(!/f\.parent\.removeEntry\s*\(/.test(filesJs), 'Files page must never delet
 check(filesJs.includes('copyOne') && !filesJs.includes('moveOne'), 'Files page must use the copy-only flow.');
 check(filesHtml.includes('Nothing is moved or deleted') && filesHtml.includes('originals stay in place'), 'Files page must clearly disclose non-destructive behaviour.');
 check(readme.includes('leaves originals untouched'), 'README must describe the current copy-only Files behaviour.');
+
+
+// 4.0 AI Development Workspace contract and syntax checks.
+const workspaceScripts = ['claude-app-providers.js','claude-app-workspaces.js','claude-app.js'];
+check(workspaceScripts.every((file) => claudeHtml.includes('src="' + file + '"')), 'AI workspace scripts must be loaded from the HTML.');
+check(claudeHtml.indexOf('claude-app-providers.js') < claudeHtml.indexOf('claude-app-workspaces.js') && claudeHtml.indexOf('claude-app-workspaces.js') < claudeHtml.indexOf('claude-app.js'), 'Provider and workspace modules must load before the app controller.');
+for (const id of ['ccProvider','ccModel','openAIKeyIn','anthropicKeyIn','insertCode','teamTask','teamProvider','reviewProvider','workerProvider','researchQuery','ghRepo','ghCreateBranch','ghCreatePR','sbPAT','sbRunQuery','videoCanvas','videoExport']) {
+  check(claudeHtml.includes('id="' + id + '"'), 'AI workspace control missing: ' + id + '.');
+}
+check(claudeProviders.includes('provider.openai') && claudeProviders.includes('provider.anthropic'), 'Provider abstraction must route direct OpenAI and Anthropic requests.');
+check(background.includes('https://api.openai.com/v1/responses') && background.includes('https://api.anthropic.com/v1/messages'), 'Direct provider relays must use fixed HTTPS endpoints.');
+check(background.includes('supabase.management') && background.includes('/database/query/read-only'), 'Supabase Management relay must be present and restricted to read-only SQL.');
+check(claudeWorkspaces.includes('function createGithubBranch') && claudeWorkspaces.includes('function createGithubPR'), 'GitHub branch and pull-request workflows must exist.');
+check(claudeWorkspaces.includes('function exportVideo') && claudeWorkspaces.includes('MediaRecorder'), 'Video Studio export workflow must exist.');
+check(claudeApp.includes('function importLocalFiles') && claudeApp.includes('1048576') && claudeApp.includes('4194304'), 'Local file import must retain per-file and aggregate bounds.');
+check(!/eval\\s*\\(|new Function\\s*\\(/.test(claudeApp + claudeProviders + claudeWorkspaces + background), 'AI workspace code must not use eval or Function.');
+for (const [name, source] of [['background.js',background],['claude-app.js',claudeApp],['claude-app-providers.js',claudeProviders],['claude-app-workspaces.js',claudeWorkspaces]]) {
+  try { new Function(source); } catch (error) { failures.push(name + ' syntax error: ' + error.message); }
+}
 
 if (failures.length) {
   console.error('My Launcher validation FAILED:');
