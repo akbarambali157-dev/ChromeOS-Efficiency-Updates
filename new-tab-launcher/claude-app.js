@@ -277,7 +277,8 @@
     if(!latest)return;
     var code=extractCodeBlock(latest.content);if(!code)return;
     var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd,selected=editor.value.slice(start,end);
-    $('codeReviewMeta').textContent=(activeFile?activeFile.name:'untitled.js')+' · '+code.length.toLocaleString()+' characters · '+(selected?'Selected text: '+selected.length.toLocaleString()+' characters':'No selection — insert at cursor');
+    $('codeReviewMeta').textContent=(activeFile?activeFile.name:'untitled.js')+' · '+code.length.toLocaleString()+' proposed characters · '+(selected?'Selection: '+selected.length.toLocaleString()+' characters':'No selection — insert at cursor');
+    $('codeReviewBefore').value=selected||'(No text selected. Insert will place the proposed code at the cursor.)';
     $('codeReviewInfo').textContent=selected?'Review the proposed replacement before applying.':'Review the proposed code before inserting.';
     $('codeReviewText').value=code;
     $('codeReviewReplace').disabled=!selected;
