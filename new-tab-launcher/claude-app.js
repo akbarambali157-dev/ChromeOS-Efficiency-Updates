@@ -279,8 +279,8 @@
 
   function send(text) {
     if (busy) return;
-    if (!ccKey) {
-      pushMessage('assistant', 'I need your brewkeg key first. Open Settings (the gear on the left) and paste it in.');
+    if (!(provider === 'brewkeg' ? ccKey : provider === 'openai' ? openAIKey : anthropicKey)) {
+      pushMessage('assistant', 'Add the selected provider key in Settings before sending.');
       return;
     }
     busy = true;
@@ -562,7 +562,10 @@
   $('paneSet').addEventListener('click', function () {
     $('ccKeyIn').value = ccKey;
     $('pcKeyIn').value = pcKey;
-    $('ccModel').value = model;
+    $('openAIKeyIn').value = openAIKey;
+    $('anthropicKeyIn').value = anthropicKey;
+    $('ccProvider').value = provider;
+    CCProviders.populate($('ccModel'), provider, model);
     say('setStatus', '');
     $('dlgSet').showModal();
   });
@@ -625,13 +628,17 @@
     });
   }
 
-  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
+  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
     pcKey = $('pcKeyIn').value.trim();
+    openAIKey = $('openAIKeyIn').value.trim();
+    anthropicKey = $('anthropicKeyIn').value.trim();
+    provider = $('ccProvider').value;
     model = $('ccModel').value;
-    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccModel: model }, function () {
+    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model }, function () {
       say('setStatus', ccKey ? 'Saved.' : 'Key cleared.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
     });
@@ -653,13 +660,17 @@
     }) : [];
     logs = Array.isArray(d.ccLogs) ? d.ccLogs : [];
     ccKey = d.ccKey || '';
+    provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
+    openAIKey = d.ccOpenAIKey || '';
+    anthropicKey = d.ccAnthropicKey || '';
     ghToken = d.ghToken || '';
     pcKey = d.pcKey || '';
     webOn = !!d.ccWeb;
     chatH = parseInt(d.ccChatH, 10) || 250;
     applyChatH();
-    if ($('webOn')) $('webOn').checked = webOn;\n    CCProviders.populate($('ccModel'), provider, model);
+    if ($('webOn')) $('webOn').checked = webOn;
+    CCProviders.populate($('ccModel'), provider, model);\n    CCProviders.populate($('ccModel'), provider, model);
     if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
     activeFile = files[0] || null;
@@ -669,6 +680,15 @@
     loadEditor();
     renderLogs();
     renderChat();
+    CCWorkspaces.init();
+    window.CCApp = {
+      getContext: function () {
+        var a = files.filter(function (f) { return f.attached !== false && f.content; });
+        return a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n').slice(0, FILE_BUDGET);
+      },
+      getSearchKey: function () { return pcKey; }
+    };
+    $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
 
     if (!ccKey && !logs.length) {
       pushMessage('assistant', 'Welcome. Add your brewkeg key in Settings (the gear on the left) to start chatting. The editor and the GitHub push work without it.');
