@@ -389,8 +389,12 @@
       'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
     var projectInstructions=(projects.filter(function(p){return p.id===activeProjectId;})[0]||{}).instructions||'';
     if(projectInstructions)sys+='\n\nProject-specific instructions (follow these for this workspace):\n'+projectInstructions.slice(0,3000);
+    var planMode=$('planMode')&&$('planMode').checked;
+    if(planMode)sys+='\\n\\nPLAN MODE: Do not implement, write replacement code, or make changes yet. Produce a numbered, actionable implementation plan with scope, files likely affected, risks, and verification steps. Clearly state that you are waiting for approval. Do not expose private chain-of-thought; provide concise decision summaries only.';
     var msgs = [{ role: 'system', content: sys }];
 
+    var projectInfo=projects.filter(function(p){return p.id===activeProjectId;})[0]||{};
+    var projectMeta=[];if(projectInfo.notes)projectMeta.push('--- Project notes ---\\n'+String(projectInfo.notes).slice(0,4000));if(Array.isArray(projectInfo.tasks)&&projectInfo.tasks.length)projectMeta.push('--- Project tasks ---\\n'+projectInfo.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\\n'));if(projectMeta.length)msgs.push({role:'system',content:projectMeta.join('\\n\\n')});
     /* Every attached file travels with the message, open file first, under one
        shared character budget so a pile of files cannot blow past the request. */
     var attached = files.filter(function (f) { return f.attached !== false && f.content; });
@@ -651,6 +655,22 @@
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; saveFiles(); }
   });
 
+  function renderContextManager() {
+    if(!window.CCApp||!CCApp.getContextDetails)return;
+    var d=CCApp.getContextDetails(),summary=$('contextSummary'),items=$('contextItems');summary.textContent='';items.textContent='';
+    [[d.name,'Project'],[d.files.filter(function(f){return f.attached;}).length+' / '+d.files.length,'Files included'],[d.files.filter(function(f){return f.attached;}).reduce(function(n,f){return n+f.characters;},0).toLocaleString()+' chars','Attached file size']].forEach(function(x){var box=el('div','project-stat');box.appendChild(el('strong','',x[0]));box.appendChild(el('small','',x[1]));summary.appendChild(box);});
+    function item(title,meta,check,change){var row=el('div','context-item'),main=el('div','context-item-main'),t=el('div','context-item-title',title),m=el('div','context-item-meta',meta);main.appendChild(t);main.appendChild(m);if(check!==null){var input=document.createElement('input');input.type='checkbox';input.checked=check;input.addEventListener('change',change);row.appendChild(input);}row.appendChild(main);items.appendChild(row);}
+    item('Project instructions',d.instructions?d.instructions:'No project instructions set.',true,function(){});
+    if(d.instructions){items.lastChild.querySelector('input').disabled=true;items.lastChild.querySelector('input').title='Project instructions are always included';}
+    item('Project notes',d.notes?d.notes:'No project notes.',true,function(){});
+    items.lastChild.querySelector('input').disabled=true;items.lastChild.querySelector('input').title='Project notes are included automatically';
+    item('Task list',d.tasks.length?d.tasks.map(function(t){return (t.done?'✓ ':'○ ')+t.title;}).join('\\n'):'No tasks.',true,function(){});items.lastChild.querySelector('input').disabled=true;
+    d.files.forEach(function(f){item((f.active?'● ':'')+f.name,(f.active?'Open in editor · ':'')+f.characters.toLocaleString()+' characters · '+(f.attached?'Included':'Excluded'),f.attached,function(){CCApp.setFileAttached(f.id,this.checked);renderContextManager();});});
+    $('contextBudget').textContent='Shared file context cap: '+(d.files.reduce(function(n,f){return n+(f.attached?f.characters:0);},0)).toLocaleString()+' / 48,000 characters (project metadata has separate limits)';
+  }
+  $('contextManager').addEventListener('click',function(){renderContextManager();$('dlgContext').showModal();});
+  $('contextClose').addEventListener('click',function(){$('dlgContext').close();});
+  $('contextDone').addEventListener('click',function(){$('dlgContext').close();});
   $('insertCode').addEventListener('click', insertLatestCode);
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -796,6 +816,13 @@
         var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\n'+String(p.instructions).slice(0,3000)+'\n\n'):'', notes=p.notes?('--- Project notes ---\n'+String(p.notes).slice(0,4000)+'\n\n'):'', taskContext=Array.isArray(p.tasks)&&p.tasks.length?('--- Project task list ---\n'+p.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\n')+'\n\n'):'';
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
         return (instruction+notes+taskContext+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
+      },
+      getContextDetails: function () {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
+        return {name:p.name||'General',instructions:p.instructions||'',notes:p.notes||'',tasks:Array.isArray(p.tasks)?p.tasks.slice():[],files:files.map(function(f){return {id:f.id,name:f.name,attached:f.attached!==false,characters:(f.content||'').length,active:!!(activeFile&&activeFile.id===f.id)};})};
+      },
+      setFileAttached: function (id,on) {
+        var f=files.filter(function(x){return x.id===id;})[0];if(!f)return false;f.attached=!!on;saveFiles();renderFiles();if($('contextStatus'))$('contextStatus').textContent=files.filter(function(x){return x.attached!==false;}).length+' files in context';return true;
       },
       getProjectInfo: function () {
         var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
