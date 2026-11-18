@@ -461,6 +461,7 @@
 
   function send(text) {
     if (busy) return;
+    pendingFileEdits=[];$('insertCode').disabled=true;$('insertCode').textContent='Review code';
     var planMode = false;
     if(/^\/plan(?:\s|$)/i.test(text)){
       text=text.replace(/^\/plan\s*/i,'').trim();
