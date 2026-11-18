@@ -363,7 +363,7 @@
     busy = true;
     $('sendBtn').disabled = true;
     cstat('');
-    if(window.CCActivity)CCActivity.begin(webOn?'Researching':'Thinking',text.slice(0,90));
+    if(window.CCActivity)CCActivity.begin('Thinking',text.slice(0,90));
     pushMessage('user', text);
 
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
@@ -766,6 +766,7 @@
     activeFile = files[0] || null;
     activeLog = logs[0] || null;
 
+    renderProjects();
     renderFiles();
     loadEditor();
     renderLogs();
