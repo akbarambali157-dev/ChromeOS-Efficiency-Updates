@@ -22,9 +22,10 @@
      cut off: the tail of the conversation fell out of the request. */
   var MAX_TOKENS = 8192;
   var MAX_PROJECT_DATA_BYTES = 4.3 * 1024 * 1024;
-  var FILE_BUDGET = 24000;   /* characters of file text across all open files */
+  var FILE_BUDGET = 48000;   /* shared attached-file context budget */
   var HISTORY = 24;          /* messages of conversation sent back */
-  var HISTORY_CHARS = 12000; /* per-message cap when replaying history */
+  var HISTORY_CHARS = 20000; /* older-message replay cap; current prompt is preserved whole */
+  var MAX_INPUT_CHARS = 20000;
 
   /* ---------- small helpers ---------- */
   function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -475,9 +476,13 @@
       }
     }
 
-    activeLog.messages.slice(-HISTORY).forEach(function (m) {
+    var history = activeLog.messages.slice(-HISTORY);
+    history.forEach(function (m, index) {
       if (m.role !== 'user' && m.role !== 'assistant') return;
-      msgs.push({ role: m.role, content: String(m.content || '').slice(0, HISTORY_CHARS) });
+      var content = String(m.content || '');
+      /* Never truncate the message just submitted. Older history is bounded. */
+      if (!(index === history.length - 1 && m.role === 'user' && content === text)) content = content.slice(0, HISTORY_CHARS);
+      msgs.push({ role: m.role, content: content });
     });
 
     var pre = Promise.resolve('');
@@ -702,13 +707,23 @@
   $('codeReviewReplace').addEventListener('click',function(){applyReviewedCode('replace');});
   $('insertCode').addEventListener('click', insertLatestCode);
   $('undoCodeApply').addEventListener('click', undoReviewedCode);
+  function updateChatInputCount() {
+    var input=$('chatIn'),count=$('chatCharCount');if(!input||!count)return;
+    count.textContent=input.value.length.toLocaleString()+' / '+MAX_INPUT_CHARS.toLocaleString();
+    count.className=input.value.length>MAX_INPUT_CHARS*0.9?'near-limit':'';
+    input.style.height='auto';input.style.height=Math.min(input.scrollHeight,180)+'px';
+  }
+  $('chatIn').addEventListener('input',updateChatInputCount);
+  $('chatIn').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();$('chatForm').requestSubmit();}});
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
     if (!t) return;
-    $('chatIn').value = '';
+    if(t.length>MAX_INPUT_CHARS){cstat('Message is over the 20,000 character limit.',true);return;}
+    $('chatIn').value = '';updateChatInputCount();
     send(t);
   });
+  updateChatInputCount();
 
   $('paneFiles').addEventListener('click', function () { CCWorkspaces.editorWorkspace(); });
   $('paneChat').addEventListener('click', function () { CCWorkspaces.editorWorkspace(); $('chatIn').focus(); });
