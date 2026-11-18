@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Dependency-free repository contract checks for My Launcher 4.5.0.
+// Dependency-free repository contract checks for My Launcher 5.0.0.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,6 +24,7 @@ const filesHtml = read('new-tab-launcher/files.html');
 const readme = read('README.md');
 const claudeHtml = read('new-tab-launcher/claude-app.html');
 const claudeApp = read('new-tab-launcher/claude-app.js');
+const claudeActivity = read('new-tab-launcher/claude-app-activity.js');
 const claudeProviders = read('new-tab-launcher/claude-app-providers.js');
 const claudeWorkspaces = read('new-tab-launcher/claude-app-workspaces.js');
 const claudeVideo = read('new-tab-launcher/claude-app-video-studio.js');
@@ -78,10 +79,10 @@ check(readme.includes('leaves originals untouched'), 'README must describe the c
 
 
 // 4.0 AI Development Workspace contract and syntax checks.
-const workspaceScripts = ['claude-app-providers.js','claude-app-workspaces.js','claude-app-video-studio.js','claude-app.js'];
+const workspaceScripts = ['claude-app-providers.js','claude-app-activity.js','claude-app-workspaces.js','claude-app-video-studio.js','claude-app.js'];
 check(workspaceScripts.every((file) => claudeHtml.includes('src="' + file + '"')), 'AI workspace scripts must be loaded from the HTML.');
-check(claudeHtml.indexOf('claude-app-providers.js') < claudeHtml.indexOf('claude-app-workspaces.js') && claudeHtml.indexOf('claude-app-workspaces.js') < claudeHtml.indexOf('claude-app-video-studio.js') && claudeHtml.indexOf('claude-app-video-studio.js') < claudeHtml.indexOf('claude-app.js'), 'Provider and workspace modules must load before the app controller.');
-for (const id of ['ccProvider','ccModel','openAIKeyIn','anthropicKeyIn','insertCode','teamTask','teamProvider','reviewProvider','workerProvider','researchQuery','ghRepo','ghCreateBranch','ghCreatePR','sbPAT','sbRunQuery','videoCanvas','videoExport']) {
+check(claudeHtml.indexOf('claude-app-providers.js') < claudeHtml.indexOf('claude-app-activity.js') && claudeHtml.indexOf('claude-app-activity.js') < claudeHtml.indexOf('claude-app-workspaces.js') && claudeHtml.indexOf('claude-app-workspaces.js') < claudeHtml.indexOf('claude-app-video-studio.js') && claudeHtml.indexOf('claude-app-video-studio.js') < claudeHtml.indexOf('claude-app.js'), 'Provider, activity and workspace modules must load before the app controller.');
+for (const id of ['ccProvider','ccModel','openAIKeyIn','anthropicKeyIn','insertCode','teamTask','teamProvider','reviewProvider','workerProvider','researchQuery','ghRepo','ghCreateBranch','ghCreatePR','sbPAT','sbRunQuery','videoCanvas','videoExport','projectSel','newProject','projectManage','activityIndicator','activityTitle','activityDetail','activityTime']) {
   check(claudeHtml.includes('id="' + id + '"'), 'AI workspace control missing: ' + id + '.');
 }
 check(claudeProviders.includes('provider.openai') && claudeProviders.includes('provider.anthropic'), 'Provider abstraction must route direct OpenAI and Anthropic requests.');
@@ -93,8 +94,11 @@ check(claudeVideo.includes('Writers’ Room') && claudeVideo.includes('function 
 check(claudeVideo.includes('function drawChar') && claudeVideo.includes('bobble') && claudeVideo.includes('storybook'), 'Video Studio 4.5 renderer must support its advertised 2D styles.');
 check(!claudeVideo.toLowerCase().includes('roblox') && !claudeHtml.includes('value="roblox"'), 'Roblox mode must be removed from the Video Studio 4.5 UI and renderer.');
 check(claudeApp.includes('function importLocalFiles') && claudeApp.includes('1048576') && claudeApp.includes('4194304'), 'Local file import must retain per-file and aggregate bounds.');
+check(claudeApp.includes('ccProjectData') && claudeApp.includes('function switchProject')===false && claudeApp.includes('function loadProject') && claudeHtml.includes('id="projectSel"'), 'AI workspace must persist and switch isolated project files and conversations.');
+check(claudeActivity.includes('Taking a little longer to reason through this') && claudeActivity.includes('Still working through this') && claudeActivity.includes('function agent'), 'Activity indicator must expose truthful elapsed-time states and delegated-agent status.');
+check(claudeWorkspaces.includes('Single-agent concurrency limit') && !claudeWorkspaces.slice(claudeWorkspaces.indexOf('function runTeam()'),claudeWorkspaces.indexOf('function extract(res)')).includes('Promise.all'), 'AI Team must keep a single delegated agent active at a time.');
 check(!/eval\s*\(|new Function\s*\(/.test(claudeApp + claudeProviders + claudeWorkspaces + background), 'AI workspace code must not use eval or Function.');
-for (const [name, source] of [['background.js',background],['claude-app.js',claudeApp],['claude-app-providers.js',claudeProviders],['claude-app-workspaces.js',claudeWorkspaces],['claude-app-video-studio.js',claudeVideo]]) {
+for (const [name, source] of [['background.js',background],['claude-app.js',claudeApp],['claude-app-providers.js',claudeProviders],['claude-app-activity.js',claudeActivity],['claude-app-workspaces.js',claudeWorkspaces],['claude-app-video-studio.js',claudeVideo]]) {
   try { new Function(source); } catch (error) { failures.push(name + ' syntax error: ' + error.message); }
 }
 
