@@ -12,15 +12,16 @@
   var MAX_LOGS = 10;
   var MAX_FILES = 40;
 
-  var files = [], logs = [], activeFile = null, activeLog = null;
+  var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {}, projectModalMode = 'edit';
   var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
-  var saveTimer = null, busy = false;
+  var saveTimer = null, busy = false, lastCodeApply = null;
 
   /* Context limits. The chat used to send only the open file, trimmed to 6000
      characters, and ten messages of history. That is why long answers looked
      cut off: the tail of the conversation fell out of the request. */
   var MAX_TOKENS = 4096;
+  var MAX_PROJECT_DATA_BYTES = 4.3 * 1024 * 1024;
   var FILE_BUDGET = 24000;   /* characters of file text across all open files */
   var HISTORY = 24;          /* messages of conversation sent back */
   var HISTORY_CHARS = 12000; /* per-message cap when replaying history */
@@ -102,6 +103,58 @@
     $('dirty').hidden = !on;
   }
 
+  function renderProjects() {
+    var sel=$('projectSel'); if(!sel)return; sel.textContent='';
+    projects.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===activeProjectId)o.selected=true;sel.appendChild(o);});
+  }
+  function snapshotProject() {
+    projectData[activeProjectId]=projectData[activeProjectId]||{};
+    var previous=projectData[activeProjectId];projectData[activeProjectId]=Object.assign({},previous||{}, {files:files.map(function(f){return {id:f.id,name:f.name,content:f.content,attached:f.attached!==false};}),logs:logs.slice(0,MAX_LOGS).map(function(l){return {id:l.id,title:l.title,when:l.when,messages:l.messages.slice(-40)};})});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){projectData[activeProjectId]=previous;say('chatStatus','Project storage limit reached. Current data was not saved.',true);return;}
+    chrome.storage.local.set({ccProjectData:projectData,ccActiveProject:activeProjectId},function(){if(chrome.runtime.lastError)say('chatStatus','Could not save project data. Storage may be full.',true);});
+  }
+  function loadProject(id) {
+    if(window.CCWorkspaces&&window.CCWorkspaces.flushProjectNotes)window.CCWorkspaces.flushProjectNotes();
+    activeProjectId=id;var data=projectData[id]||{};
+    files=Array.isArray(data.files)?data.files.filter(function(f){return f&&typeof f.id==='string'&&typeof f.name==='string'&&typeof f.content==='string';}).slice(0,MAX_FILES):[];
+    logs=Array.isArray(data.logs)?data.logs.slice(0,MAX_LOGS):[];
+    activeFile=files[0]||null;activeLog=logs[0]||null;
+    renderProjects();renderFiles();loadEditor();renderLogs();renderChat();
+    $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
+    chrome.storage.local.set({ccActiveProject:id});
+    if(window.CCWorkspaces&&window.CCWorkspaces.refreshProject)window.CCWorkspaces.refreshProject();
+  }
+  function openProjectSettings(createMode) {
+    projectModalMode=createMode?'create':'edit';
+    var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
+    $('projectDialogTitle').textContent=createMode?'Create project':'Project settings';
+    $('projectName').value=createMode?'':p.name||'';
+    $('projectInstructions').value=createMode?'':p.instructions||'';
+    $('projectDelete').hidden=createMode||projects.length<=1;
+    if($('dlgProject')&&!$('dlgProject').open)$('dlgProject').showModal();
+    $('projectName').focus();
+  }
+  function saveProjectSettings() {
+    var name=$('projectName').value.trim().slice(0,40), instructions=$('projectInstructions').value.slice(0,3000);
+    if(!name){say('chatStatus','Project name is required.',true);$('projectName').focus();return;}
+    if(projectModalMode==='create'){
+      if(projects.length>=12){say('chatStatus','Project limit reached (12). Delete a project first.',true);return;}
+      var id='p-'+uid();projects.push({id:id,name:name,instructions:instructions,tasks:[],notes:'',createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
+      chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save project. Storage may be full.',true);return;}$('dlgProject').close();loadProject(id);say('chatStatus','Project created.');});
+    } else {
+      var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
+      p.name=name;p.instructions=instructions;p.updatedAt=Date.now();
+      chrome.storage.local.set({ccProjects:projects},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save project settings.',true);return;}$('dlgProject').close();renderProjects();say('chatStatus','Project settings saved.');});
+    }
+  }
+  function deleteProject() {
+    if(projects.length<=1){say('chatStatus','Keep at least one project.',true);return;}
+    var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
+    if(!confirm('Delete '+p.name+' and its local files and conversations?'))return;
+    projects=projects.filter(function(x){return x.id!==p.id;});delete projectData[p.id];var next=projects[0].id;
+    chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){if(chrome.runtime.lastError){say('chatStatus','Could not delete project.',true);return;}$('dlgProject').close();loadProject(next);say('chatStatus','Project deleted.');});
+  }
+  function projectDataBytes() { return new TextEncoder().encode(JSON.stringify(projectData)).length; }
   function persistFiles(callback) {
     if (files.length > MAX_FILES) {
       if (callback) callback(false);
@@ -110,9 +163,9 @@
     var out = files.map(function (f) {
       return { id: f.id, name: f.name, content: f.content, attached: f.attached !== false };
     });
-    chrome.storage.local.set({ ccFiles: out }, function () {
-      if (callback) callback(!chrome.runtime.lastError);
-    });
+    var previous=projectData[activeProjectId];projectData[activeProjectId]=Object.assign({},previous||{},{files:out});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){projectData[activeProjectId]=previous;say('chatStatus','Project storage limit reached (4.3 MiB across projects). Remove or shorten files before saving.',true);if(callback)callback(false);return;}
+    chrome.storage.local.set({ ccProjectData: projectData }, function () {if(callback)callback(!chrome.runtime.lastError);});
   }
 
   function saveFiles() {
@@ -152,6 +205,7 @@
     files.unshift(f);
     activeFile = f;
     saveFiles();
+    renderProjects();
     renderFiles();
     loadEditor();
     $('editor').focus();
@@ -194,7 +248,9 @@
     var out = logs.slice(0, MAX_LOGS).map(function (l) {
       return { id: l.id, title: l.title, when: l.when, messages: l.messages.slice(-40) };
     });
-    chrome.storage.local.set({ ccLogs: out });
+    var previous=projectData[activeProjectId];projectData[activeProjectId]=Object.assign({},previous||{},{logs:out});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){projectData[activeProjectId]=previous;say('chatStatus','Conversation storage limit reached. Delete older conversations or shorten saved chats.',true);return;}
+    chrome.storage.local.set({ ccProjectData: projectData },function(){if(chrome.runtime.lastError)say('chatStatus','Could not save conversations. Storage may be full.',true);});
   }
 
   function newLog() {
@@ -217,17 +273,30 @@
   }
   function insertLatestCode() {
     if(!activeLog)return;
-    if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
     var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
     if(!latest)return;
     var code=extractCodeBlock(latest.content);if(!code)return;
-    var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd;
-    if(!confirm('Insert '+code.length+' characters of assistant code at the cursor or replace the selected text?'))return;
-    var value=editor.value.slice(0,start)+code+editor.value.slice(end);
-    editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
-    activeFile.content=value;setDirty(true);saveFiles();pushMessage('assistant','Code block inserted into '+activeFile.name+'. Review it before pushing.');
+    var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd,selected=editor.value.slice(start,end);
+    $('codeReviewMeta').textContent=(activeFile?activeFile.name:'untitled.js')+' · '+code.length.toLocaleString()+' proposed characters · '+(selected?'Selection: '+selected.length.toLocaleString()+' characters':'No selection — insert at cursor');
+    $('codeReviewBefore').value=selected||'(No text selected. Insert will place the proposed code at the cursor.)';
+    $('codeReviewInfo').textContent=selected?'Review the proposed replacement before applying.':'Review the proposed code before inserting.';
+    $('codeReviewText').value=code;
+    $('codeReviewReplace').disabled=!selected;
+    $('dlgCodeReview').showModal();
   }
-  function pushMessage(role, content) {
+  function applyReviewedCode(mode) {
+    if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
+    var editor=$('editor'),before=editor.value,code=$('codeReviewText').value,start=editor.selectionStart,end=editor.selectionEnd;
+    if(mode==='replace'&&start===end){$('codeReviewInfo').textContent='Select text in the editor first, then reopen code review.';return;}
+    var value=mode==='replace'?editor.value.slice(0,start)+code+editor.value.slice(end):editor.value.slice(0,start)+code+editor.value.slice(start);
+    editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
+    activeFile.content=value;lastCodeApply={fileId:activeFile.id,before:before,after:value,appliedAt:Date.now()};$('undoCodeApply').disabled=false;$('undoCodeApply').title='Undo the last reviewed code change';setDirty(true);saveFiles();$('dlgCodeReview').close();pushMessage('assistant','Reviewed code '+(mode==='replace'?'replaced the selected text in ':'inserted into ')+activeFile.name+'. Inspect the editor and run your own checks before pushing.');
+  }
+  function undoReviewedCode() {
+    if(!lastCodeApply||!activeFile||activeFile.id!==lastCodeApply.fileId||$('editor').value!==lastCodeApply.after){say('chatStatus','Undo is no longer safe because the file changed. The previous version is not restored.',true);lastCodeApply=null;$('undoCodeApply').disabled=true;return;}
+    $('editor').value=lastCodeApply.before;activeFile.content=lastCodeApply.before;$('editor').selectionStart=$('editor').selectionEnd=Math.min($('editor').value.length,$('editor').selectionStart);setDirty(true);saveFiles();lastCodeApply=null;$('undoCodeApply').disabled=true;pushMessage('assistant','Undid the last reviewed code application. The file is restored to its exact previous editor contents.');
+  }
+    function pushMessage(role, content) {
     if (!activeLog) newLog();
     activeLog.messages.push({ role: role, content: content });
     if (activeLog.title === 'New conversation' && role === 'user') {
@@ -324,14 +393,21 @@
     busy = true;
     $('sendBtn').disabled = true;
     cstat('');
+    if(window.CCActivity)CCActivity.begin('Thinking',text.slice(0,90));
     pushMessage('user', text);
 
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
       'Answer with short, concrete code and plain explanation. No emoji. When the user explicitly asks you to create or modify code, put the complete proposed code in a single fenced code block so the Apply code button can insert it into the editor. ' +
       'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
       'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
+    var projectInstructions=(projects.filter(function(p){return p.id===activeProjectId;})[0]||{}).instructions||'';
+    if(projectInstructions)sys+='\n\nProject-specific instructions (follow these for this workspace):\n'+projectInstructions.slice(0,3000);
+    var planMode=$('planMode')&&$('planMode').checked;
+    if(planMode)sys+='\n\nPLAN MODE: Do not implement, write replacement code, or make changes yet. Produce a numbered, actionable implementation plan with scope, files likely affected, risks, and verification steps. Clearly state that you are waiting for approval. Do not expose private chain-of-thought; provide concise decision summaries only.';
     var msgs = [{ role: 'system', content: sys }];
 
+    var projectInfo=projects.filter(function(p){return p.id===activeProjectId;})[0]||{};
+    var projectMeta=[];if(projectInfo.notes)projectMeta.push('--- Project notes ---\n'+String(projectInfo.notes).slice(0,4000));if(Array.isArray(projectInfo.tasks)&&projectInfo.tasks.length)projectMeta.push('--- Project tasks ---\n'+projectInfo.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\n'));if(projectMeta.length)msgs.push({role:'system',content:projectMeta.join('\n\n')});
     /* Every attached file travels with the message, open file first, under one
        shared character budget so a pile of files cannot blow past the request. */
     var attached = files.filter(function (f) { return f.attached !== false && f.content; });
@@ -367,7 +443,7 @@
       if (!pcKey) {
         cstat('Web is on, but no Parallel key is saved — replying without search.', true);
       } else {
-        cstat('Searching the web…');
+        cstat('Searching the web…'); if(window.CCActivity)CCActivity.phase('Researching','Searching for sources related to your request');
         pre = parallelSearch(text).then(function (r) {
           var n = (r.results || []).length;
           cstat(n ? 'Web: ' + n + ' result' + (n === 1 ? '' : 's') : 'Web: nothing found');
@@ -383,7 +459,7 @@
 
     pre.then(function (ctx) {
       if (ctx) msgs.splice(1, 0, { role: 'system', content: ctx });
-      return chatPost({ model: model, messages: msgs, max_tokens: MAX_TOKENS });
+      if(window.CCActivity)CCActivity.phase('Reasoning through your request',text.slice(0,90)); return chatPost({ model: model, messages: msgs, max_tokens: MAX_TOKENS });
     }).then(function (res) {
       if (res.status === 401 || res.status === 403) throw new Error('That key was rejected. Check it in Settings.');
       if (res.status === 402) throw new Error('That key is out of balance.');
@@ -398,12 +474,13 @@
       if (!out) throw new Error('The model returned nothing.');
       return String(out).trim();
     }).then(function (out) {
-      pushMessage('assistant', out);
+      if(window.CCActivity)CCActivity.phase('Preparing final response'); pushMessage('assistant', out);
     }).catch(function (e) {
       var m = e.message || 'Something went wrong.';
       if (m.indexOf('net:') === 0) m = 'Could not reach the model. Check your internet connection.';
       pushMessage('assistant', m);
     }).then(function () {
+      if(window.CCActivity)CCActivity.end();
       busy = false;
       $('sendBtn').disabled = false;
     });
@@ -574,6 +651,7 @@
   });
 
   $('editor').addEventListener('input', function () {
+    if(lastCodeApply&&$('editor').value!==lastCodeApply.after){lastCodeApply=null;$('undoCodeApply').disabled=true;$('undoCodeApply').title='Undo is unavailable after further edits';}
     if (pending) invalidateReview();
     if (!activeFile) {
       activeFile = { id: uid(), name: 'untitled.js', content: '' };
@@ -591,7 +669,28 @@
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; saveFiles(); }
   });
 
+  function renderContextManager() {
+    if(!window.CCApp||!CCApp.getContextDetails)return;
+    var d=CCApp.getContextDetails(),summary=$('contextSummary'),items=$('contextItems');summary.textContent='';items.textContent='';
+    [[d.name,'Project'],[d.files.filter(function(f){return f.attached;}).length+' / '+d.files.length,'Files included'],[d.files.filter(function(f){return f.attached;}).reduce(function(n,f){return n+f.characters;},0).toLocaleString()+' chars','Attached file size']].forEach(function(x){var box=el('div','project-stat');box.appendChild(el('strong','',x[0]));box.appendChild(el('small','',x[1]));summary.appendChild(box);});
+    function item(title,meta,check,change){var row=el('div','context-item'),main=el('div','context-item-main'),t=el('div','context-item-title',title),m=el('div','context-item-meta',meta);main.appendChild(t);main.appendChild(m);if(check!==null){var input=document.createElement('input');input.type='checkbox';input.checked=check;input.addEventListener('change',change);row.appendChild(input);}row.appendChild(main);items.appendChild(row);}
+    item('Project instructions',d.instructions?d.instructions:'No project instructions set.',true,function(){});
+    if(d.instructions){items.lastChild.querySelector('input').disabled=true;items.lastChild.querySelector('input').title='Project instructions are always included';}
+    item('Project notes',d.notes?d.notes:'No project notes.',true,function(){});
+    items.lastChild.querySelector('input').disabled=true;items.lastChild.querySelector('input').title='Project notes are included automatically';
+    item('Task list',d.tasks.length?d.tasks.map(function(t){return (t.done?'✓ ':'○ ')+t.title;}).join('\\n'):'No tasks.',true,function(){});items.lastChild.querySelector('input').disabled=true;
+    d.files.forEach(function(f){item((f.active?'● ':'')+f.name,(f.active?'Open in editor · ':'')+f.characters.toLocaleString()+' characters · '+(f.attached?'Included':'Excluded'),f.attached,function(){CCApp.setFileAttached(f.id,this.checked);renderContextManager();});});
+    $('contextBudget').textContent='Shared file context cap: '+(d.files.reduce(function(n,f){return n+(f.attached?f.characters:0);},0)).toLocaleString()+' / 48,000 characters (project metadata has separate limits)';
+  }
+  $('contextManager').addEventListener('click',function(){renderContextManager();$('dlgContext').showModal();});
+  $('contextClose').addEventListener('click',function(){$('dlgContext').close();});
+  $('contextDone').addEventListener('click',function(){$('dlgContext').close();});
+  $('codeReviewClose').addEventListener('click',function(){$('dlgCodeReview').close();});
+  $('codeReviewCancel').addEventListener('click',function(){$('dlgCodeReview').close();});
+  $('codeReviewInsert').addEventListener('click',function(){applyReviewedCode('insert');});
+  $('codeReviewReplace').addEventListener('click',function(){applyReviewedCode('replace');});
   $('insertCode').addEventListener('click', insertLatestCode);
+  $('undoCodeApply').addEventListener('click', undoReviewedCode);
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
@@ -696,13 +795,18 @@
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
-    files = Array.isArray(d.ccFiles) ? d.ccFiles.filter(function (f) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccPlanMode', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+    projects = Array.isArray(d.ccProjects)&&d.ccProjects.length ? d.ccProjects.slice(0,12) : [{id:'default',name:'General',createdAt:Date.now()}];
+    projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
+    activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
+    if(!projectData[activeProjectId]) projectData[activeProjectId]={files:Array.isArray(d.ccFiles)?d.ccFiles:[],logs:Array.isArray(d.ccLogs)?d.ccLogs:[]};
+    var migrationWrite={ccProjects:projects,ccProjectData:projectData,ccActiveProject:activeProjectId};if(!Array.isArray(d.ccProjects)&&projectDataBytes()<=MAX_PROJECT_DATA_BYTES){migrationWrite.ccFiles=[];migrationWrite.ccLogs=[];}chrome.storage.local.set(migrationWrite,function(){if(chrome.runtime.lastError)say('chatStatus','Could not complete project migration. Storage may be full.',true);});
+    files = Array.isArray(projectData[activeProjectId].files) ? projectData[activeProjectId].files.filter(function (f) {
       return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
     }).slice(0, MAX_FILES).map(function (f) {
       return { id: f.id, name: f.name.slice(0, 60), content: f.content, attached: f.attached !== false };
     }) : [];
-    logs = Array.isArray(d.ccLogs) ? d.ccLogs : [];
+    logs = Array.isArray(projectData[activeProjectId].logs) ? projectData[activeProjectId].logs : [];
     ccKey = d.ccKey || '';
     provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
@@ -714,12 +818,15 @@
     chatH = parseInt(d.ccChatH, 10) || 250;
     applyChatH();
     if ($('webOn')) $('webOn').checked = webOn;
+    if ($('planMode')) $('planMode').checked = !!d.ccPlanMode;
+    if ($('planMode')) $('planMode').addEventListener('change',function(){chrome.storage.local.set({ccPlanMode:!!this.checked});});
     CCProviders.populate($('ccModel'), provider, model);
     if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
     activeFile = files[0] || null;
     activeLog = logs[0] || null;
 
+    renderProjects();
     renderFiles();
     loadEditor();
     renderLogs();
@@ -727,8 +834,28 @@
     CCWorkspaces.init();
     window.CCApp = {
       getContext: function () {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\n'+String(p.instructions).slice(0,3000)+'\n\n'):'', notes=p.notes?('--- Project notes ---\n'+String(p.notes).slice(0,4000)+'\n\n'):'', taskContext=Array.isArray(p.tasks)&&p.tasks.length?('--- Project task list ---\n'+p.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\n')+'\n\n'):'';
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
-        return a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n').slice(0, FILE_BUDGET);
+        return (instruction+notes+taskContext+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
+      },
+      getContextDetails: function () {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
+        return {name:p.name||'General',instructions:p.instructions||'',notes:p.notes||'',tasks:Array.isArray(p.tasks)?p.tasks.slice():[],files:files.map(function(f){return {id:f.id,name:f.name,attached:f.attached!==false,characters:(f.content||'').length,active:!!(activeFile&&activeFile.id===f.id)};})};
+      },
+      setFileAttached: function (id,on) {
+        var f=files.filter(function(x){return x.id===id;})[0];if(!f)return false;f.attached=!!on;saveFiles();renderFiles();if($('contextStatus'))$('contextStatus').textContent=files.filter(function(x){return x.attached!==false;}).length+' files in context';return true;
+      },
+      getProjectInfo: function () {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
+        return {id:p.id,name:p.name,instructions:p.instructions||'',tasks:Array.isArray(p.tasks)?p.tasks.slice():[],notes:p.notes||'',fileCount:files.length,conversationCount:logs.length};
+      },
+      updateProjectMeta: function (updates,callback) {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return false;
+        if(updates&&Array.isArray(updates.tasks))p.tasks=updates.tasks.slice(0,50);
+        if(updates&&typeof updates.notes==='string')p.notes=updates.notes.slice(0,4000);
+        p.updatedAt=Date.now();
+        chrome.storage.local.set({ccProjects:projects},function(){if(callback)callback(!chrome.runtime.lastError);});
+        return true;
       },
       getSearchKey: function () { return pcKey; },
       importFile: function (name, content) {
@@ -739,6 +866,12 @@
       }
     };
     $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
+    if($('projectSel'))$('projectSel').addEventListener('change',function(){snapshotProject();loadProject(this.value);});
+    if($('newProject'))$('newProject').addEventListener('click',function(){openProjectSettings(true);});
+    if($('projectManage'))$('projectManage').addEventListener('click',function(){openProjectSettings(false);});
+    if($('projectSave'))$('projectSave').addEventListener('click',saveProjectSettings);
+    if($('projectCancel'))$('projectCancel').addEventListener('click',function(){$('dlgProject').close();});
+    if($('projectDelete'))$('projectDelete').addEventListener('click',deleteProject);
 
     if (!ccKey && !logs.length) {
       pushMessage('assistant', 'Welcome. Add your brewkeg key in Settings (the gear on the left) to start chatting. The editor and the GitHub push work without it.');
