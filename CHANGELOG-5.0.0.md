@@ -34,3 +34,9 @@
 - [ ] Check diagnostics and browser console for errors.
 
 Automated validation cannot replace the manual browser/device checks above.
+
+## Completion pass
+
+- **Live AI Team progress:** a compact stage list marks each sequential role pending, active, completed, failed or cancelled; completed output is retained if a run is cancelled.
+- **Guarded rollback:** the last reviewed code insertion/replacement can be undone only while the editor still exactly matches the applied result. Further edits disable rollback to prevent overwriting newer work.
+- **Manual QA remains:** automated repository contracts do not replace ChromeOS 103 device testing.
