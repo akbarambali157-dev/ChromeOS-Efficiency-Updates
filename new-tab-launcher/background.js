@@ -176,9 +176,13 @@ function relaySupabaseManagement(msg, sendResponse) {
   if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
     sendResponse({ status: 400, text: 'Invalid Supabase Management API request.' }); return true;
   }
-  var path=String(msg.body.path||''),method=String(msg.body.method||'GET').toUpperCase(),body=msg.body.payload||null;
-  var project=/^\/v1\/projects\/([a-z]{20})$/.exec(path),query=/^\/v1\/projects\/([a-z]{20})\/database\/query\/read-only$/.exec(path);
-  var allowed=(path==='/v1/projects'&&method==='GET')||(project&&method==='GET')||(query&&method==='POST');
+  var rawPath=String(msg.body.path||''),method=String(msg.body.method||'GET').toUpperCase(),body=msg.body.payload||null;
+  var parts=rawPath.split('?'),path=parts[0],params=new URLSearchParams(parts[1]||'');
+  var project=/^\/v1\/projects\/([a-z]{20})$/.exec(path);
+  var query=/^\/v1\/projects\/([a-z]{20})\/database\/query\/read-only$/.exec(path);
+  var functions=/^\/v1\/projects\/([a-z]{20})\/functions$/.exec(path);
+  var logs=/^\/v1\/projects\/([a-z]{20})\/analytics\/endpoints\/logs$/.exec(path);
+  var allowed=(path==='/v1/projects'&&method==='GET')||(project&&method==='GET')||(query&&method==='POST')||(functions&&method==='GET')||(logs&&method==='GET');
   if(!allowed){sendResponse({status:403,text:'This Supabase operation is not enabled in the workspace.'});return true;}
   var payload=null;
   if(query){
@@ -188,7 +192,15 @@ function relaySupabaseManagement(msg, sendResponse) {
     }
     payload=JSON.stringify({query:sql});
   }
-  fetch('https://api.supabase.com'+path,{method:method,headers:{'Authorization':'Bearer '+msg.key,'Accept':'application/json','Content-Type':'application/json'},body:payload})
+  if(logs){
+    var sql=params.get('sql')||"SELECT timestamp, event_message, metadata FROM logs WHERE source = 'function_logs' ORDER BY timestamp DESC LIMIT 50";
+    var begin=params.get('iso_timestamp_start'),finish=params.get('iso_timestamp_end');
+    var startTime=Date.parse(begin),endTime=Date.parse(finish);
+    if(sql.length>4000||!begin||!finish||!Number.isFinite(startTime)||!Number.isFinite(endTime)||startTime>=endTime||endTime-startTime>86400000){
+      sendResponse({status:400,text:'Logs query requires a valid SQL string and an explicit time range no longer than 24 hours.'});return true;
+    }
+  }
+  fetch('https://api.supabase.com'+rawPath,{method:method,headers:{'Authorization':'Bearer '+msg.key,'Accept':'application/json','Content-Type':'application/json'},body:payload})
     .then(function(r){return r.text().then(function(t){sendResponse({status:r.status,text:t});});})
     .catch(function(e){sendResponse({status:0,text:String((e&&e.message)||e)});});
   return true;
