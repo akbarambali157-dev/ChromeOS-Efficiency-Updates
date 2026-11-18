@@ -64,7 +64,7 @@
   </section>
   <section class="panel" id="chatPanel">
     <div class="grip" id="chatGrip" role="separator" aria-orientation="horizontal" tabindex="0" title="Drag to resize the chat, double-click to expand"></div>
-    <div class="panelhead"><span class="ptitle">Chat</span><span id="chatStatus" class="chatstatus"></span><select id="logSel" class="logsel" title="Conversations"></select><label class="webchk" title="Search the web with Parallel before each reply"><input type="checkbox" id="webOn"> Web</label><button type="button" class="mini" id="newLog">New</button><button type="button" class="mini" id="delLog">Delete</button><button type="button" class="mini" id="chatGrow" title="Expand chat" aria-label="Expand chat">⤢</button></div>
+    <div class="panelhead"><span class="ptitle">Chat</span><span id="chatStatus" class="chatstatus"></span><button type="button" class="mini" id="insertCode" title="Insert the latest assistant code block at the cursor or replace selected code" disabled>Insert code</button><select id="logSel" class="logsel" title="Conversations"></select><label class="webchk" title="Search the web with Parallel before each reply"><input type="checkbox" id="webOn"> Web</label><button type="button" class="mini" id="newLog">New</button><button type="button" class="mini" id="delLog">Delete</button><button type="button" class="mini" id="chatGrow" title="Expand chat" aria-label="Expand chat">⤢</button></div>
     <div id="chatLog" class="chatlog"></div><form id="chatForm" class="chatrow" autocomplete="off"><input id="chatIn" type="text" placeholder="Ask about the code, or say what to change" maxlength="2000"><button type="submit" class="primary" id="sendBtn">Send</button></form>
   </section>
 </div>
