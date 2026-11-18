@@ -273,17 +273,25 @@
   }
   function insertLatestCode() {
     if(!activeLog)return;
-    if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
     var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
     if(!latest)return;
     var code=extractCodeBlock(latest.content);if(!code)return;
-    var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd;
-    if(!confirm('Insert '+code.length+' characters of assistant code at the cursor or replace the selected text?'))return;
-    var value=editor.value.slice(0,start)+code+editor.value.slice(end);
-    editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
-    activeFile.content=value;setDirty(true);saveFiles();pushMessage('assistant','Code block inserted into '+activeFile.name+'. Review it before pushing.');
+    var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd,selected=editor.value.slice(start,end);
+    $('codeReviewMeta').textContent=(activeFile?activeFile.name:'untitled.js')+' · '+code.length.toLocaleString()+' characters · '+(selected?'Selected text: '+selected.length.toLocaleString()+' characters':'No selection — insert at cursor');
+    $('codeReviewInfo').textContent=selected?'Review the proposed replacement before applying.':'Review the proposed code before inserting.';
+    $('codeReviewText').value=code;
+    $('codeReviewReplace').disabled=!selected;
+    $('dlgCodeReview').showModal();
   }
-  function pushMessage(role, content) {
+  function applyReviewedCode(mode) {
+    if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
+    var editor=$('editor'),code=$('codeReviewText').value,start=editor.selectionStart,end=editor.selectionEnd;
+    if(mode==='replace'&&start===end){$('codeReviewInfo').textContent='Select text in the editor first, then reopen code review.';return;}
+    var value=editor.value.slice(0,start)+code+editor.value.slice(mode==='replace'?end:start);
+    editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
+    activeFile.content=value;setDirty(true);saveFiles();$('dlgCodeReview').close();pushMessage('assistant','Reviewed code inserted into '+activeFile.name+'. Inspect the editor and run your own checks before pushing.');
+  }
+    function pushMessage(role, content) {
     if (!activeLog) newLog();
     activeLog.messages.push({ role: role, content: content });
     if (activeLog.title === 'New conversation' && role === 'user') {
@@ -671,6 +679,10 @@
   $('contextManager').addEventListener('click',function(){renderContextManager();$('dlgContext').showModal();});
   $('contextClose').addEventListener('click',function(){$('dlgContext').close();});
   $('contextDone').addEventListener('click',function(){$('dlgContext').close();});
+  $('codeReviewClose').addEventListener('click',function(){$('dlgCodeReview').close();});
+  $('codeReviewCancel').addEventListener('click',function(){$('dlgCodeReview').close();});
+  $('codeReviewInsert').addEventListener('click',function(){applyReviewedCode('insert');});
+  $('codeReviewReplace').addEventListener('click',function(){applyReviewedCode('replace');});
   $('insertCode').addEventListener('click', insertLatestCode);
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -776,7 +788,7 @@
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccPlanMode', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
     projects = Array.isArray(d.ccProjects)&&d.ccProjects.length ? d.ccProjects.slice(0,12) : [{id:'default',name:'General',createdAt:Date.now()}];
     projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
     activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
@@ -799,6 +811,8 @@
     chatH = parseInt(d.ccChatH, 10) || 250;
     applyChatH();
     if ($('webOn')) $('webOn').checked = webOn;
+    if ($('planMode')) $('planMode').checked = !!d.ccPlanMode;
+    if ($('planMode')) $('planMode').addEventListener('change',function(){chrome.storage.local.set({ccPlanMode:!!this.checked});});
     CCProviders.populate($('ccModel'), provider, model);
     if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
