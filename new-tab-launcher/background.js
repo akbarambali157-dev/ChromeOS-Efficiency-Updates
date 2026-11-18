@@ -119,7 +119,17 @@ function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label)
 /* Direct provider relays use fixed endpoints; page code cannot choose arbitrary
    URLs. Keys are relayed only for the request and never persisted by the worker. */
 function relayOpenAI(msg, sendResponse) {
-  return relayRequest(msg, sendResponse, 'https://api.openai.com/v1/chat/completions', 'Authorization', 200000, 'OpenAI');
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true;
+  }
+  var payload;
+  try { payload = JSON.stringify({ model: String(msg.body.model || '').slice(0,120), input: Array.isArray(msg.body.messages) ? msg.body.messages : [], max_output_tokens: Math.min(8192, Math.max(1, Number(msg.body.max_tokens)||2048)) }); }
+  catch (e) { sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true; }
+  if(payload.length>200000){sendResponse({status:413,text:'OpenAI request is too large.'});return true;}
+  fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+msg.key},body:payload})
+    .then(function(r){return r.text().then(function(t){if(r.ok){try{var d=JSON.parse(t),text=d.output_text||((d.output||[]).reduce(function(a,item){return a.concat((item.content||[]).filter(function(x){return x.type==='output_text';}).map(function(x){return x.text;});},[]).join('\\n'));sendResponse({status:r.status,text:JSON.stringify({choices:[{message:{role:'assistant',content:text}}]})});}catch(e){sendResponse({status:r.status,text:t});}}else sendResponse({status:r.status,text:t});});})
+    .catch(function(e){sendResponse({status:0,text:String((e&&e.message)||e)});});
+  return true;
 }
 function relayAnthropic(msg, sendResponse) {
   if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
