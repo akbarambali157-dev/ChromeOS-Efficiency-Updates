@@ -125,46 +125,7 @@
       }).then(function(){status('teamStatus','Sequential AI Team review completed. No files were changed.');});
     }).catch(function(e){if(e&&e.diagnostic)$('teamOutput').appendChild(card('Model response diagnostics',e.diagnostic));progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
-  function responseContent(d) {
-    function collect(v) {
-      if(typeof v==='string')return v;
-      if(Array.isArray(v))return v.map(function(x){return typeof x==='string'?x:(x&&(x.text||x.content||x.value))||'';}).join('');
-      if(v&&typeof v==='object')return String(v.text||v.content||v.output_text||'');
-      return '';
-    }
-    var choice=d&&d.choices&&d.choices[0],message=choice&&choice.message;
-    var value=message&&(message.content||message.refusal);
-    if(!value&&d)value=d.output_text||d.content;
-    if(!value&&d&&Array.isArray(d.output))value=d.output.map(function(x){return collect(x.content||x.text);}).join('');
-    if(!value&&d&&d.response)value=d.response.output_text||d.response.content;
-    return collect(value).trim();
-  }
-  function providerError(res,label) {
-    var code=Number(res&&res.status)||0,raw=String(res&&res.text||'').slice(0,900),detail=raw;
-    try{var j=JSON.parse(raw);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||raw;}catch(e){}
-    if(code===401)return label+': API key rejected (401). Check the selected provider key.';
-    if(code===402)return label+': provider balance or quota is exhausted (402).';
-    if(code===403)return label+': access denied (403). Check model access and key permissions.';
-    if(code===404)return label+': model or endpoint not found (404). Check the model ID.';
-    if(code===413)return label+': request is too large (413). Reduce attached context.';
-    if(code===429)return label+': rate limit reached (429). Wait before retrying.';
-    if(code>=500)return label+': provider service error ('+code+'). '+detail;
-    if(code===400)return label+': invalid request (400). '+detail;
-    if(code===0)return label+': network or relay failure. '+detail;
-    return label+' failed ('+code+'). '+detail;
-  }
-  function extract(res,label,modelName) {
-    if(!res||Number(res.status)<200||Number(res.status)>=300)throw new Error(providerError(res,label||'Model request'));
-    var d;try{d=JSON.parse(res.text||'{}');}catch(e){var bad=new Error((label||'Model')+' returned invalid JSON.');bad.diagnostic='HTTP '+res.status+' · '+String(res.text||'').slice(0,1200);throw bad;}
-    var t=responseContent(d),choice=d&&d.choices&&d.choices[0],finish=choice&&choice.finish_reason;
-    if(!t){
-      var err=new Error((label||'Model')+' returned HTTP '+res.status+' but no readable text'+(finish?' (finish_reason: '+finish+')':'')+'.');
-      err.diagnostic='Provider: '+(label||'unknown')+'\nModel: '+(modelName||'not recorded')+'\nHTTP: '+res.status+'\nTop-level fields: '+Object.keys(d||{}).join(', ')+'\nChoice fields: '+(choice?Object.keys(choice).join(', '):'none')+'\nFinish reason: '+(finish||'not supplied')+'\nRaw response (first 1,200 chars):\n'+String(res.text||'').slice(0,1200);
-      throw err;
-    }
-    if(finish==='length')t+='\n\n[Response may be incomplete: the provider reported its output-token limit.]';
-    return t;
-  }
+  function extract(res,label,modelName) { return CCResponse.extract(res,label||'Model request',modelName); }
   function search(q) {
     var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g,' ').split(/\s+/).filter(function(x){return x.length>2;});
     var queries=[words.slice(0,5).join(' '),words.slice(1,6).join(' ')].filter(function(x,i,a){return x&&a.indexOf(x)===i;});
