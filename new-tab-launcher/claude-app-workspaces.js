@@ -246,12 +246,12 @@
     var canvas=$('videoCanvas');if(!canvas||!canvas.captureStream||!window.MediaRecorder)return status('videoStatus','This browser does not support Canvas recording.',true);
     if(!scenes.length)return status('videoStatus','Generate a storyboard first.',true);
     try{
-      videoStream=canvas.captureStream(24);var mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
-      recorder=new MediaRecorder(videoStream,{mimeType:mime});chunks=[];recorder.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data);};
+      videoStream=canvas.captureStream(24);var options=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?{mimeType:'video/webm;codecs=vp9'}:MediaRecorder.isTypeSupported('video/webm')?{mimeType:'video/webm'}:{};
+      recorder=new MediaRecorder(videoStream,options);chunks=[];recorder.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data);};
       recorder.onstop=function(){if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(!videoCancelled&&chunks.length){var blob=new Blob(chunks,{type:'video/webm'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(($('videoTitle').value||'storyboard').replace(/[^a-z0-9_-]/gi,'_'))+'.webm';a.click();setTimeout(function(){URL.revokeObjectURL(url);},15000);status('videoStatus','Export complete (silent WebM animatic).');}else status('videoStatus','Export cancelled or produced no data.',true);if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}$('videoCancel').disabled=true;};
       recorder.onerror=function(){status('videoStatus','Recorder failed.',true);};
       recorder.start();videoCancelled=false;var total=scenes.reduce(function(sum,s){return sum+Math.max(2,Math.min(12,Number(s.duration)||5));},0)*1000,start=Date.now();
-      videoTimer=setInterval(function(){var elapsed=Date.now()-start,at=0,index=0;while(index<scenes.length-1&&elapsed>at+scenes[index].duration*1000){at+=scenes[index].duration*1000;index++;}drawScene(index,elapsed/350);if(elapsed>=total){recorder.stop();}},1000/24);
+      videoTimer=setInterval(function(){var elapsed=Date.now()-start,at=0,index=0;while(index<scenes.length-1&&elapsed>at+durations[index]){at+=durations[index];index++;}drawScene(index,elapsed/350);if(elapsed>=total){recorder.stop();}},1000/24);
       $('videoCancel').disabled=false;status('videoStatus','Recording silent animatic…');
     }catch(e){status('videoStatus',e.message||'Export failed.',true);}
   }
