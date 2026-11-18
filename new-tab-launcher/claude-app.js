@@ -372,7 +372,7 @@
       'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
       'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
     var projectInstructions=(projects.filter(function(p){return p.id===activeProjectId;})[0]||{}).instructions||'';
-    if(projectInstructions)sys+='\\n\\nProject-specific instructions (follow these for this workspace):\\n'+projectInstructions.slice(0,3000);
+    if(projectInstructions)sys+='\n\nProject-specific instructions (follow these for this workspace):\n'+projectInstructions.slice(0,3000);
     var msgs = [{ role: 'system', content: sys }];
 
     /* Every attached file travels with the message, open file first, under one
@@ -777,7 +777,7 @@
     CCWorkspaces.init();
     window.CCApp = {
       getContext: function () {
-        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\\n'+String(p.instructions).slice(0,3000)+'\\n\\n'):'';
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\n'+String(p.instructions).slice(0,3000)+'\n\n'):'';
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
         return (instruction+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
       },
