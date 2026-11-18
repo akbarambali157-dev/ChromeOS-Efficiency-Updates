@@ -113,6 +113,7 @@
     chrome.storage.local.set({ccProjectData:projectData,ccActiveProject:activeProjectId});
   }
   function loadProject(id) {
+    if(window.CCWorkspaces&&window.CCWorkspaces.flushProjectNotes)window.CCWorkspaces.flushProjectNotes();
     activeProjectId=id;var data=projectData[id]||{};
     files=Array.isArray(data.files)?data.files.filter(function(f){return f&&typeof f.id==='string'&&typeof f.name==='string'&&typeof f.content==='string';}).slice(0,MAX_FILES):[];
     logs=Array.isArray(data.logs)?data.logs.slice(0,MAX_LOGS):[];
@@ -788,9 +789,9 @@
     CCWorkspaces.init();
     window.CCApp = {
       getContext: function () {
-        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\n'+String(p.instructions).slice(0,3000)+'\n\n'):'';
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\n'+String(p.instructions).slice(0,3000)+'\n\n'):'', notes=p.notes?('--- Project notes ---\n'+String(p.notes).slice(0,4000)+'\n\n'):'', taskContext=Array.isArray(p.tasks)&&p.tasks.length?('--- Project task list ---\n'+p.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\n')+'\n\n'):'';
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
-        return (instruction+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
+        return (instruction+notes+taskContext+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
       },
       getProjectInfo: function () {
         var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
