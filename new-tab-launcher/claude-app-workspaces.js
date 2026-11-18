@@ -116,6 +116,27 @@
     var q=prompt('GitHub code search query (requires token):');if(!q)return;
     chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub in launcher settings first.',true);var repo=$('ghRepo').value.trim();var query=encodeURIComponent(q+(repo?' repo:'+repo:''));ghRequest(token,'/search/code?q='+query).then(function(r){var out=$('ghOutput');out.textContent='';(r.items||[]).slice(0,10).forEach(function(x){out.appendChild(card(x.path,x.repository.full_name,x.html_url));});status('ghStatus',(r.items||[]).length+' matches.');}).catch(function(e){status('ghStatus',e.message,true);});});
   }
+  function listSupabaseFunctions() {
+    var ref=$('sbRef').value.trim();if(!/^[a-z]{20}$/.test(ref))return status('sbMgmtStatus','Enter a valid project reference.',true);
+    chrome.storage.local.get('ccSupabasePAT',function(d){var token=d.ccSupabasePAT||$('sbPAT').value.trim();if(!token)return status('sbMgmtStatus','Add a scoped PAT with Edge Functions read access.',true);status('sbMgmtStatus','Loading Edge Functions…');
+      supabaseManagement(token,'/v1/projects/'+ref+'/functions','GET').then(function(items){var out=$('sbOutput');out.textContent='';(Array.isArray(items)?items:[]).slice(0,50).forEach(function(fn){out.appendChild(card(fn.name||fn.slug,(fn.status||'Unknown status')+' · '+(fn.verify_jwt?'JWT verification on':'JWT verification off')+' · '+fn.slug));});status('sbMgmtStatus',(items||[]).length+' Edge Functions listed. Read-only.');}).catch(function(e){status('sbMgmtStatus',e.message,true);});
+    });
+  }
+  function listSupabaseBuckets() {
+    var url=$('sbUrl').value.trim().replace(/\/$/,''),key=$('sbKey').value.trim();if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||!key)return status('sbStatus','Project URL and publishable/anon key are required.',true);
+    status('sbStatus','Loading Storage buckets…');fetch(url+'/storage/v1/bucket',{headers:{apikey:key,Authorization:'Bearer '+key,Accept:'application/json'}}).then(function(r){return r.text().then(function(t){if(!r.ok)throw new Error('Storage API returned HTTP '+r.status+': '+t.slice(0,160));return JSON.parse(t);});}).then(function(items){var out=$('sbOutput');out.textContent='';(Array.isArray(items)?items:[]).slice(0,50).forEach(function(b){out.appendChild(card(b.name,b.public?'Public bucket':'Private bucket'));});status('sbStatus',(items||[]).length+' buckets returned.');}).catch(function(e){status('sbStatus',e.message,true);});
+  }
+  function localDateTime(ms) { var d=new Date(ms-Date.now()*0+0);return new Date(ms-d.getTimezoneOffset()*60000).toISOString().slice(0,16); }
+  function querySupabaseLogs() {
+    var ref=$('sbRef').value.trim();if(!/^[a-z]{20}$/.test(ref))return status('sbMgmtStatus','Enter a valid project reference.',true);
+    var start=$('sbLogStart').value,end=$('sbLogEnd').value;if(!start||!end)return status('sbMgmtStatus','Choose a log time range.',true);
+    var startIso=new Date(start).toISOString(),endIso=new Date(end).toISOString();
+    var sql="SELECT timestamp, event_message, metadata FROM logs WHERE source = 'function_logs' ORDER BY timestamp DESC LIMIT 50";
+    var path='/v1/projects/'+ref+'/analytics/endpoints/logs?'+new URLSearchParams({sql:sql,iso_timestamp_start:startIso,iso_timestamp_end:endIso}).toString();
+    chrome.storage.local.get('ccSupabasePAT',function(d){var token=d.ccSupabasePAT||$('sbPAT').value.trim();if(!token)return status('sbMgmtStatus','Add a scoped PAT with analytics logs read permission.',true);status('sbMgmtStatus','Querying project logs…');
+      supabaseManagement(token,path,'GET').then(function(result){$('sbOutput').appendChild(card('Project logs · Edge Function output',JSON.stringify(result,null,2)));status('sbMgmtStatus','Log query returned.');}).catch(function(e){status('sbMgmtStatus',e.message,true);});
+    });
+  }
   function saveSupabase() {
     var url=$('sbUrl').value.trim(),key=$('sbKey').value.trim();
     try{var u=new URL(url);if(u.protocol!=='https:'||!u.hostname.endsWith('.supabase.co'))throw new Error();}catch(e){return status('sbStatus','Enter a valid HTTPS Supabase project URL.',true);}
@@ -243,9 +264,9 @@
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',editorWorkspace);
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
-    $('sbBrowse').addEventListener('click',browseSupabase);$('sbSave').addEventListener('click',saveSupabase);$('sbPAT').addEventListener('change',saveSupabaseManagementToken);$('sbListProjects').addEventListener('click',listSupabaseProjects);$('sbProjectDetails').addEventListener('click',getSupabaseProjectDetails);$('sbRunQuery').addEventListener('click',runSupabaseReadOnlyQuery);
+    $('sbBrowse').addEventListener('click',browseSupabase);$('sbSave').addEventListener('click',saveSupabase);$('sbPAT').addEventListener('change',saveSupabaseManagementToken);$('sbListProjects').addEventListener('click',listSupabaseProjects);$('sbProjectDetails').addEventListener('click',getSupabaseProjectDetails);$('sbRunQuery').addEventListener('click',runSupabaseReadOnlyQuery);$('sbFunctions').addEventListener('click',listSupabaseFunctions);$('sbBuckets').addEventListener('click',listSupabaseBuckets);$('sbLogs').addEventListener('click',querySupabaseLogs);
     $('videoGenerate').addEventListener('click',videoPrompt);$('videoPreview').addEventListener('click',drawVideo);$('videoExport').addEventListener('click',exportVideo);$('videoCancel').addEventListener('click',cancelVideoExport);$('videoSave').addEventListener('click',saveVideoProject);$('videoLoad').addEventListener('click',loadVideoProject);$('videoMode').addEventListener('change',drawVideo);
-    chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';refreshProjects();});
+    chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';var end=Date.now(),start=end-3600000;$('sbLogStart').value=localDateTime(start);$('sbLogEnd').value=localDateTime(end);refreshProjects();});
   }
   g.CCWorkspaces=Object.freeze({init:init,setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo});
 })(window);
