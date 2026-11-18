@@ -333,7 +333,7 @@
     if(!out&&d)out=collect(d.output_text||d.content);
     if(!out&&d&&Array.isArray(d.output))out=d.output.map(function(x){return collect(x.content||x.text);}).join('');
     if(!out)throw new Error('Provider returned HTTP '+res.status+' but no readable text. Response fields: '+Object.keys(d||{}).join(', ')+'. Raw response: '+String(res.text||'').slice(0,700));
-    if(choice&&choice.finish_reason==='length')out+='\\n\\n[The provider reached its output-token limit; this answer may be incomplete.]';
+    if(choice&&choice.finish_reason==='length')out+='\n\n[The provider reached its output-token limit; this answer may be incomplete.]';
     return out.trim();
   }
   function requestAssistantWithResearch(messages,searchCount) {
