@@ -69,6 +69,7 @@
     <div id="chatLog" class="chatlog"></div><form id="chatForm" class="chatrow" autocomplete="off"><input id="chatIn" type="text" placeholder="Ask about the code, or say what to change" maxlength="2000"><button type="submit" class="primary" id="sendBtn">Send</button></form>
   </section>
 </div>
+<dialog id="dlgProject"><h2 id="projectDialogTitle">Project settings</h2><label>Project name<input id="projectName" maxlength="40" autocomplete="off"></label><label>Project instructions<textarea id="projectInstructions" rows="6" maxlength="3000" placeholder="Instructions that apply whenever the AI works in this project…"></textarea></label><p class="hintline">Instructions are saved locally and included with project context.</p><div class="row"><button type="button" class="ghost" id="projectDelete" hidden>Delete project</button><button type="button" class="ghost" id="projectCancel">Cancel</button><button type="button" class="primary" id="projectSave">Save</button></div></dialog>
 <dialog id="dlgSet"><form id="setForm" method="dialog">
   <h2>AI Workspace settings</h2><p class="hintline">Credentials are stored in extension-local storage and excluded from backup exports. Never paste service-role secrets into the browser.</p>
   <label>Brewkeg API key<input id="ccKeyIn" type="password" autocomplete="off" placeholder="Brewkeg key"></label>
