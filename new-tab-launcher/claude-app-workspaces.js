@@ -80,7 +80,7 @@
   }
   function ghRequest(token,path) { return GitHubApi.request(token,path,{notFoundAsMissing:true}); }
   function loadGithub() {
-    var repo=$('ghRepo').value.trim(),branch=$('ghBranch').value.trim()||'main';if(!/^[\\w.-]+\\/[\\w.-]+$/.test(repo))return status('ghStatus','Repository should be owner/name.',true);
+    var repo=$('ghRepo').value.trim(),branch=$('ghBranch').value.trim()||'main';if(!/^[\w.-]+\/[\w.-]+$/.test(repo))return status('ghStatus','Repository should be owner/name.',true);
     chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub in launcher GitHub settings first.',true);
       status('ghStatus','Loading repository…');$('ghOutput').textContent='';
       ghRequest(token,'/repos/'+repo).then(function(meta){if(meta.missing)throw new Error('Repository not found or access denied.');$('ghOutput').appendChild(card(meta.full_name,meta.description||'No description.','https://github.com/'+repo));
@@ -190,7 +190,8 @@
   function cancelVideoExport(){videoCancelled=true;if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(recorder&&recorder.state!=='inactive')recorder.stop();else if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}}
   function init() {
     ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo'].forEach(function(id){$(id).addEventListener('click',function(){setWorkspace(id==='paneTeam'?'team':id==='paneResearch'?'research':id==='paneGitHub'?'github':id==='paneSupabase'?'supabase':'video');});});
-    $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});\n    $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
+    $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
+    $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',editorWorkspace);
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);
