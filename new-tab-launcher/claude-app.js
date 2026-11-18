@@ -386,28 +386,21 @@
 
   function parallelSearch(q) {
     return new Promise(function (resolve, reject) {
-      try {
-        chrome.runtime.sendMessage({
-          type: 'search', key: pcKey, body: {
-            objective: 'Find current web sources that answer this question: ' + String(q).slice(0, 1400),
-            search_queries: queriesFor(q),
-            mode: 'fast',
-            advanced_settings: { max_results: 5 }
-          }
-        }, function (res) {
-          if (chrome.runtime.lastError || !res) {
-            reject(new Error('net:' + ((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no response')));
-            return;
-          }
-          if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
-          if (res.status === 401 || res.status === 403) { reject(new Error('Parallel rejected that key (HTTP ' + res.status + '). Check the saved Parallel key and permissions.')); return; }
-          if (res.status >= 300) { var detail=String(res.text||'').slice(0,600);try{var problem=JSON.parse(detail);detail=(problem.error&&(problem.error.message||problem.error))||problem.message||problem.detail||detail;}catch(e){}reject(new Error('Parallel Search HTTP ' + res.status + ': ' + detail)); return; }
-          try { resolve(JSON.parse(res.text) || {}); } catch (e) { reject(new Error('Parallel sent something unreadable.')); }
+      var objective='Find current, reliable web sources that answer: '+String(q).slice(0,900);
+      var queries=queriesFor(q);if(queries.length===1)queries.push((queries[0]+' overview').slice(0,200));
+      function dispatch(body,retried){
+        chrome.runtime.sendMessage({type:'search',key:pcKey,body:body},function(res){
+          if(chrome.runtime.lastError||!res){reject(new Error('Parallel relay unavailable: '+((chrome.runtime.lastError&&chrome.runtime.lastError.message)||'no response')));return;}
+          var code=Number(res.status)||0,raw=String(res.text||'').slice(0,700);
+          if(code===400&&!retried){dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast'},true);return;}
+          if(code===401||code===403){reject(new Error('Parallel rejected the saved key (HTTP '+code+'). Check the key and access.'));return;}
+          if(code<200||code>=300){var detail=raw;try{var j=JSON.parse(raw);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||raw;}catch(e){}reject(new Error('Parallel Search failed (HTTP '+(code||'network')+'): '+detail));return;}
+          try{resolve(JSON.parse(raw||'{}'));}catch(e){reject(new Error('Parallel returned invalid JSON: '+raw.slice(0,300)));}
         });
-      } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
+      }
+      dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}},false);
     });
   }
-
   /* Turn Parallel's results into a compact system block. Excerpts come back as
      plain strings (with objects tolerated in case the shape changes). */
   function searchContext(res) {
