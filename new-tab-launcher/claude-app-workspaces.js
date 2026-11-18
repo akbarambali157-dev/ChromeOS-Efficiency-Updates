@@ -81,7 +81,7 @@
     $('researchOutput').textContent='Searching…';status('researchStatus','Searching web sources…');
     search(q).then(function(r){var out=$('researchOutput');out.textContent='';researchContext=(r.results||[]).slice(0,6).map(function(x){return (x.title||x.url)+'\\n'+(x.url||'')+'\\n'+(x.excerpts||[]).map(function(e){return typeof e==='string'?e:e.text||'';}).join(' ').slice(0,800);}).join('\\n\\n');(r.results||[]).slice(0,6).forEach(function(x){out.appendChild(card(x.title||x.url,(x.excerpts||[]).map(function(e){return typeof e==='string'?e:e.text||'';}).join(' ').slice(0,1000),x.url));});status('researchStatus',(r.results||[]).length+' sources retrieved.');if(!(r.results||[]).length)out.appendChild(card('No results','Try a more specific query.'));}).catch(function(e){status('researchStatus',e.message,true);});
   }
-  function ghRequest(token,path) { return GitHubApi.request(token,path,{notFoundAsMissing:true}); }
+  function ghRequest(token,path,options) { return GitHubApi.request(token,path,Object.assign({notFoundAsMissing:true},options||{})); }
   function loadGithub() {
     var repo=$('ghRepo').value.trim(),branch=$('ghBranch').value.trim()||'main';if(!/^[\w.-]+\/[\w.-]+$/.test(repo))return status('ghStatus','Repository should be owner/name.',true);
     chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub in launcher GitHub settings first.',true);
@@ -92,6 +92,21 @@
     });
   }
   function decodeContent(s) { try { return decodeURIComponent(escape(atob(String(s).replace(/\s/g,'')))); } catch(e) { try{return atob(s);}catch(err){return '[Unable to decode file]';} } }
+  function createGithubBranch() {
+    var repo=$('ghRepo').value.trim(),base=$('ghBase').value.trim()||'main',branch=$('ghNewBranch').value.trim();
+    if(!/^[\\w.-]+\\/[\\w.-]+$/.test(repo)||!branch||branch.length>120||/[ ~^:?*\\[\\\\]/.test(branch)||branch.indexOf('..')>=0||branch.charAt(0)==='/'||branch.endsWith('/'))return status('ghStatus','Enter a valid repo and branch name.',true);
+    chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub first.',true);status('ghStatus','Creating branch…');
+      var refPath='/repos/'+repo+'/git/ref/heads/'+base.split('/').map(encodeURIComponent).join('/');
+      ghRequest(token,refPath).then(function(ref){if(ref.missing||!ref.object||!ref.object.sha)throw new Error('Base branch not found.');return ghRequest(token,'/repos/'+repo+'/git/refs',{method:'POST',body:{ref:'refs/heads/'+branch,sha:ref.object.sha}});}).then(function(){ $('ghBranch').value=branch;$('pushBranch').value=branch;status('ghStatus','Branch created: '+branch);}).catch(function(e){status('ghStatus',e.message,true);});
+    });
+  }
+  function createGithubPR() {
+    var repo=$('ghRepo').value.trim(),head=$('ghNewBranch').value.trim(),base=$('ghBase').value.trim()||'main',title=$('ghPRTitle').value.trim(),body=$('ghPRBody').value.trim();
+    if(!/^[\\w.-]+\\/[\\w.-]+$/.test(repo)||!head||!title)return status('ghStatus','Repository, branch and PR title are required.',true);
+    chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub first.',true);status('ghStatus','Creating pull request…');
+      ghRequest(token,'/repos/'+repo+'/pulls',{method:'POST',body:{title:title,head:head,base:base,body:body}}).then(function(pr){$('ghOutput').appendChild(card('Pull request #'+pr.number,pr.title,pr.html_url));status('ghStatus','Pull request created.');}).catch(function(e){status('ghStatus',e.message,true);});
+    });
+  }
   function searchGithub() {
     var q=prompt('GitHub code search query (requires token):');if(!q)return;
     chrome.storage.local.get('ghToken',function(d){var token=d.ghToken||'';if(!token)return status('ghStatus','Connect GitHub in launcher settings first.',true);var repo=$('ghRepo').value.trim();var query=encodeURIComponent(q+(repo?' repo:'+repo:''));ghRequest(token,'/search/code?q='+query).then(function(r){var out=$('ghOutput');out.textContent='';(r.items||[]).slice(0,10).forEach(function(x){out.appendChild(card(x.path,x.repository.full_name,x.html_url));});status('ghStatus',(r.items||[]).length+' matches.');}).catch(function(e){status('ghStatus',e.message,true);});});
@@ -222,7 +237,7 @@
     $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);});});
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',editorWorkspace);
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
-    $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);
+    $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
     $('sbBrowse').addEventListener('click',browseSupabase);$('sbSave').addEventListener('click',saveSupabase);$('sbPAT').addEventListener('change',saveSupabaseManagementToken);$('sbListProjects').addEventListener('click',listSupabaseProjects);$('sbProjectDetails').addEventListener('click',getSupabaseProjectDetails);$('sbRunQuery').addEventListener('click',runSupabaseReadOnlyQuery);
     $('videoGenerate').addEventListener('click',videoPrompt);$('videoPreview').addEventListener('click',drawVideo);$('videoExport').addEventListener('click',exportVideo);$('videoCancel').addEventListener('click',cancelVideoExport);$('videoSave').addEventListener('click',saveVideoProject);$('videoLoad').addEventListener('click',loadVideoProject);$('videoMode').addEventListener('change',drawVideo);
     chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';refreshProjects();});
