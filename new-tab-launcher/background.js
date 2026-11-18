@@ -123,12 +123,26 @@ function relayOpenAI(msg, sendResponse) {
     sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true;
   }
   var payload;
-  try { payload = JSON.stringify({ model: String(msg.body.model || '').slice(0,120), input: Array.isArray(msg.body.messages) ? msg.body.messages : [], max_output_tokens: Math.min(8192, Math.max(1, Number(msg.body.max_tokens)||2048)) }); }
-  catch (e) { sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true; }
-  if(payload.length>200000){sendResponse({status:413,text:'OpenAI request is too large.'});return true;}
-  fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+msg.key},body:payload})
-    .then(function(r){return r.text().then(function(t){if(r.ok){try{var d=JSON.parse(t),text=d.output_text||((d.output||[]).reduce(function(a,item){return a.concat((item.content||[]).filter(function(x){return x.type==='output_text';}).map(function(x){return x.text;});},[]).join('\\n'));sendResponse({status:r.status,text:JSON.stringify({choices:[{message:{role:'assistant',content:text}}]})});}catch(e){sendResponse({status:r.status,text:t});}}else sendResponse({status:r.status,text:t});});})
-    .catch(function(e){sendResponse({status:0,text:String((e&&e.message)||e)});});
+  try {
+    payload = JSON.stringify({ model: String(msg.body.model || '').slice(0,120), input: Array.isArray(msg.body.messages) ? msg.body.messages : [], max_output_tokens: Math.min(8192, Math.max(1, Number(msg.body.max_tokens)||2048)) });
+  } catch (e) { sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true; }
+  if (payload.length > 200000) { sendResponse({ status: 413, text: 'OpenAI request is too large.' }); return true; }
+  fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + msg.key }, body: payload })
+    .then(function (r) {
+      return r.text().then(function (t) {
+        if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
+        try {
+          var d = JSON.parse(t), output = d.output_text || '';
+          if (!output && Array.isArray(d.output)) {
+            output = d.output.map(function (item) {
+              return (item.content || []).filter(function (part) { return part.type === 'output_text'; }).map(function (part) { return part.text || ''; }).join('\n');
+            }).join('\n');
+          }
+          sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: output } }] }) });
+        } catch (e) { sendResponse({ status: r.status, text: t }); }
+      });
+    })
+    .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
   return true;
 }
 function relayAnthropic(msg, sendResponse) {
@@ -138,15 +152,23 @@ function relayAnthropic(msg, sendResponse) {
   var body = msg.body, payload;
   try {
     var messages = Array.isArray(body.messages) ? body.messages.filter(function (m) { return m && (m.role === 'user' || m.role === 'assistant'); }) : [];
-    payload = JSON.stringify({ model: String(body.model || '').slice(0, 120), max_tokens: Math.min(8192, Math.max(1, Number(body.max_tokens) || 2048)), system: String(body.system || '').slice(0, 20000), messages: messages });
+    payload = JSON.stringify({ model: String(body.model || '').slice(0,120), max_tokens: Math.min(8192, Math.max(1, Number(body.max_tokens)||2048)), system: String(body.system||'').slice(0,20000), messages: messages });
   } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
   fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: payload })
-    .then(function (r) { return r.text().then(function (t) { if (r.ok) { try { var d = JSON.parse(t), text = (d.content || []).filter(function (x) { return x.type === 'text'; }).map(function (x) { return x.text; }).join('\\n'); sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: text } }] }); } catch (e) { sendResponse({ status: r.status, text: t }); } } else sendResponse({ status: r.status, text: t }); }); })
+    .then(function (r) {
+      return r.text().then(function (t) {
+        if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
+        try {
+          var d = JSON.parse(t);
+          var text = (d.content || []).filter(function (x) { return x.type === 'text'; }).map(function (x) { return x.text || ''; }).join('\n');
+          sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: text } }] }) });
+        } catch (e) { sendResponse({ status: r.status, text: t }); }
+      });
+    })
     .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
   return true;
 }
-
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
   if (msg.type === 'darkSync') { applyDark(); return; }
