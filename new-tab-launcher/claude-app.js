@@ -67,6 +67,7 @@
         f.attached = f.attached === false;
         saveFiles();
         renderFiles();
+        if ($('contextStatus')) $('contextStatus').textContent = files.filter(function(x){return x.attached!==false;}).length+' files in context';
       });
       row.appendChild(att);
       row.appendChild(el('span', 'fname', f.name));
@@ -121,6 +122,23 @@
     });
   }
 
+  function importLocalFiles() {
+    var picker=$('filePicker'), selected=Array.prototype.slice.call(picker.files||[]).slice(0,8), total=0;
+    if(!selected.length)return;
+    var room=Math.max(0,MAX_FILES-files.length);selected=selected.slice(0,room);
+    if(!room){say('chatStatus','File limit reached. Delete a file before importing.',true);picker.value='';return;}
+    var allowed=/\.(txt|md|js|json|css|html|xml|ya?ml|py|sql|csv|ts|tsx|jsx)$/i;
+    var tasks=selected.map(function(file){
+      return new Promise(function(resolve){
+        if(file.size>1048576||!allowed.test(file.name)){resolve(null);return;}
+        total+=file.size;if(total>4194304){total-=file.size;resolve(null);return;}
+        var reader=new FileReader();reader.onload=function(){var text=String(reader.result||'');if(text.indexOf('\u0000')>=0){resolve(null);return;}resolve({id:uid(),name:String(file.webkitRelativePath||file.name).slice(0,60),content:text,attached:true});};reader.onerror=function(){resolve(null);};reader.readAsText(file);
+      });
+    });
+    Promise.all(tasks).then(function(items){var imported=items.filter(Boolean);if(!imported.length){say('chatStatus','No supported files imported. Limits: 1 MiB each, 4 MiB total, text formats only.',true);picker.value='';return;}
+      files=imported.concat(files).slice(0,MAX_FILES);activeFile=files[0];persistFiles(function(ok){if(ok){renderFiles();loadEditor();$('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';say('chatStatus','Imported '+imported.length+' file(s). Review attachments before sending.');}else say('chatStatus','Could not save imported files.',true);});picker.value='';
+    });
+  }
   function newFile() {
     if (files.length >= MAX_FILES) {
       window.alert('The editor can keep up to ' + MAX_FILES + ' files. Delete one before creating another.');
@@ -513,6 +531,8 @@
   }
 
   /* ---------- wiring ---------- */
+  $('openFiles').addEventListener('click', function () { $('filePicker').click(); });
+  $('filePicker').addEventListener('change', importLocalFiles);
   $('newFile').addEventListener('click', newFile);
   $('newLog').addEventListener('click', newLog);
   $('delLog').addEventListener('click', function () {
