@@ -7,7 +7,7 @@
 <body class="cc" data-app="claude" data-nowall>
 <div class="shell">
   <nav class="act" aria-label="Sections">
-    <button type="button" class="actbtn on" id="paneFiles" title="Files" aria-label="Files">▤</button>
+    <button type="button" class="actbtn" id="paneProject" title="Project dashboard" aria-label="Project dashboard">▣</button><button type="button" class="actbtn on" id="paneFiles" title="Files" aria-label="Files">▤</button>
     <button type="button" class="actbtn" id="paneChat" title="Chat" aria-label="Chat">✎</button>
     <button type="button" class="actbtn" id="paneTeam" title="AI Team" aria-label="AI Team">◎</button>
     <button type="button" class="actbtn" id="paneResearch" title="Research" aria-label="Research">⌕</button>
@@ -28,6 +28,10 @@
     <textarea id="editor" class="editor" spellcheck="false" placeholder="Start typing, or pick a file on the left."></textarea>
     <section id="workspaceExtra" class="workspace-extra" hidden>
       <div class="workspace-head"><div><strong id="workspaceTitle">AI Team</strong><p id="workspaceSubtitle">Shared project context and tools</p></div><button type="button" class="mini" id="workspaceBack">Editor</button></div>
+      <section class="workspace-panel project-workspace" id="projectWorkspace" data-workspace="project" hidden>
+        <div class="project-overview" id="projectOverview"></div>
+        <div class="project-dashboard-grid"><section class="project-box"><h3>Tasks</h3><form id="projectTaskForm" class="project-task-form"><input id="projectTaskInput" maxlength="200" placeholder="Add a project task…" autocomplete="off"><button type="submit" class="primary">Add</button></form><div id="projectTaskList" class="project-task-list"></div></section><section class="project-box"><h3>Project notes</h3><textarea id="projectNotes" class="workspace-input project-notes" maxlength="4000" placeholder="Project decisions, progress notes and useful reminders…"></textarea><div class="status" id="projectNotesStatus"></div></section></div>
+      </section>
       <section class="workspace-panel" id="teamWorkspace" data-workspace="team" hidden>
         <div class="two-col">
           <div><label for="teamTask">Task</label><textarea id="teamTask" class="workspace-input" rows="4" maxlength="4000" placeholder="Describe the problem or task…"></textarea></div>
