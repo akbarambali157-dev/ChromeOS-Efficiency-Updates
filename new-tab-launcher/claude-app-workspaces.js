@@ -166,12 +166,23 @@
     return t;
   }
   function search(q) {
-    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g,' ').split(/\s+/).filter(function(x){return x.length>2;});
+    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\\s.+#/_-]/g,' ').split(/\\s+/).filter(function(x){return x.length>2;});
     var queries=[words.slice(0,5).join(' '),words.slice(1,6).join(' ')].filter(function(x,i,a){return x&&a.indexOf(x)===i;});
-    if(!queries.length)queries=[raw.slice(0,180)];
-    if(queries.length===1)queries.push((queries[0]+' overview').slice(0,180));
-    var body={objective:'Find reliable, current sources that answer: '+raw,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}};
-    return new Promise(function(resolve,reject){chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:body},function(r){if(chrome.runtime.lastError||!r)return reject(new Error('Search relay unavailable: '+((chrome.runtime.lastError&&chrome.runtime.lastError.message)||'no response')));if(Number(r.status)<200||Number(r.status)>=300)return reject(new Error(providerError(r,'Parallel Search')));try{resolve(JSON.parse(r.text||'{}'));}catch(e){reject(new Error('Parallel Search returned invalid JSON: '+String(r.text||'').slice(0,300)));}});});
+    if(!queries.length)queries=[raw.slice(0,180)];if(queries.length===1)queries.push((queries[0]+' overview').slice(0,180));
+    var objective='Find reliable, current sources that answer: '+raw;
+    return new Promise(function(resolve,reject){
+      function dispatch(body,retried){
+        chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:body},function(r){
+          if(chrome.runtime.lastError||!r)return reject(new Error('Parallel relay unavailable: '+((chrome.runtime.lastError&&chrome.runtime.lastError.message)||'no response')));
+          var code=Number(r.status)||0,detail=String(r.text||'').slice(0,700);
+          if(code===400&&!retried){dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast'},true);return;}
+          if(code===401||code===403)return reject(new Error('Parallel rejected the saved key (HTTP '+code+'). Check the key and permissions.'));
+          if(code<200||code>=300){try{var j=JSON.parse(detail);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||detail;}catch(e){}return reject(new Error('Parallel Search failed (HTTP '+(code||'network')+'): '+detail));}
+          try{resolve(JSON.parse(r.text||'{}'));}catch(e){reject(new Error('Parallel returned invalid JSON: '+detail.slice(0,300)));}
+        });
+      }
+      dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}},false);
+    });
   }
   function runResearch() {
     var q=$('researchQuery').value.trim();if(!q)return status('researchStatus','Enter a research question.',true);
