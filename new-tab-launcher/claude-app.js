@@ -122,8 +122,8 @@
     });
   }
 
-  function importLocalFiles() {
-    var picker=$('filePicker'), selected=Array.prototype.slice.call(picker.files||[]).slice(0,8), total=0;
+  function importLocalFiles(pickerId) {
+    var picker=$(pickerId), selected=Array.prototype.slice.call(picker.files||[]).slice(0,8), total=0;
     if(!selected.length)return;
     var room=Math.max(0,MAX_FILES-files.length);selected=selected.slice(0,room);
     if(!room){say('chatStatus','File limit reached. Delete a file before importing.',true);picker.value='';return;}
@@ -131,7 +131,7 @@
     var tasks=selected.map(function(file){
       return new Promise(function(resolve){
         if(file.size>1048576||!allowed.test(file.name)){resolve(null);return;}
-        total+=file.size;if(total>4194304){total-=file.size;resolve(null);return;}
+        if(total+file.size>4194304){resolve(null);return;}total+=file.size;
         var reader=new FileReader();reader.onload=function(){var text=String(reader.result||'');if(text.indexOf('\u0000')>=0){resolve(null);return;}resolve({id:uid(),name:String(file.webkitRelativePath||file.name).slice(0,60),content:text,attached:true});};reader.onerror=function(){resolve(null);};reader.readAsText(file);
       });
     });
@@ -532,7 +532,9 @@
 
   /* ---------- wiring ---------- */
   $('openFiles').addEventListener('click', function () { $('filePicker').click(); });
-  $('filePicker').addEventListener('change', importLocalFiles);
+  $('openFolder').addEventListener('click', function () { $('folderPicker').click(); });
+  $('filePicker').addEventListener('change', function(){importLocalFiles('filePicker');});
+  $('folderPicker').addEventListener('change', function(){importLocalFiles('folderPicker');});
   $('newFile').addEventListener('click', newFile);
   $('newLog').addEventListener('click', newLog);
   $('delLog').addEventListener('click', function () {
