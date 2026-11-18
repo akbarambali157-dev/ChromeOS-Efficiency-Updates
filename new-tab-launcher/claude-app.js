@@ -12,7 +12,7 @@
   var MAX_LOGS = 10;
   var MAX_FILES = 40;
 
-  var files = [], logs = [], activeFile = null, activeLog = null;
+  var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {};
   var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
   var saveTimer = null, busy = false;
@@ -102,6 +102,44 @@
     $('dirty').hidden = !on;
   }
 
+  function renderProjects() {
+    var sel=$('projectSel'); if(!sel)return; sel.textContent='';
+    projects.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===activeProjectId)o.selected=true;sel.appendChild(o);});
+  }
+  function snapshotProject() {
+    projectData[activeProjectId]=projectData[activeProjectId]||{};
+    projectData[activeProjectId].files=files.map(function(f){return {id:f.id,name:f.name,content:f.content,attached:f.attached!==false};});
+    projectData[activeProjectId].logs=logs.slice(0,MAX_LOGS).map(function(l){return {id:l.id,title:l.title,when:l.when,messages:l.messages.slice(-40)};});
+    chrome.storage.local.set({ccProjectData:projectData,ccActiveProject:activeProjectId});
+  }
+  function loadProject(id) {
+    activeProjectId=id;var data=projectData[id]||{};
+    files=Array.isArray(data.files)?data.files.filter(function(f){return f&&typeof f.id==='string'&&typeof f.name==='string'&&typeof f.content==='string';}).slice(0,MAX_FILES):[];
+    logs=Array.isArray(data.logs)?data.logs.slice(0,MAX_LOGS):[];
+    activeFile=files[0]||null;activeLog=logs[0]||null;
+    renderProjects();renderFiles();loadEditor();renderLogs();renderChat();
+    $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
+    chrome.storage.local.set({ccActiveProject:id});
+  }
+  function createProject() {
+    if(projects.length>=12){say('chatStatus','Project limit reached (12). Delete a project first.',true);return;}
+    var name=prompt('Project name','New project');if(!name)return;
+    name=name.trim().slice(0,40);if(!name)return;
+    var id='p-'+uid();projects.push({id:id,name:name,createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
+    chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){loadProject(id);say('chatStatus','Created project: '+name);});
+  }
+  function manageProject() {
+    var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
+    var action=prompt('Project: '+p.name+'\nType rename or delete.','rename');if(!action)return;
+    action=action.trim().toLowerCase();
+    if(action==='rename'){var name=prompt('New project name',p.name);if(!name)return;name=name.trim().slice(0,40);if(!name)return;p.name=name;p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},renderProjects);say('chatStatus','Project renamed.');}
+    else if(action==='delete'){
+      if(projects.length<=1){say('chatStatus','Keep at least one project.',true);return;}
+      if(!confirm('Delete '+p.name+' and its local files and conversations?'))return;
+      projects=projects.filter(function(x){return x.id!==p.id;});delete projectData[p.id];var next=projects[0].id;
+      chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){loadProject(next);say('chatStatus','Project deleted.');});
+    }
+  }
   function persistFiles(callback) {
     if (files.length > MAX_FILES) {
       if (callback) callback(false);
@@ -110,7 +148,7 @@
     var out = files.map(function (f) {
       return { id: f.id, name: f.name, content: f.content, attached: f.attached !== false };
     });
-    chrome.storage.local.set({ ccFiles: out }, function () {
+    projectData[activeProjectId] = projectData[activeProjectId] || {}; projectData[activeProjectId].files = out; chrome.storage.local.set({ ccProjectData: projectData }, function () {
       if (callback) callback(!chrome.runtime.lastError);
     });
   }
@@ -152,6 +190,7 @@
     files.unshift(f);
     activeFile = f;
     saveFiles();
+    renderProjects();
     renderFiles();
     loadEditor();
     $('editor').focus();
@@ -194,7 +233,7 @@
     var out = logs.slice(0, MAX_LOGS).map(function (l) {
       return { id: l.id, title: l.title, when: l.when, messages: l.messages.slice(-40) };
     });
-    chrome.storage.local.set({ ccLogs: out });
+    projectData[activeProjectId] = projectData[activeProjectId] || {}; projectData[activeProjectId].logs = out; chrome.storage.local.set({ ccProjectData: projectData });
   }
 
   function newLog() {
@@ -324,6 +363,7 @@
     busy = true;
     $('sendBtn').disabled = true;
     cstat('');
+    if(window.CCActivity)CCActivity.begin(webOn?'Researching':'Thinking',text.slice(0,90));
     pushMessage('user', text);
 
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
@@ -367,7 +407,7 @@
       if (!pcKey) {
         cstat('Web is on, but no Parallel key is saved — replying without search.', true);
       } else {
-        cstat('Searching the web…');
+        cstat('Searching the web…'); if(window.CCActivity)CCActivity.phase('Researching','Searching for sources related to your request');
         pre = parallelSearch(text).then(function (r) {
           var n = (r.results || []).length;
           cstat(n ? 'Web: ' + n + ' result' + (n === 1 ? '' : 's') : 'Web: nothing found');
@@ -383,7 +423,7 @@
 
     pre.then(function (ctx) {
       if (ctx) msgs.splice(1, 0, { role: 'system', content: ctx });
-      return chatPost({ model: model, messages: msgs, max_tokens: MAX_TOKENS });
+      if(window.CCActivity)CCActivity.phase('Reasoning through your request',text.slice(0,90)); return chatPost({ model: model, messages: msgs, max_tokens: MAX_TOKENS });
     }).then(function (res) {
       if (res.status === 401 || res.status === 403) throw new Error('That key was rejected. Check it in Settings.');
       if (res.status === 402) throw new Error('That key is out of balance.');
@@ -398,12 +438,13 @@
       if (!out) throw new Error('The model returned nothing.');
       return String(out).trim();
     }).then(function (out) {
-      pushMessage('assistant', out);
+      if(window.CCActivity)CCActivity.phase('Preparing final response'); pushMessage('assistant', out);
     }).catch(function (e) {
       var m = e.message || 'Something went wrong.';
       if (m.indexOf('net:') === 0) m = 'Could not reach the model. Check your internet connection.';
       pushMessage('assistant', m);
     }).then(function () {
+      if(window.CCActivity)CCActivity.end();
       busy = false;
       $('sendBtn').disabled = false;
     });
@@ -696,13 +737,18 @@
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
-    files = Array.isArray(d.ccFiles) ? d.ccFiles.filter(function (f) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+    projects = Array.isArray(d.ccProjects)&&d.ccProjects.length ? d.ccProjects.slice(0,12) : [{id:'default',name:'General',createdAt:Date.now()}];
+    projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
+    activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
+    if(!projectData[activeProjectId]) projectData[activeProjectId]={files:Array.isArray(d.ccFiles)?d.ccFiles:[],logs:Array.isArray(d.ccLogs)?d.ccLogs:[]};
+    chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData,ccActiveProject:activeProjectId});
+    files = Array.isArray(projectData[activeProjectId].files) ? projectData[activeProjectId].files.filter(function (f) {
       return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
     }).slice(0, MAX_FILES).map(function (f) {
       return { id: f.id, name: f.name.slice(0, 60), content: f.content, attached: f.attached !== false };
     }) : [];
-    logs = Array.isArray(d.ccLogs) ? d.ccLogs : [];
+    logs = Array.isArray(projectData[activeProjectId].logs) ? projectData[activeProjectId].logs : [];
     ccKey = d.ccKey || '';
     provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
@@ -739,6 +785,9 @@
       }
     };
     $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
+    if($('projectSel'))$('projectSel').addEventListener('change',function(){snapshotProject();loadProject(this.value);});
+    if($('newProject'))$('newProject').addEventListener('click',createProject);
+    if($('projectManage'))$('projectManage').addEventListener('click',manageProject);
 
     if (!ccKey && !logs.length) {
       pushMessage('assistant', 'Welcome. Add your brewkeg key in Settings (the gear on the left) to start chatting. The editor and the GitHub push work without it.');
