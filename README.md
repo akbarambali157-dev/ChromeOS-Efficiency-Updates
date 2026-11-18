@@ -9,9 +9,12 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 3.8.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated release checks added; device QA in progress)
+**Version 4.0.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated release checks added; device QA in progress)
 
 ---
+
+
+**AI Development Workspace (4.0)** — the former Claude mini app now supports model/provider selection, shared editor context, bounded local text-file and folder import, AI Team workflows, independent review and a fast worker, Parallel web research, GitHub repository browsing/search/branch creation/reviewed file pushes/pull requests, Supabase table browsing and scoped Management API project discovery/read-only SQL, plus a lightweight storyboard and silent WebM animatic Video Studio. Direct provider credentials and integration tokens are stored in extension-local storage; remote write operations require explicit user actions. The Video Studio produces animatics and production packages, not Roblox gameplay capture or generated voice audio.
 
 ## Install
 
@@ -23,7 +26,7 @@ optional background auto-suspend alarm exists only when that feature is enabled.
 ## What's in it
 
 **Navigation** — a left sidebar with an icon and label for every page: Home,
-GitHub, Drive, Brewkeg, Sessions, Memory, Files and Claude. It collapses to
+GitHub, Drive, Brewkeg, Sessions, Memory, Files and the AI Development Workspace. It collapses to
 icons alone under 820px wide.
 
 **Workspaces** — save up to eight separate shortcut collections (for example, Study, Personal and Research) and switch between them without losing the others.
