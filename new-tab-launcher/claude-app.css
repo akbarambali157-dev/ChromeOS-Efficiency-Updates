@@ -322,6 +322,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 #codeReviewBefore{background:#121922;color:#9fb1c4}
 @media(max-width:600px){.code-review-grid{grid-template-columns:1fr}.code-review-grid textarea{height:24vh}}
 
+ .file-edit-dialog{width:min(1000px,calc(100vw - 20px));max-height:92vh;padding:0;border:1px solid #2b3a4b;border-radius:14px;background:#101720;color:#dce8f3;box-shadow:0 20px 70px #0009}
+.file-edit-dialog::backdrop{background:#05080cbb}.file-edit-diff{max-height:62vh;overflow:auto;padding:8px 14px;font:11px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre}.file-edit-heading{position:sticky;top:0;background:#182431;color:#dce8f3;padding:8px;font-weight:700;border:1px solid #2b3a4b}.code-diff-line{min-height:1.55em;padding:0 7px;white-space:pre-wrap;overflow-wrap:anywhere}.code-diff-line.add{background:#143326;color:#a8efc8}.code-diff-line.del{background:#3a2024;color:#ffb4b4}.code-diff-line.context{color:#8395a8}
 /* Version 5.0 progress and guarded rollback */
 .team-progress{display:flex;flex-direction:column;gap:6px;margin:8px 0;padding:0;list-style:none}
 .team-progress-item{display:flex;align-items:flex-start;gap:9px;border:1px solid #253241;border-radius:8px;background:#111922;padding:8px 10px;min-width:0}
