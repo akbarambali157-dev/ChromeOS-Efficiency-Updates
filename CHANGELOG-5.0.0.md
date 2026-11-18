@@ -15,7 +15,8 @@
 - [ ] Reload unpacked extension on ChromeOS 103.
 - [ ] Existing files and conversations appear in General.
 - [ ] Create a project; confirm files and chats are isolated.
-- [ ] Switch projects repeatedly; confirm the correct editor file and chat return.
+- [ ] Switch projects repeatedly; confirm the correct editor file, chat, notes and task list return.
+- [ ] Edit project instructions, notes and tasks; confirm they persist and are included in AI context.
 - [ ] Rename a project.
 - [ ] Delete a project and verify another project remains.
 - [ ] Send a short request and observe activity transitions.
