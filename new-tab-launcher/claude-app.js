@@ -15,7 +15,7 @@
   var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {}, projectModalMode = 'edit';
   var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
-  var saveTimer = null, busy = false;
+  var saveTimer = null, busy = false, lastCodeApply = null;
 
   /* Context limits. The chat used to send only the open file, trimmed to 6000
      characters, and ten messages of history. That is why long answers looked
@@ -286,11 +286,15 @@
   }
   function applyReviewedCode(mode) {
     if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
-    var editor=$('editor'),code=$('codeReviewText').value,start=editor.selectionStart,end=editor.selectionEnd;
+    var editor=$('editor'),before=editor.value,code=$('codeReviewText').value,start=editor.selectionStart,end=editor.selectionEnd;
     if(mode==='replace'&&start===end){$('codeReviewInfo').textContent='Select text in the editor first, then reopen code review.';return;}
     var value=mode==='replace'?editor.value.slice(0,start)+code+editor.value.slice(end):editor.value.slice(0,start)+code+editor.value.slice(start);
     editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
-    activeFile.content=value;setDirty(true);saveFiles();$('dlgCodeReview').close();pushMessage('assistant','Reviewed code inserted into '+activeFile.name+'. Inspect the editor and run your own checks before pushing.');
+    activeFile.content=value;lastCodeApply={fileId:activeFile.id,before:before,after:value,appliedAt:Date.now()};$('undoCodeApply').disabled=false;$('undoCodeApply').title='Undo the last reviewed code change';setDirty(true);saveFiles();$('dlgCodeReview').close();pushMessage('assistant','Reviewed code '+(mode==='replace'?'replaced the selected text in ':'inserted into ')+activeFile.name+'. Inspect the editor and run your own checks before pushing.');
+  }
+  function undoReviewedCode() {
+    if(!lastCodeApply||!activeFile||activeFile.id!==lastCodeApply.fileId||$('editor').value!==lastCodeApply.after){say('chatStatus','Undo is no longer safe because the file changed. The previous version is not restored.',true);lastCodeApply=null;$('undoCodeApply').disabled=true;return;}
+    $('editor').value=lastCodeApply.before;activeFile.content=lastCodeApply.before;$('editor').selectionStart=$('editor').selectionEnd=Math.min($('editor').value.length,$('editor').selectionStart);setDirty(true);saveFiles();lastCodeApply=null;$('undoCodeApply').disabled=true;pushMessage('assistant','Undid the last reviewed code application. The file is restored to its exact previous editor contents.');
   }
     function pushMessage(role, content) {
     if (!activeLog) newLog();
@@ -647,6 +651,7 @@
   });
 
   $('editor').addEventListener('input', function () {
+    if(lastCodeApply&&$('editor').value!==lastCodeApply.after){lastCodeApply=null;$('undoCodeApply').disabled=true;$('undoCodeApply').title='Undo is unavailable after further edits';}
     if (pending) invalidateReview();
     if (!activeFile) {
       activeFile = { id: uid(), name: 'untitled.js', content: '' };
@@ -685,6 +690,7 @@
   $('codeReviewInsert').addEventListener('click',function(){applyReviewedCode('insert');});
   $('codeReviewReplace').addEventListener('click',function(){applyReviewedCode('replace');});
   $('insertCode').addEventListener('click', insertLatestCode);
+  $('undoCodeApply').addEventListener('click', undoReviewedCode);
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
