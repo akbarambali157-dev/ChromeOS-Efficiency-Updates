@@ -5,6 +5,7 @@
 - **Projects:** create, switch, rename and delete up to 12 local AI workspace projects.
 - **Project isolation:** each project maintains its own editor files and conversation history.
 - **Project dashboard:** a bounded task list (50 items), completion tracking, and project notes persist with project metadata.
+- **Storage safety:** project data is capped at 4.3 MiB across projects; failed saves are surfaced, and migration keeps legacy data if the cap prevents copying.
 - **Legacy migration:** existing scratch files and conversations are copied into the default General project on first load.
 - **Activity UI:** replaces generic loading with Thinking, Reasoning, Taking a little longer, and Still working states. Labels are elapsed-time based; the app does not claim to expose hidden model reasoning.
 - **Delegation:** AI Team roles execute sequentially. Only one delegated model request is active at a time, and the activity display names the current role and task.
