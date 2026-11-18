@@ -477,6 +477,7 @@
 
   function review() {
     var repo = $('pushRepo').value.trim();
+    var branch = $('pushBranch').value.trim() || 'main';
     var path = cleanRepoPath($('pushPath').value);
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { say('pushStatus', 'Repository should look like owner/repo.', true); return; }
     var pathParts = path.split('/');
@@ -497,7 +498,7 @@
 
     gh('/repos/' + repo + '/contents/' + apiPath).then(function (d) {
       if (sequence !== reviewSeq || activeFile !== reviewedFile || activeFile.content !== reviewedContent ||
-          $('pushRepo').value.trim() !== repo || cleanRepoPath($('pushPath').value) !== path) {
+          $('pushRepo').value.trim() !== repo || $('pushBranch').value.trim() !== branch || cleanRepoPath($('pushPath').value) !== path) {
         say('pushStatus', 'The file or destination changed during review. Review again before pushing.', true);
         return;
       }
@@ -507,7 +508,7 @@
         oldText = unb64(d.content || '');
       }
       var diff = diffLines(oldText, activeFile.content);
-      pending = { repo: repo, path: path, apiPath: apiPath, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
+      pending = { repo: repo, branch: branch, path: path, apiPath: apiPath, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
       renderDiff(diff);
       if (!diff.removed.length && !diff.added.length) {
         say('pushStatus', 'That file already matches the editor. Nothing to push.');
@@ -526,7 +527,7 @@
   function doPush() {
     if (!pending) return;
     if (!activeFile || activeFile.id !== pending.fileId || activeFile.content !== pending.content ||
-        $('pushRepo').value.trim() !== pending.repo || cleanRepoPath($('pushPath').value) !== pending.path) {
+        $('pushRepo').value.trim() !== pending.repo || $('pushBranch').value.trim() !== pending.branch || cleanRepoPath($('pushPath').value) !== pending.path) {
       invalidateReview();
       say('pushStatus', 'The file or destination changed after review. Review the current version before pushing.', true);
       return;
@@ -534,7 +535,7 @@
     var msg = $('pushMsg').value.trim() || ('Update ' + pending.path);
     $('pushGo').disabled = true;
     say('pushStatus', 'Pushing…');
-    var body = { message: msg, content: b64(pending.content) };
+    var body = { message: msg, content: b64(pending.content), branch: pending.branch };
     if (pending.sha) body.sha = pending.sha;
     gh('/repos/' + pending.repo + '/contents/' + pending.apiPath, 'PUT', body).then(function (d) {
       if (d && d.content && d.content.html_url) {
@@ -690,7 +691,7 @@
   $('pushCancel').addEventListener('click', function () { $('dlgPush').close(); });
   $('pushReview').addEventListener('click', review);
   $('pushGo').addEventListener('click', doPush);
-  ['pushRepo', 'pushPath'].forEach(function (id) {
+  ['pushRepo', 'pushPath', 'pushBranch'].forEach(function (id) {
     $(id).addEventListener('input', function () { if (pending) invalidateReview(); });
   });
 
