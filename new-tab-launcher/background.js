@@ -214,7 +214,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     return relayRequest(msg, sendResponse, 'https://brewkeg.dev/v1/chat/completions',
       'Authorization', 200000, 'Chat');
   }
-  if (msg.type === 'supabase.management') return relaySupabaseManagement(msg, sendResponse);\n  if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
+  if (msg.type === 'supabase.management') return relaySupabaseManagement(msg, sendResponse);
+  if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
   if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse);
   if (msg.type === 'search') {
     return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
