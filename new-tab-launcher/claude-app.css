@@ -317,3 +317,10 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .code-review-grid textarea{margin:0;width:100%;height:min(42vh,380px)}
 #codeReviewBefore{background:#121922;color:#9fb1c4}
 @media(max-width:600px){.code-review-grid{grid-template-columns:1fr}.code-review-grid textarea{height:24vh}}
+
+/* Version 5.0 progress and guarded rollback */
+.team-progress{display:flex;flex-direction:column;gap:6px;margin:8px 0;padding:0;list-style:none}
+.team-progress-item{display:flex;align-items:flex-start;gap:9px;border:1px solid #253241;border-radius:8px;background:#111922;padding:8px 10px;min-width:0}
+.team-progress-item.active{border-color:#397c70;background:#13231f}.team-progress-item.done{border-color:#28483e}.team-progress-item.failed{border-color:#70413d;background:#251715}.team-progress-item.cancelled{opacity:.65}
+.team-progress-mark{width:18px;flex:0 0 18px;text-align:center;font-weight:700;color:#8395a8}.team-progress-item.active .team-progress-mark,.team-progress-item.done .team-progress-mark{color:#7fd1b9}.team-progress-item.failed .team-progress-mark{color:#f08a7e}
+.team-progress-body{display:flex;flex-direction:column;gap:2px;min-width:0}.team-progress-body strong{font-size:12px;color:#d4e2ed}.team-progress-body small{font-size:10px;color:#8395a8;overflow-wrap:anywhere}
