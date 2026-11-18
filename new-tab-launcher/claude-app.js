@@ -603,7 +603,7 @@
 
   $('paneFiles').addEventListener('click', function () { CCWorkspaces.editorWorkspace(); });
   $('paneChat').addEventListener('click', function () { $('chatIn').focus(); });
-  $('paneGit').addEventListener('click', function () { $('dlgPush').showModal(); });
+  /* GitHub workspace navigation is wired by CCWorkspaces.init(). */
   $('paneSet').addEventListener('click', function () {
     $('ccKeyIn').value = ccKey;
     $('pcKeyIn').value = pcKey;
