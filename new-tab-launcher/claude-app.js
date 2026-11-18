@@ -125,7 +125,7 @@
     if(projects.length>=12){say('chatStatus','Project limit reached (12). Delete a project first.',true);return;}
     var name=prompt('Project name','New project');if(!name)return;
     name=name.trim().slice(0,40);if(!name)return;
-    var id='p-'+uid();projects.push({id:id,name:name,createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
+    var id='p-'+uid();projects.push({id:id,name:name,instructions:'',createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
     chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){loadProject(id);say('chatStatus','Created project: '+name);});
   }
   function manageProject() {
@@ -133,6 +133,7 @@
     var action=prompt('Project: '+p.name+'\nType rename or delete.','rename');if(!action)return;
     action=action.trim().toLowerCase();
     if(action==='rename'){var name=prompt('New project name',p.name);if(!name)return;name=name.trim().slice(0,40);if(!name)return;p.name=name;p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},renderProjects);say('chatStatus','Project renamed.');}
+    else if(action==='instructions'){var value=prompt('Project instructions (sent as context to AI; max 3000 characters)',p.instructions||'');if(value===null)return;p.instructions=String(value).slice(0,3000);p.updatedAt=Date.now();chrome.storage.local.set({ccProjects:projects},function(){say('chatStatus','Project instructions saved.');});}
     else if(action==='delete'){
       if(projects.length<=1){say('chatStatus','Keep at least one project.',true);return;}
       if(!confirm('Delete '+p.name+' and its local files and conversations?'))return;
@@ -370,6 +371,8 @@
       'Answer with short, concrete code and plain explanation. No emoji. When the user explicitly asks you to create or modify code, put the complete proposed code in a single fenced code block so the Apply code button can insert it into the editor. ' +
       'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
       'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
+    var projectInstructions=(projects.filter(function(p){return p.id===activeProjectId;})[0]||{}).instructions||'';
+    if(projectInstructions)sys+='\\n\\nProject-specific instructions (follow these for this workspace):\\n'+projectInstructions.slice(0,3000);
     var msgs = [{ role: 'system', content: sys }];
 
     /* Every attached file travels with the message, open file first, under one
@@ -774,8 +777,9 @@
     CCWorkspaces.init();
     window.CCApp = {
       getContext: function () {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\\n'+String(p.instructions).slice(0,3000)+'\\n\\n'):'';
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
-        return a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n').slice(0, FILE_BUDGET);
+        return (instruction+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
       },
       getSearchKey: function () { return pcKey; },
       importFile: function (name, content) {
