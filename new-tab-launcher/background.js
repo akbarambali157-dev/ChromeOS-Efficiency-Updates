@@ -84,6 +84,11 @@ chrome.runtime.onStartup.addListener(function () { applyDark(); touchBorn(); con
 
 /* Validate and send a page-originated API request without duplicating
    credential, payload-size, and response-relay handling. */
+function relayFetch(endpoint, options, label) {
+  var controller = new AbortController(), timer = setTimeout(function(){controller.abort();}, 90000);
+  options.signal = controller.signal;
+  return fetch(endpoint, options).finally(function(){clearTimeout(timer);});
+}
 function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label) {
   if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 ||
       !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
@@ -105,12 +110,12 @@ function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label)
   }
   var headers = { 'Content-Type': 'application/json' };
   headers[authHeader] = authHeader === 'Authorization' ? 'Bearer ' + msg.key : msg.key;
-  fetch(endpoint, { method: 'POST', headers: headers, body: payload })
+  relayFetch(endpoint, { method: 'POST', headers: headers, body: payload }, label)
     .then(function (r) {
       return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
     })
     .catch(function (e) {
-      sendResponse({ status: 0, text: String((e && e.message) || e) });
+      sendResponse({ status: 0, code: e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR', text: e && e.name === 'AbortError' ? 'Request timed out after 90 seconds.' : 'Network error: '+String((e && e.message) || e) });
     });
   return true;
 }
@@ -127,7 +132,7 @@ function relayOpenAI(msg, sendResponse) {
     payload = JSON.stringify({ model: String(msg.body.model || '').slice(0,120), input: Array.isArray(msg.body.messages) ? msg.body.messages : [], max_output_tokens: Math.min(8192, Math.max(1, Number(msg.body.max_tokens)||2048)) });
   } catch (e) { sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'OpenAI request is too large.' }); return true; }
-  fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + msg.key }, body: payload })
+  relayFetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + msg.key }, body: payload }, 'OpenAI')
     .then(function (r) {
       return r.text().then(function (t) {
         if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
@@ -142,7 +147,7 @@ function relayOpenAI(msg, sendResponse) {
         } catch (e) { sendResponse({ status: r.status, text: t }); }
       });
     })
-    .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
+    .catch(function (e) { sendResponse({ status: 0, code: e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR', text: e && e.name === 'AbortError' ? 'Request timed out after 90 seconds.' : 'Network error: '+String((e && e.message) || e) }); });
   return true;
 }
 function relayAnthropic(msg, sendResponse) {
@@ -155,7 +160,7 @@ function relayAnthropic(msg, sendResponse) {
     payload = JSON.stringify({ model: String(body.model || '').slice(0,120), max_tokens: Math.min(8192, Math.max(1, Number(body.max_tokens)||2048)), system: String(body.system||'').slice(0,20000), messages: messages });
   } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
-  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: payload })
+  relayFetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: payload }, 'Anthropic')
     .then(function (r) {
       return r.text().then(function (t) {
         if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
@@ -166,7 +171,7 @@ function relayAnthropic(msg, sendResponse) {
         } catch (e) { sendResponse({ status: r.status, text: t }); }
       });
     })
-    .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
+    .catch(function (e) { sendResponse({ status: 0, code: e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR', text: e && e.name === 'AbortError' ? 'Request timed out after 90 seconds.' : 'Network error: '+String((e && e.message) || e) }); });
   return true;
 }
 /* Supabase Management API relay. The browser can call only project listing,
