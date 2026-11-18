@@ -3,7 +3,7 @@
 (function (g) {
   'use strict';
   var $ = function (id) { return document.getElementById(id); }, app = null, current = 'team', cancelRun = false;
-  var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null;
+  var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
@@ -112,7 +112,7 @@
       var prompt='Return ONLY JSON with this shape: {"scenes":[{"title":"","setting":"","action":"","caption":"","narration":"","duration":5}],"sourceNotes":"","productionNotes":""}. Make 4-6 scenes. Keep captions short and narration under 35 words per scene. Idea: '+idea;
       return req(s.provider,s.model,[{role:'system',content:sys},{role:'user',content:prompt}],3500,s.keys);
     }).then(function(r){
-      var text=extract(r),json=text.replace(/^\\s*\\`\\`\\`(?:json)?/,'').replace(/\\`\\`\\`\\s*$/,'').trim(),data=JSON.parse(json);
+      var text=extract(r),json=text.trim();if(json.slice(0,3)==='\`\`\`'){json=json.slice(json.indexOf('\n')+1);json=json.replace(/\`\`\`$/,'').trim();}var data=JSON.parse(json);
       if(!Array.isArray(data.scenes)||!data.scenes.length)throw new Error('Storyboard schema is missing scenes.');
       scenes=data.scenes.slice(0,8).map(function(x){return {title:String(x.title||'Scene').slice(0,120),setting:String(x.setting||'').slice(0,400),action:String(x.action||'').slice(0,400),caption:String(x.caption||'').slice(0,180),narration:String(x.narration||'').slice(0,600),duration:Math.max(2,Math.min(12,Number(x.duration)||5))};});
       videoNotes=String(data.sourceNotes||'');videoProductionNotes=String(data.productionNotes||'');videoProjectId='';
@@ -180,16 +180,17 @@
     try{
       videoStream=canvas.captureStream(24);var mime=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?'video/webm;codecs=vp9':'video/webm';
       recorder=new MediaRecorder(videoStream,{mimeType:mime});chunks=[];recorder.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data);};
-      recorder.onstop=function(){if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(chunks.length){var blob=new Blob(chunks,{type:'video/webm'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(($('videoTitle').value||'storyboard').replace(/[^a-z0-9_-]/gi,'_'))+'.webm';a.click();setTimeout(function(){URL.revokeObjectURL(url);},15000);status('videoStatus','Export complete (silent WebM animatic).');}else status('videoStatus','Export cancelled or produced no data.',true);if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}$('videoCancel').disabled=true;};
+      recorder.onstop=function(){if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(!videoCancelled&&chunks.length){var blob=new Blob(chunks,{type:'video/webm'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(($('videoTitle').value||'storyboard').replace(/[^a-z0-9_-]/gi,'_'))+'.webm';a.click();setTimeout(function(){URL.revokeObjectURL(url);},15000);status('videoStatus','Export complete (silent WebM animatic).');}else status('videoStatus','Export cancelled or produced no data.',true);if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}$('videoCancel').disabled=true;};
       recorder.onerror=function(){status('videoStatus','Recorder failed.',true);};
-      recorder.start();var total=scenes.reduce(function(sum,s){return sum+Math.max(2,Math.min(12,Number(s.duration)||5));},0)*1000,start=Date.now();
+      recorder.start();videoCancelled=false;var total=scenes.reduce(function(sum,s){return sum+Math.max(2,Math.min(12,Number(s.duration)||5));},0)*1000,start=Date.now();
       videoTimer=setInterval(function(){var elapsed=Date.now()-start,at=0,index=0;while(index<scenes.length-1&&elapsed>at+scenes[index].duration*1000){at+=scenes[index].duration*1000;index++;}drawScene(index,elapsed/350);if(elapsed>=total){recorder.stop();}},1000/24);
       $('videoCancel').disabled=false;status('videoStatus','Recording silent animatic…');
     }catch(e){status('videoStatus',e.message||'Export failed.',true);}
   }
-  function cancelVideoExport(){if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(recorder&&recorder.state!=='inactive')recorder.stop();else if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}}
+  function cancelVideoExport(){videoCancelled=true;if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(recorder&&recorder.state!=='inactive')recorder.stop();else if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}}
   function init() {
-    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo'].forEach(function(id){$(id).addEventListener('click',function(){setWorkspace(id==='paneTeam'?'team':id==='paneResearch'?'research':id==='paneGitHub'?'github':id==='paneSupabase'?'supabase':'video');});});\n    $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});\n    $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
+    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo'].forEach(function(id){$(id).addEventListener('click',function(){setWorkspace(id==='paneTeam'?'team':id==='paneResearch'?'research':id==='paneGitHub'?'github':id==='paneSupabase'?'supabase':'video');});});
+    $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});\n    $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',editorWorkspace);
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);
