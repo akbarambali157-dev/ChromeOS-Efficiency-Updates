@@ -40,21 +40,28 @@
     var task=$('teamTask').value.trim(); if(!task)return status('teamStatus','Enter a task first.',true);
     cancelRun=false; $('runTeam').disabled=true; $('cancelTeam').disabled=false; $('teamOutput').textContent=''; status('teamStatus','Starting agents…');
     settings().then(function(s){
-      var leadProvider=$('teamProvider').value||s.provider, reviewProvider=$('reviewProvider').value||s.provider, keys=s.keys, lead=$('teamModel').value||s.model, reviewer=$('reviewModel').value||s.model, ctx=context();
-      var mode=$('teamMode').value;
-      var primary=buildMessages(mode==='audit'?'Independent repository auditor. Identify defects, missing tests and risk.':'Lead developer. Analyze the task and propose an implementation plan.',task,ctx);
-      return req(provider,lead,primary,4096,keys).then(function(res){var first=extract(res);if(cancelRun)throw new Error('Cancelled.');
+      var leadProvider=$('teamProvider').value||s.provider, reviewProvider=$('reviewProvider').value||s.provider;
+      var keys=s.keys, lead=$('teamModel').value||s.model, reviewer=$('reviewModel').value||s.model, ctx=context(), mode=$('teamMode').value;
+      var leadRole=mode==='audit'?'Independent repository auditor. Identify defects, missing tests, compatibility risks and security concerns.':'Lead developer. Analyze the task and propose a concrete plan.';
+      var primary=buildMessages(leadRole,task,ctx);
+      if(mode==='parallel'||mode==='audit') {
+        status('teamStatus','Running independent agents in parallel…');
+        return Promise.all([req(leadProvider,lead,primary,4096,keys),req(reviewProvider,reviewer,buildMessages('Independent analyst. Do not read or rely on another agent. Analyze the original task, project context and risks.',task,ctx),4096,keys)]).then(function(results){return {first:extract(results[0]),review:extract(results[1]),mode:mode,independent:true,leadProvider:leadProvider,lead:lead};});
+      }
+      status('teamStatus','Lead agent is planning…');
+      return req(leadProvider,lead,primary,4096,keys).then(function(res){
+        var first=extract(res); if(cancelRun)throw new Error('Cancellation requested.');
+        status('teamStatus','Reviewer is challenging the proposal…');
         var reviewMsgs=buildMessages('Independent critical reviewer. Do not agree by default. Identify specific correctness, security, compatibility, performance and test gaps. If no material issue exists, say so.',task,ctx,'Lead proposal:\n'+first);
-        if(mode==='parallel'||mode==='audit')return req(provider,reviewer,buildMessages('Independent analyst. Do not read or rely on the other agent. Analyze the original task and project context.',task,ctx),4096,keys).then(function(independent){return {first:first,review:extract(independent),mode:mode,independent:true};});
-        return req(provider,reviewer,reviewMsgs,4096,keys).then(function(review){return {first:first,review:extract(review),mode:mode};});
+        return req(reviewProvider,reviewer,reviewMsgs,4096,keys).then(function(review){return {first:first,review:extract(review),mode:mode,leadProvider:leadProvider,lead:lead};});
       });
     }).then(function(r){
-      if(cancelRun)throw new Error('Cancelled.');
-      var out=$('teamOutput');out.appendChild(card('Agent 1 · Lead proposal',r.first));
+      if(cancelRun)throw new Error('Cancellation requested.');
+      var out=$('teamOutput');out.appendChild(card('Agent 1 · '+(r.independent?'Independent analysis':'Lead proposal'),r.first));
       out.appendChild(card((r.independent?'Agent 2 · Independent analysis':'Agent 2 · Critical review'),r.review));
-      if(r.independent){status('teamStatus','Independent analyses completed.');return;}
-      status('teamStatus','Lead is responding to the review…');
-      return settings().then(function(s){return req(s.provider,$('teamModel').value,buildMessages('Lead developer. Reconcile the review with your original proposal. Address valid concerns, reject unsupported objections with reasons, and give a final actionable recommendation.',task,context(),'Proposal:\n'+r.first+'\n\nReview:\n'+r.review),4096,s.keys);}).then(function(finalRes){if(cancelRun)throw new Error('Cancelled.');out.appendChild(card('Agent 1 · Final synthesis',extract(finalRes)));status('teamStatus','Debate completed. No files were changed.');});
+      if(r.independent){status('teamStatus','Independent analyses completed. No files were changed.');return;}
+      status('teamStatus','Lead agent is reconciling the review…');
+      return settings().then(function(s){return req(r.leadProvider,r.lead,buildMessages('Lead developer. Reconcile the review with your original proposal. Address valid concerns, reject unsupported objections with reasons, and give a final actionable recommendation.',task,context(),'Proposal:\n'+r.first+'\n\nReview:\n'+r.review),4096,s.keys);}).then(function(finalRes){if(cancelRun)throw new Error('Cancellation requested.');out.appendChild(card('Agent 1 · Final synthesis',extract(finalRes)));status('teamStatus','Debate completed. No files were changed.');});
     }).catch(function(e){status('teamStatus',e.message||'Agent task failed.',true);}).then(function(){ $('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
   function extract(res) {
