@@ -324,3 +324,52 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .team-progress-item.active{border-color:#397c70;background:#13231f}.team-progress-item.done{border-color:#28483e}.team-progress-item.failed{border-color:#70413d;background:#251715}.team-progress-item.cancelled{opacity:.65}
 .team-progress-mark{width:18px;flex:0 0 18px;text-align:center;font-weight:700;color:#8395a8}.team-progress-item.active .team-progress-mark,.team-progress-item.done .team-progress-mark{color:#7fd1b9}.team-progress-item.failed .team-progress-mark{color:#f08a7e}
 .team-progress-body{display:flex;flex-direction:column;gap:2px;min-width:0}.team-progress-body strong{font-size:12px;color:#d4e2ed}.team-progress-body small{font-size:10px;color:#8395a8;overflow-wrap:anywhere}
+
+
+/* 5.1 — full-page tool workspaces, reliable touch scrolling and compact navigation */
+.actbtn svg{width:19px;height:19px;display:block;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.actbtn.home svg{width:20px;height:20px}
+body.workspace-open .shell{grid-template-columns:48px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:100vh}
+body.workspace-open .side{display:none}
+body.workspace-open .main{grid-column:2;grid-row:1;min-width:0;min-height:0;overflow:hidden}
+body.workspace-open .main>.limits,
+body.workspace-open .main>.tabs,
+body.workspace-open .main>#editor{display:none!important}
+body.workspace-open #workspaceExtra{grid-column:2;grid-row:1;display:flex;min-width:0;min-height:0;height:100%;max-height:100vh;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:16px 20px 28px}
+body.workspace-open #chatPanel{display:none}
+body.workspace-open .workspace-head{position:sticky;top:-16px;z-index:5;background:#0d1117;padding:12px 0;border-bottom:1px solid #273341}
+body.workspace-open .workspace-panel{flex:1;min-height:0;overflow:visible}
+body.workspace-open .workspace-output{max-height:none;min-height:0;overflow:visible}
+body.workspace-open .team-progress{max-width:100%}
+body.workspace-open .v45{width:100%;box-sizing:border-box;padding:8px 0 28px}
+body.workspace-open .v45-body{min-height:0}
+.project-dashboard-head{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px;border:1px solid #253241;border-radius:12px;background:#111922}
+.project-dashboard-head>div:first-child{display:flex;flex-direction:column;gap:4px}
+.project-dashboard-head strong{font-size:15px;color:#dce8f3}
+.project-dashboard-head small{font-size:11px;color:#8294a8}
+.project-dashboard-open{display:flex;align-items:center;gap:8px;flex:1;max-width:560px;min-width:min(100%,280px)}
+.project-dashboard-open select{flex:1;min-width:0}
+.project-dashboard-open button{flex:0 0 auto}
+body.workspace-open .project-dashboard-grid{min-height:240px}
+body.workspace-open .project-task-list{max-height:min(42vh,420px)}
+body.workspace-open .workspace-actions{gap:8px}
+body.workspace-open .workspace-actions .status{flex:1 1 180px}
+body.workspace-open .workspace-card{overflow-wrap:anywhere}
+#testConnectionStatus{min-width:160px}
+#testConnectionStatus.ok{color:#7fd1b9}
+#testConnectionStatus.err{color:#f08a7e}
+@media(max-width:760px){
+  body.workspace-open .shell{grid-template-columns:42px minmax(0,1fr)}
+  body.workspace-open #workspaceExtra{padding:10px 12px 24px}
+  body.workspace-open .workspace-head{top:-10px;padding:10px 0}
+  body.workspace-open .two-col{grid-template-columns:minmax(0,1fr)}
+  body.workspace-open .v45-grid,
+  body.workspace-open .v45-scenes,
+  body.workspace-open .v45-characters,
+  body.workspace-open .v45-fields{grid-template-columns:minmax(0,1fr)}
+  body.workspace-open .v45-card{padding:11px}
+  body.workspace-open .v45-head h2{font-size:20px}
+  .project-dashboard-open{max-width:none;min-width:100%;flex-wrap:wrap}
+  .project-dashboard-open select{flex:1 1 100%}
+  .project-dashboard-open button{width:100%}
+}
