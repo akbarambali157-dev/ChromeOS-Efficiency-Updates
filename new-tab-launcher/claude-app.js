@@ -291,7 +291,7 @@
           }
           if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
           if (res.status === 401 || res.status === 403) { reject(new Error('Parallel rejected that key.')); return; }
-          if (res.status >= 300) { reject(new Error('Parallel returned ' + res.status + '.')); return; }
+          if (res.status >= 300) { reject(new Error('Parallel returned ' + res.status + ': ' + String(res.text || '').slice(0, 240))); return; }
           try { resolve(JSON.parse(res.text) || {}); } catch (e) { reject(new Error('Parallel sent something unreadable.')); }
         });
       } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
