@@ -37,7 +37,7 @@
       </section>
       <section class="workspace-panel" id="researchWorkspace" data-workspace="research" hidden>
         <label for="researchQuery">Research question</label><textarea id="researchQuery" class="workspace-input" rows="3" maxlength="2000" placeholder="Search documentation, technical guidance, current information…"></textarea>
-        <div class="workspace-actions"><button type="button" class="primary" id="runResearch">Search web</button><span id="researchStatus" class="status"></span></div><div id="researchOutput" class="workspace-output"></div>
+        <div class="workspace-actions"><button type="button" class="primary" id="runResearch">Search web</button><label><input id="researchAttach" type="checkbox"> Attach findings to AI Team context</label><span id="researchStatus" class="status"></span></div><div id="researchOutput" class="workspace-output"></div>
       </section>
       <section class="workspace-panel" id="githubWorkspace" data-workspace="github" hidden>
         <div class="two-col"><div><label for="ghRepo">Repository (owner/name)</label><input id="ghRepo" class="workspace-input" maxlength="120" placeholder="owner/repository"></div><div><label for="ghBranch">Branch</label><input id="ghBranch" class="workspace-input" maxlength="120" value="main"></div></div>
@@ -47,8 +47,12 @@
       <section class="workspace-panel" id="supabaseWorkspace" data-workspace="supabase" hidden>
         <div class="two-col"><div><label for="sbUrl">Project URL</label><input id="sbUrl" class="workspace-input" maxlength="300" placeholder="https://your-project.supabase.co"></div><div><label for="sbKey">Publishable / anon key</label><input id="sbKey" class="workspace-input" type="password" maxlength="4096" autocomplete="off" placeholder="Public client key"></div></div>
         <label for="sbTable">Table name (public schema)</label><input id="sbTable" class="workspace-input" maxlength="100" placeholder="table_name">
-        <div class="workspace-actions"><button type="button" class="primary" id="sbBrowse">Browse rows (read-only)</button><button type="button" class="ghost" id="sbSave">Save connection locally</button><span id="sbStatus" class="status"></span></div>
-        <p class="hintline">Uses a publishable/anon key and respects Row Level Security. No service-role key or arbitrary SQL execution is supported in this browser workspace.</p><div id="sbOutput" class="workspace-output"></div>
+        <div class="workspace-actions"><button type="button" class="primary" id="sbBrowse">Browse rows (read-only)</button><button type="button" class="ghost" id="sbSave">Save connection locally</button><label><input id="sbAttachRows" type="checkbox"> Attach selected rows to AI Team context</label><span id="sbStatus" class="status"></span></div>
+        <div class="two-col"><div><label for="sbPAT">Management API token (scoped PAT)</label><input id="sbPAT" class="workspace-input" type="password" maxlength="4096" autocomplete="off" placeholder="Optional, read-only scopes recommended"></div><div><label for="sbRef">Project reference</label><input id="sbRef" class="workspace-input" maxlength="20" placeholder="20-character project ref"></div></div>
+        <div class="workspace-actions"><button type="button" class="ghost" id="sbListProjects">List projects</button><button type="button" class="ghost" id="sbProjectDetails">Project details</button><span id="sbMgmtStatus" class="status"></span></div>
+        <label for="sbQuery">Read-only SQL query</label><textarea id="sbQuery" class="workspace-input" rows="4" maxlength="8000" placeholder="SELECT … FROM public.your_table LIMIT 25;"></textarea>
+        <div class="workspace-actions"><button type="button" class="primary" id="sbRunQuery">Run read-only query</button><label><input id="sbAttachQuery" type="checkbox"> Attach query results to AI Team context</label></div>
+        <p class="hintline">The table browser uses the publishable/anon key and Row Level Security. Management API access requires a scoped PAT. SQL uses Supabase's read-only endpoint; avoid side-effecting functions because read-only transactions do not prevent every function side effect. No service-role or secret API key is supported.</p><div id="sbOutput" class="workspace-output"></div>
       </section>
       <section class="workspace-panel" id="videoWorkspace" data-workspace="video" hidden>
         <div class="two-col"><div><label for="videoMode">Video mode</label><select id="videoMode" class="workspace-input"><option value="stickman">Historical stickman animation</option><option value="roblox">Roblox story production kit</option></select></div><div><label for="videoTitle">Project title</label><input id="videoTitle" class="workspace-input" maxlength="120" placeholder="Video title"></div></div>
