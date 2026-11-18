@@ -224,3 +224,14 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 
 /* Honor the hidden attribute for workspace flex panels and editor controls. */
 [hidden]{display:none!important}
+
+/* Independent diagnostics panel */
+.diag-dialog{max-width:720px;width:calc(100% - 24px);max-height:90vh;overflow:auto}
+.diag-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.diag-head h2{margin:0}
+.diag-checks{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+.diag-item{padding:8px 10px;border:1px solid #273444;border-radius:7px;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.diag-item.ok{border-color:#276454;color:#9edcc8;background:#10221e}
+.diag-item.bad{border-color:#743d3a;color:#f3aaa2;background:#281716}
+.diag-report-label{display:block;color:#8b9bb0;font-size:12px;margin:8px 0}
+.diag-report{display:block;width:100%;box-sizing:border-box;min-height:200px;padding:10px;background:#0b0f14;color:#c6d2e0;border:1px solid #273444;border-radius:8px;font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;resize:vertical}
