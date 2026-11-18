@@ -141,12 +141,16 @@ body.chatmax .grip{cursor:default;opacity:.4}
 .chatrow{
   display:flex;gap:8px;padding:8px 12px;border-top:1px solid #1c2530;flex-shrink:0;
 }
-.chatrow input{
+.chatrow input,.chatrow textarea{
   flex:1;padding:9px 12px;font-size:13px;color:#e6edf5;
   background:#121a23;border:1px solid #1c2530;border-radius:8px;outline:none;
 }
-.chatrow input:focus{border-color:#7fd1b9}
-.chatrow input::placeholder{color:#5b6b7d}
+.chatrow textarea{display:block;width:100%;min-height:58px;max-height:180px;resize:vertical;line-height:1.45;white-space:pre-wrap;overflow-y:auto;box-sizing:border-box}
+.chat-compose{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.chat-compose-meta{display:flex;justify-content:space-between;gap:8px;color:#6b7c90;font-size:10px;line-height:1.3}
+.chat-compose-meta .near-limit{color:#e6b566}
+.chatrow input:focus,.chatrow textarea:focus{border-color:#7fd1b9}
+.chatrow input::placeholder,.chatrow textarea::placeholder{color:#5b6b7d}
 
 /* ---------- shared small controls ---------- */
 .mini{
