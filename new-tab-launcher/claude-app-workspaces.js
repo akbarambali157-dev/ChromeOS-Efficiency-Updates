@@ -173,89 +173,17 @@
     status('sbStatus','Reading rows (RLS applies)…');$('sbOutput').textContent='';
     fetch(url+'/rest/v1/'+encodeURIComponent(table)+'?select=*&limit=25',{headers:{apikey:key,Authorization:'Bearer '+key,Accept:'application/json'}}).then(function(r){return r.text().then(function(t){if(!r.ok)throw new Error('Supabase returned HTTP '+r.status+': '+t.slice(0,180));return JSON.parse(t);});}) .then(function(rows){supabaseRowsContext=JSON.stringify(rows,null,2).slice(0,8000);$('sbOutput').appendChild(card('Rows · '+table,supabaseRowsContext));status('sbStatus','Read '+rows.length+' rows. Read-only request.');}).catch(function(e){status('sbStatus',e.message,true);});
   }
-  function videoPrompt() {
-    var mode=$('videoMode').value,idea=$('videoPrompt').value.trim();if(!idea)return status('videoStatus','Describe a story first.',true);
-    $('videoScenes').textContent='Generating storyboard…';status('videoStatus','Asking model for scene plan…');
-    settings().then(function(s){var sys=mode==='stickman'?'Create a short educational historical stickman storyboard. Keep factual claims cautious. Provide source notes that name credible sources or clearly say verification is needed.':'Create a Roblox-style town story production kit with characters, locations and actions; do not claim to render Roblox gameplay.';
-      var prompt='Return ONLY JSON with this shape: {"scenes":[{"title":"","setting":"","action":"","caption":"","narration":"","duration":5}],"sourceNotes":"","productionNotes":""}. Make 4-6 scenes. Keep captions short and narration under 35 words per scene. Idea: '+idea;
-      return req(s.provider,s.model,[{role:'system',content:sys},{role:'user',content:prompt}],3500,s.keys);
-    }).then(function(r){
-      var text=extract(r),json=text.trim();if(json.slice(0,3)==='\`\`\`'){json=json.slice(json.indexOf('\n')+1);json=json.replace(/\`\`\`$/,'').trim();}var data=JSON.parse(json);
-      if(!Array.isArray(data.scenes)||!data.scenes.length)throw new Error('Storyboard schema is missing scenes.');
-      scenes=data.scenes.slice(0,8).map(function(x){return {title:String(x.title||'Scene').slice(0,120),setting:String(x.setting||'').slice(0,400),action:String(x.action||'').slice(0,400),caption:String(x.caption||'').slice(0,180),narration:String(x.narration||'').slice(0,600),duration:Math.max(2,Math.min(12,Number(x.duration)||5))};});
-      videoNotes=String(data.sourceNotes||'');videoProductionNotes=String(data.productionNotes||'');videoProjectId='';
-      drawVideo();saveVideoProject();status('videoStatus','Storyboard generated. Review and edit each scene. Export is a silent animatic; narration text is included as a production note.');
-    }).catch(function(e){status('videoStatus',e.message||'Storyboard generation failed.',true);});
-  }
-  function drawCanvas(scene, phase) {
-    var canvas=$('videoCanvas'),ctx=canvas&&canvas.getContext('2d');if(!ctx)return;var mode=$('videoMode').value;
-    scene=scene||{title:'Preview',setting:'Storyboard preview',action:'A character introduces the scene.',caption:'Create a storyboard to begin.',narration:''};
-    phase=Number(phase)||0;ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle=mode==='roblox'?'#9bc9ed':'#dce8f1';ctx.fillRect(0,0,canvas.width,canvas.height);
-    ctx.fillStyle=mode==='roblox'?'#5f9962':'#78936e';ctx.fillRect(0,245,canvas.width,115);
-    ctx.fillStyle='#f4c95d';ctx.beginPath();ctx.arc(540,70,36,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle='#31445b';ctx.font='bold 20px sans-serif';ctx.fillText(String(scene.title||'Scene').slice(0,48),24,34);
-    ctx.fillStyle='#233243';ctx.font='15px sans-serif';ctx.fillText(String(scene.setting||'').slice(0,75),24,58);
-    var x=320+Math.sin(phase)*14,y=235;
-    if(mode==='roblox'){
-      ctx.fillStyle='#e6b47a';ctx.fillRect(x-18,y-70,36,36);ctx.fillStyle='#4777c5';ctx.fillRect(x-24,y-34,48,40);ctx.fillStyle='#384f8c';ctx.fillRect(x-25,y+6,20,40);ctx.fillRect(x+5,y+6,20,40);
-      ctx.fillStyle='#b86e4b';ctx.save();ctx.translate(x-29,y-30);ctx.rotate(Math.sin(phase)*.25);ctx.fillRect(-5,0,12,36);ctx.restore();ctx.save();ctx.translate(x+29,y-30);ctx.rotate(-Math.sin(phase)*.25);ctx.fillRect(-5,0,12,36);ctx.restore();
-    } else {
-      ctx.strokeStyle='#27364a';ctx.lineWidth=5;ctx.beginPath();ctx.arc(x,y-60,16,0,Math.PI*2);ctx.moveTo(x,y-44);ctx.lineTo(x,y+4);
-      ctx.moveTo(x,y-20);ctx.lineTo(x-28,y-4+Math.sin(phase)*12);ctx.moveTo(x,y-20);ctx.lineTo(x+28,y-4-Math.sin(phase)*12);
-      ctx.moveTo(x,y+4);ctx.lineTo(x-20+Math.sin(phase)*8,y+45);ctx.moveTo(x,y+4);ctx.lineTo(x+20-Math.sin(phase)*8,y+45);ctx.stroke();
-    }
-    ctx.fillStyle='rgba(12,18,26,.78)';ctx.fillRect(0,290,640,70);ctx.fillStyle='#fff';ctx.font='16px sans-serif';ctx.fillText(String(scene.caption||scene.action||'').slice(0,95),20,320);ctx.font='12px sans-serif';ctx.fillText('Silent animatic · '+(mode==='roblox'?'block-style production kit':'stickman storyboard'),20,344);
-  }
-  function renderSceneCards() {
-    var list=$('videoScenes');list.textContent='';
-    scenes.forEach(function(s,i){
-      var c=node('article',undefined,'workspace-card');c.appendChild(node('h3',(i+1)+'. '+s.title));
-      [['title','Title',1,120],['setting','Setting',2,400],['action','Action',2,400],['caption','Caption',2,180],['narration','Narration',3,600]].forEach(function(field){
-        var label=node('label',field[1]),edit=node('textarea',s[field[0]],'workspace-input');edit.rows=field[2];edit.maxLength=field[3];label.appendChild(edit);c.appendChild(label);
-        edit.addEventListener('change',function(){s[field[0]]=edit.value;drawCanvas(s,0);saveVideoProject();});
-      });
-      var controls=node('div',undefined,'workspace-actions');
-      function action(label,fn){var b=node('button',label,'mini');b.type='button';b.addEventListener('click',fn);controls.appendChild(b);}
-      action('↑',function(){if(i>0){var t=scenes[i-1];scenes[i-1]=scenes[i];scenes[i]=t;renderSceneCards();drawCanvas(scenes[0],0);saveVideoProject();}});
-      action('↓',function(){if(i<scenes.length-1){var t=scenes[i+1];scenes[i+1]=scenes[i];scenes[i]=t;renderSceneCards();drawCanvas(scenes[0],0);saveVideoProject();}});
-      action('Delete',function(){scenes.splice(i,1);renderSceneCards();drawCanvas(scenes[0],0);saveVideoProject();});
-      c.appendChild(controls);list.appendChild(c);
-    });
-    if(videoNotes)list.appendChild(card('Historical source notes',videoNotes));
-    if(videoProductionNotes)list.appendChild(card('Production notes',videoProductionNotes));
-  }
-  function drawVideo() { drawCanvas(scenes[0],Date.now()/500);renderSceneCards(); }
-  function drawScene(i,phase){if(scenes[i])drawCanvas(scenes[i],phase);}
-  function refreshProjects() {
-    chrome.storage.local.get('ccVideoProjects',function(d){var list=Array.isArray(d.ccVideoProjects)?d.ccVideoProjects:[],sel=$('videoProjectSelect');sel.textContent='';list.forEach(function(p){var o=node('option',p.title||'Untitled');o.value=p.id;sel.appendChild(o);});if(videoProjectId)sel.value=videoProjectId;});
-  }
-  function saveVideoProject() {
-    if(!scenes.length)return;
-    var project={id:videoProjectId||String(Date.now()),title:($('videoTitle').value||'Untitled video').slice(0,120),mode:$('videoMode').value,prompt:$('videoPrompt').value.slice(0,3000),scenes:scenes.slice(0,8),sourceNotes:videoNotes.slice(0,4000),productionNotes:videoProductionNotes.slice(0,4000),updated:Date.now()};
-    videoProjectId=project.id;
-    chrome.storage.local.get('ccVideoProjects',function(d){var list=Array.isArray(d.ccVideoProjects)?d.ccVideoProjects:[];list=list.filter(function(x){return x&&x.id!==project.id;});list.unshift(project);list=list.slice(0,6);chrome.storage.local.set({ccVideoProjects:list},refreshProjects);status('videoStatus','Project saved locally.');});
-  }
-  function loadVideoProject() {
-    var id=$('videoProjectSelect').value;if(!id)return status('videoStatus','Select a saved project.',true);
-    chrome.storage.local.get('ccVideoProjects',function(d){var p=(Array.isArray(d.ccVideoProjects)?d.ccVideoProjects:[]).filter(function(x){return x&&x.id===id;})[0];if(!p)return status('videoStatus','Saved project not found.',true);
-      videoProjectId=p.id;$('videoTitle').value=p.title||'';$('videoMode').value=p.mode==='roblox'?'roblox':'stickman';$('videoPrompt').value=p.prompt||'';scenes=Array.isArray(p.scenes)?p.scenes.slice(0,8):[];videoNotes=p.sourceNotes||'';videoProductionNotes=p.productionNotes||'';drawVideo();status('videoStatus','Project loaded.');
-    });
-  }
-  function exportVideo() {
-    var canvas=$('videoCanvas');if(!canvas||!canvas.captureStream||!window.MediaRecorder)return status('videoStatus','This browser does not support Canvas recording.',true);
-    if(!scenes.length)return status('videoStatus','Generate a storyboard first.',true);
-    try{
-      videoStream=canvas.captureStream(24);var options=MediaRecorder.isTypeSupported('video/webm;codecs=vp9')?{mimeType:'video/webm;codecs=vp9'}:MediaRecorder.isTypeSupported('video/webm')?{mimeType:'video/webm'}:{};
-      recorder=new MediaRecorder(videoStream,options);chunks=[];recorder.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data);};
-      recorder.onstop=function(){if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(!videoCancelled&&chunks.length){var blob=new Blob(chunks,{type:'video/webm'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(($('videoTitle').value||'storyboard').replace(/[^a-z0-9_-]/gi,'_'))+'.webm';a.click();setTimeout(function(){URL.revokeObjectURL(url);},15000);status('videoStatus','Export complete (silent WebM animatic).');}else status('videoStatus','Export cancelled or produced no data.',true);if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}$('videoCancel').disabled=true;};
-      recorder.onerror=function(){status('videoStatus','Recorder failed.',true);};
-      recorder.start();videoCancelled=false;var durations=scenes.map(function(s){return Math.max(2,Math.min(12,Number(s.duration)||5))*1000;}),total=durations.reduce(function(a,b){return a+b;},0),scale=total>45000?45000/total:1;durations=durations.map(function(d){return d*scale;});total=durations.reduce(function(a,b){return a+b;},0);var start=Date.now();
-      videoTimer=setInterval(function(){var elapsed=Date.now()-start,at=0,index=0;while(index<scenes.length-1&&elapsed>at+durations[index]){at+=durations[index];index++;}drawScene(index,elapsed/350);if(elapsed>=total){recorder.stop();}},1000/24);
-      $('videoCancel').disabled=false;status('videoStatus','Recording silent animatic…');
-    }catch(e){status('videoStatus',e.message||'Export failed.',true);}
-  }
-  function cancelVideoExport(){videoCancelled=true;if(videoTimer){clearInterval(videoTimer);videoTimer=null;}if(recorder&&recorder.state!=='inactive')recorder.stop();else if(videoStream){videoStream.getTracks().forEach(function(t){t.stop();});videoStream=null;}}
+  /* Video Studio 4.5 owns the animation UI and renderer. Legacy controls are inert. */
+  function videoPrompt(){status('videoStatus','Video Studio 4.5 is loaded in the new workspace.');}
+  function drawCanvas(){}
+  function renderSceneCards(){}
+  function drawVideo(){}
+  function drawScene(){}
+  function refreshProjects(){}
+  function saveVideoProject(){}
+  function loadVideoProject(){}
+  function exportVideo(){status('videoStatus','Use the Version 4.5 Export tab.');}
+  function cancelVideoExport(){}
   function init() {
     ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo'].forEach(function(id){$(id).addEventListener('click',function(){setWorkspace(id==='paneTeam'?'team':id==='paneResearch'?'research':id==='paneGitHub'?'github':id==='paneSupabase'?'supabase':'video');});});
     $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
