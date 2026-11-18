@@ -74,7 +74,7 @@
     if(!t)throw new Error('Model returned an empty response.');return String(t).trim();
   }
   function search(q) {
-    return new Promise(function(resolve,reject){chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:{objective:q.slice(0,1500),search_queries:[q.slice(0,200)],mode:'basic',max_chars_total:6000,advanced_settings:{max_results:6}}},function(r){if(chrome.runtime.lastError||!r)return reject(new Error('Search relay unavailable.'));if(r.status<200||r.status>=300)return reject(new Error('Search returned HTTP '+r.status+'.'));try{resolve(JSON.parse(r.text));}catch(e){reject(new Error('Search response was not JSON.'));}});});
+    return new Promise(function(resolve,reject){chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:{objective:'Find current web sources relevant to: '+q.slice(0,1400),search_queries:[q.slice(0,200)],mode:'basic',advanced_settings:{max_results:6,excerpt_settings:{max_chars_per_result:1000}}}},function(r){if(chrome.runtime.lastError||!r)return reject(new Error('Search relay unavailable.'));if(r.status<200||r.status>=300)return reject(new Error('Search returned HTTP '+r.status+': '+String(r.text||'').slice(0,240)));try{resolve(JSON.parse(r.text));}catch(e){reject(new Error('Search response was not JSON.'));}});});
   }
   function runResearch() {
     var q=$('researchQuery').value.trim();if(!q)return status('researchStatus','Enter a research question.',true);
