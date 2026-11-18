@@ -21,4 +21,4 @@ const recovered=await retryBox.window.CCResponse.request('brewkeg','test-model',
 assert.equal(recovered,'Recovered complete answer');
 assert.equal(calls,2);
 assert.equal(budgets[1],8192);
-console.log('AI response normalization tests passed (12 assertions).');
+console.log('AI response normalization tests passed (14 assertions).');
