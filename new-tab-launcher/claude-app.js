@@ -216,7 +216,8 @@
     return String(content).slice(lineEnd+1,end).replace(/\n$/,'');
   }
   function insertLatestCode() {
-    if(!activeLog||!activeFile)return;
+    if(!activeLog)return;
+    if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
     var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
     if(!latest)return;
     var code=extractCodeBlock(latest.content);if(!code)return;
@@ -683,7 +684,7 @@
     provider = $('ccProvider').value;
     model = $('ccModel').value;
     chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model }, function () {
-      say('setStatus', ccKey ? 'Saved.' : 'Key cleared.');
+      say('setStatus', 'Settings saved.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
     });
   });
