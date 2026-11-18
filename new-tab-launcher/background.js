@@ -183,7 +183,7 @@ function relaySupabaseManagement(msg, sendResponse) {
   var payload=null;
   if(query){
     var sql=body&&typeof body.query==='string'?body.query.trim():'';
-    if(!sql||sql.length>8000||/[;](?=\s*\S)/.test(sql)||! /^(select|with|values|table|show|explain)\b/i.test(sql)||/\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|do|execute|vacuum|set)\b/i.test(sql)||/\b(pg_terminate_backend|dblink|set_config|lo_import|lo_export|nextval|currval)\s*\(/i.test(sql)){
+    if(!sql||sql.length>8000||/[;](?=\s*\S)/.test(sql)||!/^(select|with|values|table|show|explain)\b/i.test(sql)||/\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|do|execute|vacuum|set)\b/i.test(sql)||/\b(pg_terminate_backend|dblink|set_config|lo_import|lo_export|nextval|currval)\s*\(/i.test(sql)){
       sendResponse({status:400,text:'Query rejected by the conservative read-only filter. Use a single SELECT/CTE/VALUES/TABLE/SHOW/EXPLAIN query without mutating statements or side-effecting functions.'});return true;
     }
     payload=JSON.stringify({query:sql});
@@ -193,7 +193,6 @@ function relaySupabaseManagement(msg, sendResponse) {
     .catch(function(e){sendResponse({status:0,text:String((e&&e.message)||e)});});
   return true;
 }
-
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
   if (msg.type === 'darkSync') { applyDark(); return; }
