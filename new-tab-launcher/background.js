@@ -115,6 +115,28 @@ function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label)
   return true;
 }
 
+
+/* Direct provider relays use fixed endpoints; page code cannot choose arbitrary
+   URLs. Keys are relayed only for the request and never persisted by the worker. */
+function relayOpenAI(msg, sendResponse) {
+  return relayRequest(msg, sendResponse, 'https://api.openai.com/v1/chat/completions', 'Authorization', 200000, 'OpenAI');
+}
+function relayAnthropic(msg, sendResponse) {
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true;
+  }
+  var body = msg.body, payload;
+  try {
+    var messages = Array.isArray(body.messages) ? body.messages.filter(function (m) { return m && (m.role === 'user' || m.role === 'assistant'); }) : [];
+    payload = JSON.stringify({ model: String(body.model || '').slice(0, 120), max_tokens: Math.min(8192, Math.max(1, Number(body.max_tokens) || 2048)), system: String(body.system || '').slice(0, 20000), messages: messages });
+  } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
+  if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
+  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: payload })
+    .then(function (r) { return r.text().then(function (t) { if (r.ok) { try { var d = JSON.parse(t), text = (d.content || []).filter(function (x) { return x.type === 'text'; }).map(function (x) { return x.text; }).join('\\n'); sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: text } }] }); } catch (e) { sendResponse({ status: r.status, text: t }); } } else sendResponse({ status: r.status, text: t }); }); })
+    .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
+  return true;
+}
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
   if (msg.type === 'darkSync') { applyDark(); return; }
@@ -136,6 +158,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     return relayRequest(msg, sendResponse, 'https://brewkeg.dev/v1/chat/completions',
       'Authorization', 200000, 'Chat');
   }
+  if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
+  if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse);
   if (msg.type === 'search') {
     return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
       'x-api-key', 100000, 'Search');
