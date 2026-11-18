@@ -120,6 +120,7 @@
     renderProjects();renderFiles();loadEditor();renderLogs();renderChat();
     $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
     chrome.storage.local.set({ccActiveProject:id});
+    if(window.CCWorkspaces&&window.CCWorkspaces.refreshProject)window.CCWorkspaces.refreshProject();
   }
   function openProjectSettings(createMode) {
     projectModalMode=createMode?'create':'edit';
@@ -136,7 +137,7 @@
     if(!name){say('chatStatus','Project name is required.',true);$('projectName').focus();return;}
     if(projectModalMode==='create'){
       if(projects.length>=12){say('chatStatus','Project limit reached (12). Delete a project first.',true);return;}
-      var id='p-'+uid();projects.push({id:id,name:name,instructions:instructions,createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
+      var id='p-'+uid();projects.push({id:id,name:name,instructions:instructions,tasks:[],notes:'',createdAt:Date.now(),updatedAt:Date.now()});projectData[id]={files:[],logs:[]};
       chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save project. Storage may be full.',true);return;}$('dlgProject').close();loadProject(id);say('chatStatus','Project created.');});
     } else {
       var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return;
@@ -790,6 +791,18 @@
         var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{}, instruction=p.instructions?('--- Project instructions ---\n'+String(p.instructions).slice(0,3000)+'\n\n'):'';
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
         return (instruction+a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n')).slice(0, FILE_BUDGET);
+      },
+      getProjectInfo: function () {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0]||{};
+        return {id:p.id,name:p.name,instructions:p.instructions||'',tasks:Array.isArray(p.tasks)?p.tasks.slice():[],notes:p.notes||'',fileCount:files.length,conversationCount:logs.length};
+      },
+      updateProjectMeta: function (updates,callback) {
+        var p=projects.filter(function(x){return x.id===activeProjectId;})[0];if(!p)return false;
+        if(updates&&Array.isArray(updates.tasks))p.tasks=updates.tasks.slice(0,50);
+        if(updates&&typeof updates.notes==='string')p.notes=updates.notes.slice(0,4000);
+        p.updatedAt=Date.now();
+        chrome.storage.local.set({ccProjects:projects},function(){if(callback)callback(!chrome.runtime.lastError);});
+        return true;
       },
       getSearchKey: function () { return pcKey; },
       importFile: function (name, content) {
