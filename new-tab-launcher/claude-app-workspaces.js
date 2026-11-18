@@ -2,7 +2,7 @@
    read-only Supabase REST browsing and lightweight storyboard rendering. */
 (function (g) {
   'use strict';
-  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'team', cancelRun = false;
+  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false;
   var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '', projectNotesTimer = null;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
@@ -13,6 +13,7 @@
   function modelOpts(select, provider, chosen) { CCProviders.populate(select,provider,chosen); }
   function setWorkspace(name) {
     current=name;
+    document.body.classList.add('workspace-open');
     $('workspaceExtra').hidden=false;
     $('editor').hidden=true;
     $('tabName').parentNode.hidden=true;
@@ -22,10 +23,11 @@
     document.querySelectorAll('[data-workspace]').forEach(function(p){p.hidden=p.getAttribute('data-workspace')!==name;});
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');});
     var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo',project:'paneProject'}[name]; if(button)$(button).classList.add('on');
-    if(name==='team') initTeam(); if(name==='video') drawVideo();
+    if(name==='team') initTeam(); if(name==='video'&&g.CCVideoStudio&&g.CCVideoStudio.open)g.CCVideoStudio.open();
   }
   function refreshProject() {
     if(!app||!app.getProjectInfo)return;
+    renderProjectChooser();
     var p=app.getProjectInfo(),overview=$('projectOverview');if(!overview)return;
     overview.textContent='';
     [[p.name||'Untitled project','Current project'],[String(p.fileCount||0),'Local files'],[String(p.conversationCount||0),'Conversations']].forEach(function(x){var box=node('div',undefined,'project-stat');box.appendChild(node('strong',x[0]));box.appendChild(node('small',x[1]));overview.appendChild(box);});
@@ -42,6 +44,15 @@
     $('projectNotes').value=p.notes||'';
     status('projectNotesStatus',tasks.filter(function(t){return t.done;}).length+' of '+tasks.length+' tasks complete'+(p.instructions?' · project instructions active':''));
   }
+  function renderProjectChooser() {
+    var sel=$('dashboardProjectSelect'),open=$('dashboardOpenProject');
+    if(!sel||!app||!app.getProjects)return;
+    var data=app.getProjects(),items=data.projects||[];
+    sel.textContent='';
+    items.forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name+(p.id===data.activeId?' · Last opened':'');sel.appendChild(o);});
+    if(data.activeId)sel.value=data.activeId;
+    if(open)open.disabled=!items.length;
+  }
   function addProjectTask(e) {
     e.preventDefault();var title=$('projectTaskInput').value.trim();if(!title)return;
     var p=app&&app.getProjectInfo?app.getProjectInfo():{};var tasks=Array.isArray(p.tasks)?p.tasks.slice():[];
@@ -55,6 +66,7 @@
     app.updateProjectMeta({notes:$('projectNotes').value},function(ok){status('projectNotesStatus',ok?'Notes saved locally.':'Could not save notes.',!ok);});
   }
   function editorWorkspace() {
+    document.body.classList.remove('workspace-open');
     $('workspaceExtra').hidden=true; $('editor').hidden=false; $('tabName').parentNode.hidden=false; $('contextStatus').hidden=false;
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');}); $('paneFiles').classList.add('on');
     current='editor';
@@ -85,7 +97,7 @@
         if(cancelRun)return Promise.reject(new Error('Cancellation requested.'));
         progress.forEach(function(s){if(s.state==='active')s.state='pending';});if(progress[stageIndex]){progress[stageIndex].state='active';progress[stageIndex].detail=title+' is running';}renderTeamProgress(progress);
         status('teamStatus',title+' is working.');if(window.CCActivity)CCActivity.agent(title,task.slice(0,90));
-        return req(providerName,modelName,buildMessages(role,task,ctx,extra),tokens,keys).then(function(res){if(cancelRun)throw new Error('Cancellation requested.');var answer=extract(res);if(progress[stageIndex]){progress[stageIndex].state='done';progress[stageIndex].detail='Completed';}renderTeamProgress(progress);out.appendChild(card(title,answer));return answer;}).catch(function(e){if(progress[stageIndex]){progress[stageIndex].state=cancelRun?'cancelled':'failed';progress[stageIndex].detail=cancelRun?'Cancelled':e.message||'Failed';}renderTeamProgress(progress);throw e;});
+        return req(providerName,modelName,buildMessages(role,task,ctx,extra),tokens,keys).then(function(res){if(cancelRun)throw new Error('Cancellation requested.');var answer;try{answer=extract(res,title,modelName);}catch(e){if(e.diagnostic)out.appendChild(card(title+' · response diagnostics',e.diagnostic));throw e;}if(progress[stageIndex]){progress[stageIndex].state='done';progress[stageIndex].detail='Completed · '+answer.length.toLocaleString()+' characters';}renderTeamProgress(progress);out.appendChild(card(title,answer));return answer;}).catch(function(e){if(progress[stageIndex]){progress[stageIndex].state=cancelRun?'cancelled':'failed';progress[stageIndex].detail=cancelRun?'Cancelled':e.message||'Failed';}renderTeamProgress(progress);throw e;});
       }
       if(mode==='parallel'||mode==='audit'){
         /* Single-agent concurrency limit: independent roles run sequentially. */
@@ -102,16 +114,55 @@
         if(cancelRun)throw new Error('Cancellation requested.');
         return runAgent('Agent 1 · Final synthesis','Lead developer. Reconcile the review with your original proposal. Address valid concerns, reject unsupported objections with reasons, and give a final actionable recommendation.',leadProvider,lead,4096,'Proposal:\n'+first+'\n\nReview:\n'+review,2);
       }).then(function(){status('teamStatus','Sequential AI Team review completed. No files were changed.');});
-    }).catch(function(e){progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
+    }).catch(function(e){if(e&&e.diagnostic)$('teamOutput').appendChild(card('Model response diagnostics',e.diagnostic));progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
-  function extract(res) {
-    if(!res||!res.status||res.status<200||res.status>=300)throw new Error(res&&res.text?String(res.text).slice(0,220):'Model request failed.');
-    var d;try{d=JSON.parse(res.text);}catch(e){throw new Error('Unreadable model response.');}
-    var t=d&&d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content;
-    if(!t)throw new Error('Model returned an empty response.');return String(t).trim();
+  function responseContent(d) {
+    function collect(v) {
+      if(typeof v==='string')return v;
+      if(Array.isArray(v))return v.map(function(x){return typeof x==='string'?x:(x&&(x.text||x.content||x.value))||'';}).join('');
+      if(v&&typeof v==='object')return String(v.text||v.content||v.output_text||'');
+      return '';
+    }
+    var choice=d&&d.choices&&d.choices[0],message=choice&&choice.message;
+    var value=message&&(message.content||message.refusal);
+    if(!value&&d)value=d.output_text||d.content;
+    if(!value&&d&&Array.isArray(d.output))value=d.output.map(function(x){return collect(x.content||x.text);}).join('');
+    if(!value&&d&&d.response)value=d.response.output_text||d.response.content;
+    return collect(value).trim();
+  }
+  function providerError(res,label) {
+    var code=Number(res&&res.status)||0,raw=String(res&&res.text||'').slice(0,900),detail=raw;
+    try{var j=JSON.parse(raw);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||raw;}catch(e){}
+    if(code===401)return label+': API key rejected (401). Check the selected provider key.';
+    if(code===402)return label+': provider balance or quota is exhausted (402).';
+    if(code===403)return label+': access denied (403). Check model access and key permissions.';
+    if(code===404)return label+': model or endpoint not found (404). Check the model ID.';
+    if(code===413)return label+': request is too large (413). Reduce attached context.';
+    if(code===429)return label+': rate limit reached (429). Wait before retrying.';
+    if(code>=500)return label+': provider service error ('+code+'). '+detail;
+    if(code===400)return label+': invalid request (400). '+detail;
+    if(code===0)return label+': network or relay failure. '+detail;
+    return label+' failed ('+code+'). '+detail;
+  }
+  function extract(res,label,modelName) {
+    if(!res||Number(res.status)<200||Number(res.status)>=300)throw new Error(providerError(res,label||'Model request'));
+    var d;try{d=JSON.parse(res.text||'{}');}catch(e){var bad=new Error((label||'Model')+' returned invalid JSON.');bad.diagnostic='HTTP '+res.status+' · '+String(res.text||'').slice(0,1200);throw bad;}
+    var t=responseContent(d),choice=d&&d.choices&&d.choices[0],finish=choice&&choice.finish_reason;
+    if(!t){
+      var err=new Error((label||'Model')+' returned HTTP '+res.status+' but no readable text'+(finish?' (finish_reason: '+finish+')':'')+'.');
+      err.diagnostic='Provider: '+(label||'unknown')+'\nModel: '+(modelName||'not recorded')+'\nHTTP: '+res.status+'\nTop-level fields: '+Object.keys(d||{}).join(', ')+'\nChoice fields: '+(choice?Object.keys(choice).join(', '):'none')+'\nFinish reason: '+(finish||'not supplied')+'\nRaw response (first 1,200 chars):\n'+String(res.text||'').slice(0,1200);
+      throw err;
+    }
+    if(finish==='length')t+='\n\n[Response may be incomplete: the provider reported its output-token limit.]';
+    return t;
   }
   function search(q) {
-    return new Promise(function(resolve,reject){chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:{objective:'Find current web sources relevant to: '+q.slice(0,1400),search_queries:[q.slice(0,200)],mode:'basic',advanced_settings:{max_results:6,excerpt_settings:{max_chars_per_result:1000}}}},function(r){if(chrome.runtime.lastError||!r)return reject(new Error('Search relay unavailable.'));if(r.status<200||r.status>=300)return reject(new Error('Search returned HTTP '+r.status+': '+String(r.text||'').slice(0,240)));try{resolve(JSON.parse(r.text));}catch(e){reject(new Error('Search response was not JSON.'));}});});
+    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\\s.+#/_-]/g,' ').split(/\\s+/).filter(function(x){return x.length>2;});
+    var queries=[words.slice(0,5).join(' '),words.slice(1,6).join(' ')].filter(function(x,i,a){return x&&a.indexOf(x)===i;});
+    if(!queries.length)queries=[raw.slice(0,180)];
+    if(queries.length===1)queries.push((queries[0]+' overview').slice(0,180));
+    var body={objective:'Find reliable, current sources that answer: '+raw,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}};
+    return new Promise(function(resolve,reject){chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:body},function(r){if(chrome.runtime.lastError||!r)return reject(new Error('Search relay unavailable: '+((chrome.runtime.lastError&&chrome.runtime.lastError.message)||'no response')));if(Number(r.status)<200||Number(r.status)>=300)return reject(new Error(providerError(r,'Parallel Search')));try{resolve(JSON.parse(r.text||'{}'));}catch(e){reject(new Error('Parallel Search returned invalid JSON: '+String(r.text||'').slice(0,300)));}});});
   }
   function runResearch() {
     var q=$('researchQuery').value.trim();if(!q)return status('researchStatus','Enter a research question.',true);
@@ -222,6 +273,7 @@
   function exportVideo(){status('videoStatus','Use the Version 4.5 Export tab.');}
   function cancelVideoExport(){}
   function init() {
+    app=g.CCApp||null;
     $('paneProject').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('projectTaskForm').addEventListener('submit',addProjectTask);
     $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
@@ -229,12 +281,15 @@
     $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
     $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
     $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);});});
-    $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',editorWorkspace);
+    $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
     $('sbBrowse').addEventListener('click',browseSupabase);$('sbSave').addEventListener('click',saveSupabase);$('sbPAT').addEventListener('change',saveSupabaseManagementToken);$('sbListProjects').addEventListener('click',listSupabaseProjects);$('sbProjectDetails').addEventListener('click',getSupabaseProjectDetails);$('sbRunQuery').addEventListener('click',runSupabaseReadOnlyQuery);$('sbFunctions').addEventListener('click',listSupabaseFunctions);$('sbBuckets').addEventListener('click',listSupabaseBuckets);$('sbLogs').addEventListener('click',querySupabaseLogs);
-    $('videoGenerate').addEventListener('click',videoPrompt);$('videoPreview').addEventListener('click',drawVideo);$('videoExport').addEventListener('click',exportVideo);$('videoCancel').addEventListener('click',cancelVideoExport);$('videoSave').addEventListener('click',saveVideoProject);$('videoLoad').addEventListener('click',loadVideoProject);$('videoMode').addEventListener('change',drawVideo);
+    if($('dashboardOpenProject'))$('dashboardOpenProject').addEventListener('click',function(){var id=$('dashboardProjectSelect').value;if(app&&app.switchProject&&app.switchProject(id)){editorWorkspace();}});
+    if($('ghDisconnect'))$('ghDisconnect').addEventListener('click',function(){if(!confirm('Disconnect GitHub from this extension?'))return;chrome.storage.local.remove('ghToken',function(){$('ghOutput').textContent='';status('ghStatus','GitHub disconnected.');});});
+    if($('sbClear'))$('sbClear').addEventListener('click',function(){if(!confirm('Clear saved Supabase URL and keys from this extension?'))return;chrome.storage.local.remove(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT'],function(){$('sbUrl').value='';$('sbKey').value='';$('sbPAT').value='';$('sbOutput').textContent='';status('sbStatus','Supabase connection cleared.');status('sbMgmtStatus','');});});
     chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';var end=Date.now(),start=end-3600000;$('sbLogStart').value=localDateTime(start);$('sbLogEnd').value=localDateTime(end);refreshProjects();});
+    if(g.CCVideoStudio&&g.CCVideoStudio.init)g.CCVideoStudio.init();
   }
   g.CCWorkspaces=Object.freeze({init:init,setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject,flushProjectNotes:saveProjectNotes});
 })(window);
