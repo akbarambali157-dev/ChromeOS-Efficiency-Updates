@@ -590,7 +590,8 @@
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; saveFiles(); }
   });
 
-  $('insertCode').addEventListener('click', insertLatestCode);\n  $('chatForm').addEventListener('submit', function (e) {
+  $('insertCode').addEventListener('click', insertLatestCode);
+  $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
     if (!t) return;
