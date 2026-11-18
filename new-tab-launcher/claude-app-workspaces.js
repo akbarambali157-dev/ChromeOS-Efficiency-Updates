@@ -9,7 +9,6 @@
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
   function context() { var base=app&&app.getContext?app.getContext().slice(0,48000):''; if($('researchAttach')&&$('researchAttach').checked&&researchContext)base+='\n\n--- Web research context ---\n'+researchContext; if($('sbAttachRows')&&$('sbAttachRows').checked&&supabaseRowsContext)base+='\n\n--- Supabase table rows ---\n'+supabaseRowsContext; if($('sbAttachQuery')&&$('sbAttachQuery').checked&&supabaseQueryContext)base+='\n\n--- Supabase read-only SQL results ---\n'+supabaseQueryContext; return base.slice(0,48000); }
   function settings() { return CCProviders.readSettings(); }
-  function req(provider, model, messages, tokens, keys) { return CCProviders.request(provider,model,messages,tokens,keys); }
   function reqText(provider, model, messages, tokens, keys) { return CCResponse.request(provider,model,messages,tokens,keys,'AI Team'); }
   function modelOpts(select, provider, chosen) { CCProviders.populate(select,provider,chosen); }
   function setWorkspace(name) {
@@ -126,7 +125,6 @@
       }).then(function(){status('teamStatus','Sequential AI Team review completed. No files were changed.');});
     }).catch(function(e){if(e&&e.partialText)$('teamOutput').appendChild(card('Incomplete output · not accepted',e.partialText));if(e&&e.diagnostic)$('teamOutput').appendChild(card('Model response diagnostics',e.diagnostic));progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
-  function extract(res,label,modelName) { return CCResponse.extract(res,label||'Model request',modelName); }
   function search(q) {
     var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g,' ').split(/\s+/).filter(function(x){return x.length>2;});
     var queries=[words.slice(0,5).join(' '),words.slice(1,6).join(' ')].filter(function(x,i,a){return x&&a.indexOf(x)===i;});
