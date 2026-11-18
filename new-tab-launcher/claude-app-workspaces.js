@@ -9,7 +9,8 @@
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
   function context() { var base=app&&app.getContext?app.getContext().slice(0,48000):''; if($('researchAttach')&&$('researchAttach').checked&&researchContext)base+='\n\n--- Web research context ---\n'+researchContext; if($('sbAttachRows')&&$('sbAttachRows').checked&&supabaseRowsContext)base+='\n\n--- Supabase table rows ---\n'+supabaseRowsContext; if($('sbAttachQuery')&&$('sbAttachQuery').checked&&supabaseQueryContext)base+='\n\n--- Supabase read-only SQL results ---\n'+supabaseQueryContext; return base.slice(0,48000); }
   function settings() { return CCProviders.readSettings(); }
-  function req(provider, model, messages, tokens, keys) { return CCResponse.request(provider,model,messages,tokens,keys,'AI Team'); }
+  function req(provider, model, messages, tokens, keys) { return CCProviders.request(provider,model,messages,tokens,keys); }
+  function reqText(provider, model, messages, tokens, keys) { return CCResponse.request(provider,model,messages,tokens,keys,'AI Team'); }
   function modelOpts(select, provider, chosen) { CCProviders.populate(select,provider,chosen); }
   function setWorkspace(name) {
     current=name;
@@ -79,8 +80,8 @@
     var modelId=role==='lead'?'teamModel':role==='reviewer'?'reviewModel':'workerModel';
     var providerName=$(providerId).value,modelName=$(modelId).value.trim();
     status('teamStatus','Testing '+role+' model connection…');
-    settings().then(function(s){return req(providerName,modelName,[{role:'user',content:'Reply with exactly CONNECTION_OK.'}],96,s.keys);})
-      .then(function(res){var answer=extract(res,role+' model test',modelName);status('teamStatus',role+' model connected · '+answer.slice(0,80));})
+    settings().then(function(s){return reqText(providerName,modelName,[{role:'user',content:'Reply with exactly CONNECTION_OK.'}],96,s.keys);})
+      .then(function(answer){status('teamStatus',role+' model connected · '+answer.slice(0,80));})
       .catch(function(e){if(e&&e.diagnostic)$('teamOutput').appendChild(card(role+' model test diagnostics',e.diagnostic));status('teamStatus',role+' model test failed: '+(e.message||'Unknown error'),true);});
   }
   function buildMessages(role, task, ctx, extra) {
@@ -106,7 +107,7 @@
         if(cancelRun)return Promise.reject(new Error('Cancellation requested.'));
         progress.forEach(function(s){if(s.state==='active')s.state='pending';});if(progress[stageIndex]){progress[stageIndex].state='active';progress[stageIndex].detail=title+' is running';}renderTeamProgress(progress);
         status('teamStatus',title+' is working.');if(window.CCActivity)CCActivity.agent(title,task.slice(0,90));
-        return req(providerName,modelName,buildMessages(role,task,ctx,extra),tokens,keys).then(function(res){if(cancelRun)throw new Error('Cancellation requested.');var answer;try{answer=extract(res,title,modelName);}catch(e){if(e.diagnostic)out.appendChild(card(title+' · response diagnostics',e.diagnostic));throw e;}if(progress[stageIndex]){progress[stageIndex].state='done';progress[stageIndex].detail='Completed · '+answer.length.toLocaleString()+' characters';}renderTeamProgress(progress);out.appendChild(card(title,answer));return answer;}).catch(function(e){if(progress[stageIndex]){progress[stageIndex].state=cancelRun?'cancelled':'failed';progress[stageIndex].detail=cancelRun?'Cancelled':e.message||'Failed';}renderTeamProgress(progress);throw e;});
+        return reqText(providerName,modelName,buildMessages(role,task,ctx,extra),tokens,keys).then(function(answer){if(cancelRun)throw new Error('Cancellation requested.');if(progress[stageIndex]){progress[stageIndex].state='done';progress[stageIndex].detail='Completed · '+answer.length.toLocaleString()+' characters';}renderTeamProgress(progress);out.appendChild(card(title,answer));return answer;}).catch(function(e){if(progress[stageIndex]){progress[stageIndex].state=cancelRun?'cancelled':'failed';progress[stageIndex].detail=cancelRun?'Cancelled':e.message||'Failed';}renderTeamProgress(progress);throw e;});
       }
       if(mode==='parallel'||mode==='audit'){
         /* Single-agent concurrency limit: independent roles run sequentially. */
@@ -115,8 +116,8 @@
       }
       var first;
       progress[0].state='active';progress[0].detail='Lead is preparing a proposal';renderTeamProgress(progress);status('teamStatus','Lead agent is planning…');if(window.CCActivity)CCActivity.agent('Agent 1 · Lead',task.slice(0,90));
-      return req(leadProvider,lead,primary,4096,keys).then(function(res){
-        first=extract(res);if(cancelRun)throw new Error('Cancellation requested.');
+      return reqText(leadProvider,lead,primary,4096,keys).then(function(answer){
+        first=answer;if(cancelRun)throw new Error('Cancellation requested.');
         progress[0].state='done';progress[0].detail='Proposal completed';renderTeamProgress(progress);out.appendChild(card('Agent 1 · Lead proposal',first));
         return runAgent('Agent 2 · Critical reviewer','Independent critical reviewer. Do not agree by default. Identify specific correctness, security, compatibility, performance and test gaps. If no material issue exists, say so.',reviewProvider,reviewer,4096,'Lead proposal:\n'+first,1);
       }).then(function(review){
