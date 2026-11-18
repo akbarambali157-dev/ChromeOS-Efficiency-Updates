@@ -317,15 +317,15 @@
     if(!res||Number(res.status)<200||Number(res.status)>=300){
       var code=Number(res&&res.status)||0,raw=String(res&&res.text||'').slice(0,800),detail=raw;
       try{var j=JSON.parse(raw);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||raw;}catch(e){}
-      if(code===401)return 'API key rejected (401). Check the selected provider key.';
-      if(code===402)return 'Provider balance or quota exhausted (402).';
-      if(code===403)return 'Access denied (403). Check model permissions.';
-      if(code===404)return 'Model or endpoint not found (404). Check the model ID.';
-      if(code===413)return 'Request too large (413). Reduce attached context.';
-      if(code===429)return 'Rate limit reached (429). Wait before retrying.';
-      if(code>=500)return 'Provider service error ('+code+'): '+detail;
-      if(code===400)return 'Invalid provider request (400): '+detail;
-      return 'Model request failed ('+code+'): '+detail;
+      if(code===401)throw new Error('API key rejected (401). Check the selected provider key.');
+      if(code===402)throw new Error('Provider balance or quota exhausted (402).');
+      if(code===403)throw new Error('Access denied (403). Check model permissions.');
+      if(code===404)throw new Error('Model or endpoint not found (404). Check the model ID.');
+      if(code===413)throw new Error('Request too large (413). Reduce attached context.');
+      if(code===429)throw new Error('Rate limit reached (429). Wait before retrying.');
+      if(code>=500)throw new Error('Provider service error ('+code+'): '+detail);
+      if(code===400)throw new Error('Invalid provider request (400): '+detail);
+      throw new Error('Model request failed ('+code+'): '+detail);
     }
     var d;try{d=JSON.parse(res.text||'{}');}catch(e){throw new Error('Provider returned invalid JSON: '+String(res.text||'').slice(0,500));}
     function collect(v){if(typeof v==='string')return v;if(Array.isArray(v))return v.map(function(x){return typeof x==='string'?x:(x&&(x.text||x.content))||'';}).join('');if(v&&typeof v==='object')return String(v.text||v.content||'');return '';}
