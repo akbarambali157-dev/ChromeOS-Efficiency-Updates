@@ -12,8 +12,8 @@ The Claude mini app is evolving into a multi-model AI development workspace. It 
 - **Code insertion:** a user-confirmed action inserts the latest assistant fenced code block at the cursor or replaces selected text. Review before saving or pushing.
 - **Research:** Parallel Search workspace and chat web-search toggle. Results can be explicitly attached to AI Team context.
 - **GitHub:** repository/branch tree browsing, code search, remote-file import into the editor, branch creation, PR creation, and the existing single-file diff review/push workflow with a selected branch.
-- **Supabase:** read-only table browsing through the Data API with the supplied publishable/anon key (RLS applies); Management API project listing and project details with a scoped PAT; conservative read-only SQL through the official read-only endpoint. Results attach to AI Team context only when the user opts in.
-- **Video Studio:** AI storyboard generation for historical stickman and Roblox-style stories, editable scenes/captions/narration text, local project save/load, Canvas animatic preview and silent WebM export.
+- **Supabase:** read-only table browsing through the Data API with the supplied publishable/anon key (RLS applies); Management API project listing/details, Edge Function listing, project logs, and conservative read-only SQL through the official read-only endpoint; Storage bucket listing through the Data API. Results attach to AI Team context only when the user opts in.
+- **Video Studio:** AI storyboard generation for historical stickman and Roblox-style stories, editable scenes/captions/narration text, local project save/load, Canvas animatic preview and silent WebM export capped at 45 seconds.
 
 ## Explicit limitations
 
