@@ -629,7 +629,7 @@
   }
 
   $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
-  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });\n  $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
@@ -670,7 +670,7 @@
     chatH = parseInt(d.ccChatH, 10) || 250;
     applyChatH();
     if ($('webOn')) $('webOn').checked = webOn;
-    CCProviders.populate($('ccModel'), provider, model);\n    CCProviders.populate($('ccModel'), provider, model);
+    CCProviders.populate($('ccModel'), provider, model);
     if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
     activeFile = files[0] || null;
