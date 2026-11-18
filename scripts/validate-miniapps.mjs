@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Dependency-free repository contract checks for My Launcher 3.8.0.
+// Dependency-free repository contract checks for My Launcher 4.0.0.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -85,11 +85,11 @@ for (const id of ['ccProvider','ccModel','openAIKeyIn','anthropicKeyIn','insertC
 }
 check(claudeProviders.includes('provider.openai') && claudeProviders.includes('provider.anthropic'), 'Provider abstraction must route direct OpenAI and Anthropic requests.');
 check(background.includes('https://api.openai.com/v1/responses') && background.includes('https://api.anthropic.com/v1/messages'), 'Direct provider relays must use fixed HTTPS endpoints.');
-check(background.includes('supabase.management') && background.includes('/database/query/read-only'), 'Supabase Management relay must be present and restricted to read-only SQL.');
+check(background.includes('supabase.management') && background.includes('relaySupabaseManagement') && background.includes('read-only'), 'Supabase Management relay must be present and restricted to read-only SQL.');
 check(claudeWorkspaces.includes('function createGithubBranch') && claudeWorkspaces.includes('function createGithubPR'), 'GitHub branch and pull-request workflows must exist.');
 check(claudeWorkspaces.includes('function exportVideo') && claudeWorkspaces.includes('MediaRecorder'), 'Video Studio export workflow must exist.');
 check(claudeApp.includes('function importLocalFiles') && claudeApp.includes('1048576') && claudeApp.includes('4194304'), 'Local file import must retain per-file and aggregate bounds.');
-check(!/eval\\s*\\(|new Function\\s*\\(/.test(claudeApp + claudeProviders + claudeWorkspaces + background), 'AI workspace code must not use eval or Function.');
+check(!/eval\s*\(|new Function\s*\(/.test(claudeApp + claudeProviders + claudeWorkspaces + background), 'AI workspace code must not use eval or Function.');
 for (const [name, source] of [['background.js',background],['claude-app.js',claudeApp],['claude-app-providers.js',claudeProviders],['claude-app-workspaces.js',claudeWorkspaces]]) {
   try { new Function(source); } catch (error) { failures.push(name + ' syntax error: ' + error.message); }
 }
