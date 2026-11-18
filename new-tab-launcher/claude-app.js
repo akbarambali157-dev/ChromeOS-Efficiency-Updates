@@ -390,11 +390,11 @@
     var projectInstructions=(projects.filter(function(p){return p.id===activeProjectId;})[0]||{}).instructions||'';
     if(projectInstructions)sys+='\n\nProject-specific instructions (follow these for this workspace):\n'+projectInstructions.slice(0,3000);
     var planMode=$('planMode')&&$('planMode').checked;
-    if(planMode)sys+='\\n\\nPLAN MODE: Do not implement, write replacement code, or make changes yet. Produce a numbered, actionable implementation plan with scope, files likely affected, risks, and verification steps. Clearly state that you are waiting for approval. Do not expose private chain-of-thought; provide concise decision summaries only.';
+    if(planMode)sys+='\n\nPLAN MODE: Do not implement, write replacement code, or make changes yet. Produce a numbered, actionable implementation plan with scope, files likely affected, risks, and verification steps. Clearly state that you are waiting for approval. Do not expose private chain-of-thought; provide concise decision summaries only.';
     var msgs = [{ role: 'system', content: sys }];
 
     var projectInfo=projects.filter(function(p){return p.id===activeProjectId;})[0]||{};
-    var projectMeta=[];if(projectInfo.notes)projectMeta.push('--- Project notes ---\\n'+String(projectInfo.notes).slice(0,4000));if(Array.isArray(projectInfo.tasks)&&projectInfo.tasks.length)projectMeta.push('--- Project tasks ---\\n'+projectInfo.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\\n'));if(projectMeta.length)msgs.push({role:'system',content:projectMeta.join('\\n\\n')});
+    var projectMeta=[];if(projectInfo.notes)projectMeta.push('--- Project notes ---\n'+String(projectInfo.notes).slice(0,4000));if(Array.isArray(projectInfo.tasks)&&projectInfo.tasks.length)projectMeta.push('--- Project tasks ---\n'+projectInfo.tasks.slice(0,50).map(function(t){return (t.done?'[x] ':'[ ] ')+String(t.title||'').slice(0,200);}).join('\n'));if(projectMeta.length)msgs.push({role:'system',content:projectMeta.join('\n\n')});
     /* Every attached file travels with the message, open file first, under one
        shared character budget so a pile of files cannot blow past the request. */
     var attached = files.filter(function (f) { return f.attached !== false && f.content; });
