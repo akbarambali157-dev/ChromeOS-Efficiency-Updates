@@ -153,3 +153,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for page/module boundaries, storage owner
 
 - Backup export covers shortcuts, notes, tasks, sessions, settings, and Claude Code
   files and conversations. **GitHub tokens and brewkeg keys are never included.**
+
+### Version 5.0 completion pass
+
+The AI Team workflow now displays a per-stage progress list and preserves completed output when cancelled. Reviewed code application adds a guarded undo action that restores the exact prior editor contents only if no subsequent edit has changed the file. This is intentionally not a general history/rollback system.
