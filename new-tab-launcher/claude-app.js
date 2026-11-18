@@ -13,7 +13,7 @@
   var MAX_FILES = 40;
 
   var files = [], logs = [], activeFile = null, activeLog = null;
-  var ccKey = '', model = 'claude-sonnet-5-5', ghToken = '', pcKey = '';
+  var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
   var webOn = false, chatH = 250;
   var saveTimer = null, busy = false;
 
@@ -67,6 +67,7 @@
         f.attached = f.attached === false;
         saveFiles();
         renderFiles();
+        if ($('contextStatus')) $('contextStatus').textContent = files.filter(function(x){return x.attached!==false;}).length+' files in context';
       });
       row.appendChild(att);
       row.appendChild(el('span', 'fname', f.name));
@@ -121,6 +122,23 @@
     });
   }
 
+  function importLocalFiles(pickerId) {
+    var picker=$(pickerId), selected=Array.prototype.slice.call(picker.files||[]).slice(0,8), total=0;
+    if(!selected.length)return;
+    var room=Math.max(0,MAX_FILES-files.length);selected=selected.slice(0,room);
+    if(!room){say('chatStatus','File limit reached. Delete a file before importing.',true);picker.value='';return;}
+    var allowed=/\.(txt|md|js|json|css|html|xml|ya?ml|py|sql|csv|ts|tsx|jsx)$/i;
+    var tasks=selected.map(function(file){
+      return new Promise(function(resolve){
+        if(file.size>1048576||!allowed.test(file.name)){resolve(null);return;}
+        if(total+file.size>4194304){resolve(null);return;}total+=file.size;
+        var reader=new FileReader();reader.onload=function(){var text=String(reader.result||'');if(text.indexOf('\u0000')>=0){resolve(null);return;}resolve({id:uid(),name:String(file.webkitRelativePath||file.name).slice(0,60),content:text,attached:true});};reader.onerror=function(){resolve(null);};reader.readAsText(file);
+      });
+    });
+    Promise.all(tasks).then(function(items){var imported=items.filter(Boolean);if(!imported.length){say('chatStatus','No supported files imported. Limits: 1 MiB each, 4 MiB total, text formats only.',true);picker.value='';return;}
+      files=imported.concat(files).slice(0,MAX_FILES);activeFile=files[0];persistFiles(function(ok){if(ok){renderFiles();loadEditor();$('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';say('chatStatus','Imported '+imported.length+' file(s). Review attachments before sending.');}else say('chatStatus','Could not save imported files.',true);});picker.value='';
+    });
+  }
   function newFile() {
     if (files.length >= MAX_FILES) {
       window.alert('The editor can keep up to ' + MAX_FILES + ' files. Delete one before creating another.');
@@ -162,14 +180,16 @@
     box.textContent = '';
     if (!activeLog || !activeLog.messages.length) {
       box.appendChild(el('div', 'msg sys', 'Ask about the file in the editor, or say what to change.'));
+      $('insertCode').disabled=true;
       return;
     }
     activeLog.messages.forEach(function (m) {
       box.appendChild(el('div', 'msg ' + (m.role === 'user' ? 'me' : 'ai'), m.content));
     });
+    var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
+    $('insertCode').disabled=!(latest&&extractCodeBlock(latest.content));
     box.scrollTop = box.scrollHeight;
   }
-
   function persistLogs() {
     var out = logs.slice(0, MAX_LOGS).map(function (l) {
       return { id: l.id, title: l.title, when: l.when, messages: l.messages.slice(-40) };
@@ -188,6 +208,25 @@
     $('chatIn').focus();
   }
 
+  function extractCodeBlock(content) {
+    var fence=String.fromCharCode(96,96,96),start=String(content||'').indexOf(fence);
+    if(start<0)return '';
+    var lineEnd=String(content).indexOf('\n',start+3);if(lineEnd<0)return '';
+    var end=String(content).indexOf(fence,lineEnd+1);if(end<0)return '';
+    return String(content).slice(lineEnd+1,end).replace(/\n$/,'');
+  }
+  function insertLatestCode() {
+    if(!activeLog)return;
+    if(!activeFile){activeFile={id:uid(),name:'untitled.js',content:''};files.unshift(activeFile);renderFiles();loadEditor();}
+    var latest=activeLog.messages.slice().reverse().filter(function(m){return m.role==='assistant';})[0];
+    if(!latest)return;
+    var code=extractCodeBlock(latest.content);if(!code)return;
+    var editor=$('editor'),start=editor.selectionStart,end=editor.selectionEnd;
+    if(!confirm('Insert '+code.length+' characters of assistant code at the cursor or replace the selected text?'))return;
+    var value=editor.value.slice(0,start)+code+editor.value.slice(end);
+    editor.value=value;editor.selectionStart=editor.selectionEnd=start+code.length;editor.focus();
+    activeFile.content=value;setDirty(true);saveFiles();pushMessage('assistant','Code block inserted into '+activeFile.name+'. Review it before pushing.');
+  }
   function pushMessage(role, content) {
     if (!activeLog) newLog();
     activeLog.messages.push({ role: role, content: content });
@@ -202,18 +241,8 @@
 
   /* ---------- chat ---------- */
   function chatPost(body) {
-    return new Promise(function (resolve, reject) {
-      try {
-        chrome.runtime.sendMessage({ type: 'chat', key: ccKey, body: body }, function (res) {
-          if (chrome.runtime.lastError || !res) {
-            reject(new Error('net:' + ((chrome.runtime.lastError && chrome.runtime.lastError.message) || 'no response from background')));
-            return;
-          }
-          if (!res.status) { reject(new Error('net:' + (res.text || 'request failed'))); return; }
-          resolve(res);
-        });
-      } catch (e) { reject(new Error('net:' + ((e && e.message) || 'messaging unavailable'))); }
-    });
+    return CCProviders.request(provider, body.model || model, body.messages || [], body.max_tokens || MAX_TOKENS,
+      { brewkeg: ccKey, openai: openAIKey, anthropic: anthropicKey });
   }
 
   /* ---------- Parallel web search ---------- */
@@ -289,8 +318,8 @@
 
   function send(text) {
     if (busy) return;
-    if (!ccKey) {
-      pushMessage('assistant', 'I need your brewkeg key first. Open Settings (the gear on the left) and paste it in.');
+    if (!(provider === 'brewkeg' ? ccKey : provider === 'openai' ? openAIKey : anthropicKey)) {
+      pushMessage('assistant', 'Add the selected provider key in Settings before sending.');
       return;
     }
     busy = true;
@@ -301,7 +330,7 @@
     var sys = 'You are a coding assistant inside a small editor on a Chromebook. ' +
       'Answer with short, concrete code and plain explanation. No emoji. ' +
       'The user can copy your code into the editor and push it to GitHub themselves, so do not claim to have run or saved anything. ' +
-      'You can see every file the user has attached in this app; only the open one is shown in the editor.';
+      'The active editor file and attached scratch files are included when context is enabled. Do not claim to have accessed files that were not provided.';
     var msgs = [{ role: 'system', content: sys }];
 
     /* Every attached file travels with the message, open file first, under one
@@ -449,6 +478,7 @@
 
   function review() {
     var repo = $('pushRepo').value.trim();
+    var branch = $('pushBranch').value.trim() || 'main';
     var path = cleanRepoPath($('pushPath').value);
     if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) { say('pushStatus', 'Repository should look like owner/repo.', true); return; }
     var pathParts = path.split('/');
@@ -469,7 +499,7 @@
 
     gh('/repos/' + repo + '/contents/' + apiPath).then(function (d) {
       if (sequence !== reviewSeq || activeFile !== reviewedFile || activeFile.content !== reviewedContent ||
-          $('pushRepo').value.trim() !== repo || cleanRepoPath($('pushPath').value) !== path) {
+          $('pushRepo').value.trim() !== repo || $('pushBranch').value.trim() !== branch || cleanRepoPath($('pushPath').value) !== path) {
         say('pushStatus', 'The file or destination changed during review. Review again before pushing.', true);
         return;
       }
@@ -479,7 +509,7 @@
         oldText = unb64(d.content || '');
       }
       var diff = diffLines(oldText, activeFile.content);
-      pending = { repo: repo, path: path, apiPath: apiPath, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
+      pending = { repo: repo, branch: branch, path: path, apiPath: apiPath, sha: sha, diff: diff, fileId: reviewedFile.id, content: reviewedContent };
       renderDiff(diff);
       if (!diff.removed.length && !diff.added.length) {
         say('pushStatus', 'That file already matches the editor. Nothing to push.');
@@ -498,7 +528,7 @@
   function doPush() {
     if (!pending) return;
     if (!activeFile || activeFile.id !== pending.fileId || activeFile.content !== pending.content ||
-        $('pushRepo').value.trim() !== pending.repo || cleanRepoPath($('pushPath').value) !== pending.path) {
+        $('pushRepo').value.trim() !== pending.repo || $('pushBranch').value.trim() !== pending.branch || cleanRepoPath($('pushPath').value) !== pending.path) {
       invalidateReview();
       say('pushStatus', 'The file or destination changed after review. Review the current version before pushing.', true);
       return;
@@ -506,7 +536,7 @@
     var msg = $('pushMsg').value.trim() || ('Update ' + pending.path);
     $('pushGo').disabled = true;
     say('pushStatus', 'Pushing…');
-    var body = { message: msg, content: b64(pending.content) };
+    var body = { message: msg, content: b64(pending.content), branch: pending.branch };
     if (pending.sha) body.sha = pending.sha;
     gh('/repos/' + pending.repo + '/contents/' + pending.apiPath, 'PUT', body).then(function (d) {
       if (d && d.content && d.content.html_url) {
@@ -523,6 +553,10 @@
   }
 
   /* ---------- wiring ---------- */
+  $('openFiles').addEventListener('click', function () { $('filePicker').click(); });
+  $('openFolder').addEventListener('click', function () { $('folderPicker').click(); });
+  $('filePicker').addEventListener('change', function(){importLocalFiles('filePicker');});
+  $('folderPicker').addEventListener('change', function(){importLocalFiles('folderPicker');});
   $('newFile').addEventListener('click', newFile);
   $('newLog').addEventListener('click', newLog);
   $('delLog').addEventListener('click', function () {
@@ -558,6 +592,7 @@
     if (saveTimer !== null) { clearTimeout(saveTimer); saveTimer = null; saveFiles(); }
   });
 
+  $('insertCode').addEventListener('click', insertLatestCode);
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
@@ -566,13 +601,16 @@
     send(t);
   });
 
-  $('paneFiles').addEventListener('click', function () { $('newFile').focus(); });
+  $('paneFiles').addEventListener('click', function () { CCWorkspaces.editorWorkspace(); });
   $('paneChat').addEventListener('click', function () { $('chatIn').focus(); });
   $('paneGit').addEventListener('click', function () { $('dlgPush').showModal(); });
   $('paneSet').addEventListener('click', function () {
     $('ccKeyIn').value = ccKey;
     $('pcKeyIn').value = pcKey;
-    $('ccModel').value = model;
+    $('openAIKeyIn').value = openAIKey;
+    $('anthropicKeyIn').value = anthropicKey;
+    $('ccProvider').value = provider;
+    CCProviders.populate($('ccModel'), provider, model);
     say('setStatus', '');
     $('dlgSet').showModal();
   });
@@ -635,14 +673,18 @@
     });
   }
 
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
   $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
     pcKey = $('pcKeyIn').value.trim();
+    openAIKey = $('openAIKeyIn').value.trim();
+    anthropicKey = $('anthropicKeyIn').value.trim();
+    provider = $('ccProvider').value;
     model = $('ccModel').value;
-    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccModel: model }, function () {
-      say('setStatus', ccKey ? 'Saved.' : 'Key cleared.');
+    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model }, function () {
+      say('setStatus', 'Settings saved.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
     });
   });
@@ -650,12 +692,12 @@
   $('pushCancel').addEventListener('click', function () { $('dlgPush').close(); });
   $('pushReview').addEventListener('click', review);
   $('pushGo').addEventListener('click', doPush);
-  ['pushRepo', 'pushPath'].forEach(function (id) {
+  ['pushRepo', 'pushPath', 'pushBranch'].forEach(function (id) {
     $(id).addEventListener('input', function () { if (pending) invalidateReview(); });
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
     files = Array.isArray(d.ccFiles) ? d.ccFiles.filter(function (f) {
       return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
     }).slice(0, MAX_FILES).map(function (f) {
@@ -663,13 +705,17 @@
     }) : [];
     logs = Array.isArray(d.ccLogs) ? d.ccLogs : [];
     ccKey = d.ccKey || '';
+    provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
+    openAIKey = d.ccOpenAIKey || '';
+    anthropicKey = d.ccAnthropicKey || '';
     ghToken = d.ghToken || '';
     pcKey = d.pcKey || '';
     webOn = !!d.ccWeb;
     chatH = parseInt(d.ccChatH, 10) || 250;
     applyChatH();
     if ($('webOn')) $('webOn').checked = webOn;
+    CCProviders.populate($('ccModel'), provider, model);
     if (webOn && !pcKey) cstat('Web is on — add a Parallel key in Settings', true);
 
     activeFile = files[0] || null;
@@ -679,6 +725,21 @@
     loadEditor();
     renderLogs();
     renderChat();
+    CCWorkspaces.init();
+    window.CCApp = {
+      getContext: function () {
+        var a = files.filter(function (f) { return f.attached !== false && f.content; });
+        return a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n').slice(0, FILE_BUDGET);
+      },
+      getSearchKey: function () { return pcKey; },
+      importFile: function (name, content) {
+        if (files.length >= MAX_FILES) return false;
+        var f={id:uid(),name:String(name||'remote-file').slice(0,60),content:String(content||'').slice(0,1048576),attached:true};
+        files.unshift(f);activeFile=f;persistFiles(function(ok){if(ok){renderFiles();loadEditor();$('contextStatus').textContent=files.filter(function(x){return x.attached!==false;}).length+' files in context';}});
+        return true;
+      }
+    };
+    $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
 
     if (!ccKey && !logs.length) {
       pushMessage('assistant', 'Welcome. Add your brewkeg key in Settings (the gear on the left) to start chatting. The editor and the GitHub push work without it.');

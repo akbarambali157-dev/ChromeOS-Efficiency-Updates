@@ -1,8 +1,17 @@
 # Claude mini-app — file access and upgrade roadmap
 
-**Current baseline:** My Launcher 3.7.0 implementation candidate  
+**Current baseline:** My Launcher 3.8.0 on main; 4.0.0 AI Workspace is the approved next major release  
 **Target device:** Acer Chromebook 15 CB3-532, 2 GB RAM, ChromeOS 103  
 **Runtime constraints:** Manifest V3, classic JavaScript, no build step, no new dependency or permission without a demonstrated need.
+
+
+## 4.0.0 — AI Development Workspace (priority override approved 2026-11-18)
+
+The user has approved moving the Claude mini-app major upgrade ahead of the previous 40-app catalogue schedule. The previous 3.5–3.9 milestones remain historical/planning context, but the immediate target is 4.0.0 on a separate feature branch. See **AI-WORKSPACE-4.0-SPEC.md** for the consolidated scope and explicit limitations.
+
+4.0 includes provider abstraction, shared editor context and local file import, AI Team orchestration/debate, web research, GitHub repository/branch/PR workflow, Supabase read-only project/database integration, and Video Studio storyboard/animatic workflows. The implementation must retain MV3, Chrome 103 compatibility, low-memory constraints, no new dependencies, and existing mini-app functionality.
+
+**Merge gate:** 4.0 is not considered complete until the 4.0 validator passes, all workspace JavaScript parses, PR checks are green (or Actions availability is explicitly documented), external integrations are tested with credentials where available, and device/browser QA is recorded. No merge to main before that gate.
 
 ## 1. Current implementation audit
 

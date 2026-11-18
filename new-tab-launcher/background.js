@@ -115,6 +115,96 @@ function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label)
   return true;
 }
 
+
+/* Direct provider relays use fixed endpoints; page code cannot choose arbitrary
+   URLs. Keys are relayed only for the request and never persisted by the worker. */
+function relayOpenAI(msg, sendResponse) {
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true;
+  }
+  var payload;
+  try {
+    payload = JSON.stringify({ model: String(msg.body.model || '').slice(0,120), input: Array.isArray(msg.body.messages) ? msg.body.messages : [], max_output_tokens: Math.min(8192, Math.max(1, Number(msg.body.max_tokens)||2048)) });
+  } catch (e) { sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true; }
+  if (payload.length > 200000) { sendResponse({ status: 413, text: 'OpenAI request is too large.' }); return true; }
+  fetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + msg.key }, body: payload })
+    .then(function (r) {
+      return r.text().then(function (t) {
+        if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
+        try {
+          var d = JSON.parse(t), output = d.output_text || '';
+          if (!output && Array.isArray(d.output)) {
+            output = d.output.map(function (item) {
+              return (item.content || []).filter(function (part) { return part.type === 'output_text'; }).map(function (part) { return part.text || ''; }).join('\n');
+            }).join('\n');
+          }
+          sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: output } }] }) });
+        } catch (e) { sendResponse({ status: r.status, text: t }); }
+      });
+    })
+    .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
+  return true;
+}
+function relayAnthropic(msg, sendResponse) {
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true;
+  }
+  var body = msg.body, payload;
+  try {
+    var messages = Array.isArray(body.messages) ? body.messages.filter(function (m) { return m && (m.role === 'user' || m.role === 'assistant'); }) : [];
+    payload = JSON.stringify({ model: String(body.model || '').slice(0,120), max_tokens: Math.min(8192, Math.max(1, Number(body.max_tokens)||2048)), system: String(body.system||'').slice(0,20000), messages: messages });
+  } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
+  if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
+  fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: payload })
+    .then(function (r) {
+      return r.text().then(function (t) {
+        if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
+        try {
+          var d = JSON.parse(t);
+          var text = (d.content || []).filter(function (x) { return x.type === 'text'; }).map(function (x) { return x.text || ''; }).join('\n');
+          sendResponse({ status: r.status, text: JSON.stringify({ choices: [{ message: { role: 'assistant', content: text } }] }) });
+        } catch (e) { sendResponse({ status: r.status, text: t }); }
+      });
+    })
+    .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
+  return true;
+}
+/* Supabase Management API relay. The browser can call only project listing,
+   project detail, and the official read-only SQL endpoint. No arbitrary URL,
+   write endpoint, service-role key, or project mutation is relayed. */
+function relaySupabaseManagement(msg, sendResponse) {
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid Supabase Management API request.' }); return true;
+  }
+  var rawPath=String(msg.body.path||''),method=String(msg.body.method||'GET').toUpperCase(),body=msg.body.payload||null;
+  var parts=rawPath.split('?'),path=parts[0],params=new URLSearchParams(parts[1]||'');
+  var project=/^\/v1\/projects\/([a-z]{20})$/.exec(path);
+  var query=/^\/v1\/projects\/([a-z]{20})\/database\/query\/read-only$/.exec(path);
+  var functions=/^\/v1\/projects\/([a-z]{20})\/functions$/.exec(path);
+  var logs=/^\/v1\/projects\/([a-z]{20})\/analytics\/endpoints\/logs$/.exec(path);
+  var allowed=(path==='/v1/projects'&&method==='GET')||(project&&method==='GET')||(query&&method==='POST')||(functions&&method==='GET')||(logs&&method==='GET');
+  if(!allowed){sendResponse({status:403,text:'This Supabase operation is not enabled in the workspace.'});return true;}
+  var payload=null;
+  if(query){
+    var sql=body&&typeof body.query==='string'?body.query.trim():'';
+    if(!sql||sql.length>8000||/[;](?=\s*\S)/.test(sql)||!/^(select|with|values|table|show|explain)\b/i.test(sql)||/\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|do|execute|vacuum|set)\b/i.test(sql)||/\b(pg_terminate_backend|dblink|set_config|lo_import|lo_export|nextval|currval)\s*\(/i.test(sql)){
+      sendResponse({status:400,text:'Query rejected by the conservative read-only filter. Use a single SELECT/CTE/VALUES/TABLE/SHOW/EXPLAIN query without mutating statements or side-effecting functions.'});return true;
+    }
+    payload=JSON.stringify({query:sql});
+  }
+  if(logs){
+    var sql=params.get('sql')||"SELECT timestamp, event_message, metadata FROM logs WHERE source = 'function_logs' ORDER BY timestamp DESC LIMIT 50";
+    var begin=params.get('iso_timestamp_start'),finish=params.get('iso_timestamp_end');
+    var startTime=Date.parse(begin),endTime=Date.parse(finish);
+    if(sql.length>4000||!begin||!finish||!Number.isFinite(startTime)||!Number.isFinite(endTime)||startTime>=endTime||endTime-startTime>86400000){
+      sendResponse({status:400,text:'Logs query requires a valid SQL string and an explicit time range no longer than 24 hours.'});return true;
+    }
+  }
+  fetch('https://api.supabase.com'+rawPath,{method:method,headers:{'Authorization':'Bearer '+msg.key,'Accept':'application/json','Content-Type':'application/json'},body:payload})
+    .then(function(r){return r.text().then(function(t){sendResponse({status:r.status,text:t});});})
+    .catch(function(e){sendResponse({status:0,text:String((e&&e.message)||e)});});
+  return true;
+}
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
   if (msg.type === 'darkSync') { applyDark(); return; }
@@ -136,6 +226,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     return relayRequest(msg, sendResponse, 'https://brewkeg.dev/v1/chat/completions',
       'Authorization', 200000, 'Chat');
   }
+  if (msg.type === 'supabase.management') return relaySupabaseManagement(msg, sendResponse);
+  if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
+  if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse);
   if (msg.type === 'search') {
     return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
       'x-api-key', 100000, 'Search');

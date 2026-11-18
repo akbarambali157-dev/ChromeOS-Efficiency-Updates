@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "3.8.0",
-  "description": "Lightweight Chromebook launcher with an offline-first sandboxed mini-app workspace.",
+  "version": "4.0.0",
+  "description": "Lightweight Chromebook launcher with a multi-model AI development workspace.",
   "minimum_chrome_version": "103",
   "permissions": [
     "storage",

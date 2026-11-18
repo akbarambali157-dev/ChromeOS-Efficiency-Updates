@@ -1,99 +1,83 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8"><title>Claude Code</title>
+<html lang="en"><head><meta charset="utf-8"><title>AI Development Workspace</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="newtab.css">
 <link rel="stylesheet" href="claude-app.css">
 <script src="theme.js"></script><script src="common.js"></script><script src="github-api.js"></script></head>
 <body class="cc" data-app="claude" data-nowall>
 <div class="shell">
-
   <nav class="act" aria-label="Sections">
     <button type="button" class="actbtn on" id="paneFiles" title="Files" aria-label="Files">▤</button>
     <button type="button" class="actbtn" id="paneChat" title="Chat" aria-label="Chat">✎</button>
-    <button type="button" class="actbtn" id="paneGit" title="Push to GitHub" aria-label="Push to GitHub">⑂</button>
+    <button type="button" class="actbtn" id="paneTeam" title="AI Team" aria-label="AI Team">◎</button>
+    <button type="button" class="actbtn" id="paneResearch" title="Research" aria-label="Research">⌕</button>
+    <button type="button" class="actbtn" id="paneGitHub" title="GitHub workspace" aria-label="GitHub">⑂</button>
+    <button type="button" class="actbtn" id="paneSupabase" title="Supabase workspace" aria-label="Supabase">▤</button>
+    <button type="button" class="actbtn" id="paneVideo" title="Video Studio" aria-label="Video Studio">▶</button>
     <button type="button" class="actbtn" id="paneSet" title="Settings" aria-label="Settings">⚙</button>
     <a class="actbtn home" href="newtab.html" title="Back to the launcher" aria-label="Back to the launcher">⌂</a>
   </nav>
-
   <aside class="side">
-    <div class="sidehead"><span>Files</span><button type="button" class="mini" id="newFile" title="New file">+</button></div>
+    <div class="sidehead"><span>Files</span><div><button type="button" class="mini" id="openFiles" title="Open local text files">↥</button><button type="button" class="mini" id="openFolder" title="Import a folder">▱</button><button type="button" class="mini" id="newFile" title="New file">+</button></div></div><input id="filePicker" type="file" multiple hidden accept=".txt,.md,.js,.json,.css,.html,.xml,.yaml,.yml,.py,.sql,.csv,.ts,.tsx,.jsx"><input id="folderPicker" type="file" webkitdirectory directory multiple hidden accept=".txt,.md,.js,.json,.css,.html,.xml,.yaml,.yml,.py,.sql,.csv,.ts,.tsx,.jsx">
     <div id="fileList" class="filelist"></div>
   </aside>
-
-  <section class="main">
-    <div class="limits">
-      <span>VS Code extensions and Claude Code plugins can't be installed here. This is an editor, a chat and a push button.</span>
-      <a href="https://github.com/codespaces" target="_blank" rel="noopener">Open a real Codespace →</a>
-    </div>
-    <div class="tabs">
-      <span id="tabName" class="tab">untitled</span>
-      <span id="dirty" class="dirty" hidden>●</span>
-    </div>
+  <section class="main" id="mainWorkspace">
+    <div class="limits"><span>Lightweight browser coding workspace. External tools require explicit connection and approval.</span><a href="https://github.com/codespaces" target="_blank" rel="noopener">Open a real Codespace →</a></div>
+    <div class="tabs"><span id="tabName" class="tab">untitled</span><span id="dirty" class="dirty" hidden>●</span><span id="contextStatus" class="context-status">Editor context available</span></div>
     <textarea id="editor" class="editor" spellcheck="false" placeholder="Start typing, or pick a file on the left."></textarea>
+    <section id="workspaceExtra" class="workspace-extra" hidden>
+      <div class="workspace-head"><div><strong id="workspaceTitle">AI Team</strong><p id="workspaceSubtitle">Shared project context and tools</p></div><button type="button" class="mini" id="workspaceBack">Editor</button></div>
+      <section class="workspace-panel" id="teamWorkspace" data-workspace="team" hidden>
+        <div class="two-col">
+          <div><label for="teamTask">Task</label><textarea id="teamTask" class="workspace-input" rows="4" maxlength="4000" placeholder="Describe the problem or task…"></textarea></div>
+          <div><label for="teamMode">Workflow</label><select id="teamMode" class="workspace-input"><option value="debate">Developer + independent reviewer + final response</option><option value="parallel">Three parallel agents (lead, reviewer, fast worker)</option><option value="audit">Two independent audits</option></select><label for="teamProvider">Lead provider</label><select id="teamProvider" class="workspace-input"><option value="brewkeg">Brewkeg</option><option value="openai">OpenAI direct</option><option value="anthropic">Anthropic direct</option></select><label for="teamModel">Lead model</label><input id="teamModel" class="workspace-input" list="teamModelList"><datalist id="teamModelList"></datalist><label for="reviewProvider">Reviewer provider</label><select id="reviewProvider" class="workspace-input"><option value="brewkeg">Brewkeg</option><option value="openai">OpenAI direct</option><option value="anthropic">Anthropic direct</option></select><label for="reviewModel">Reviewer model</label><input id="reviewModel" class="workspace-input" list="reviewModelList"><datalist id="reviewModelList"></datalist><label for="workerProvider">Fast worker provider</label><select id="workerProvider" class="workspace-input"><option value="brewkeg">Brewkeg</option><option value="openai">OpenAI direct</option><option value="anthropic">Anthropic direct</option></select><label for="workerModel">Fast worker model</label><input id="workerModel" class="workspace-input" list="workerModelList"><datalist id="workerModelList"></datalist></div>
+        </div>
+        <div class="workspace-actions"><button type="button" class="primary" id="runTeam">Run AI Team</button><button type="button" class="ghost" id="cancelTeam" disabled>Cancel</button><span id="teamStatus" class="status"></span></div>
+        <div id="teamOutput" class="workspace-output" aria-live="polite"></div>
+      </section>
+      <section class="workspace-panel" id="researchWorkspace" data-workspace="research" hidden>
+        <label for="researchQuery">Research question</label><textarea id="researchQuery" class="workspace-input" rows="3" maxlength="2000" placeholder="Search documentation, technical guidance, current information…"></textarea>
+        <div class="workspace-actions"><button type="button" class="primary" id="runResearch">Search web</button><label><input id="researchAttach" type="checkbox"> Attach findings to AI Team context</label><span id="researchStatus" class="status"></span></div><div id="researchOutput" class="workspace-output"></div>
+      </section>
+      <section class="workspace-panel" id="githubWorkspace" data-workspace="github" hidden>
+        <div class="two-col"><div><label for="ghRepo">Repository (owner/name)</label><input id="ghRepo" class="workspace-input" maxlength="120" placeholder="owner/repository"></div><div><label for="ghBranch">Branch</label><input id="ghBranch" class="workspace-input" maxlength="120" value="main"></div></div>
+        <div class="workspace-actions"><button type="button" class="primary" id="ghLoad">Load repository</button><button type="button" class="ghost" id="ghSearch">Search code</button><button type="button" class="ghost" id="ghCreateBranch">Create branch</button><span id="ghStatus" class="status"></span></div><div class="two-col"><div><label for="ghNewBranch">New branch name</label><input id="ghNewBranch" class="workspace-input" maxlength="120" placeholder="feature/my-change"></div><div><label for="ghBase">Base branch</label><input id="ghBase" class="workspace-input" maxlength="120" value="main"></div></div><label for="ghPRTitle">Pull request title</label><input id="ghPRTitle" class="workspace-input" maxlength="200" placeholder="Describe the change"><label for="ghPRBody">Pull request description</label><textarea id="ghPRBody" class="workspace-input" rows="3" maxlength="4000" placeholder="Summary, tests and risks…"></textarea><div class="workspace-actions"><button type="button" class="ghost" id="ghCreatePR">Create pull request</button></div>
+        <div id="ghOutput" class="workspace-output"></div>
+      </section>
+      <section class="workspace-panel" id="supabaseWorkspace" data-workspace="supabase" hidden>
+        <div class="two-col"><div><label for="sbUrl">Project URL</label><input id="sbUrl" class="workspace-input" maxlength="300" placeholder="https://your-project.supabase.co"></div><div><label for="sbKey">Publishable / anon key</label><input id="sbKey" class="workspace-input" type="password" maxlength="4096" autocomplete="off" placeholder="Public client key"></div></div>
+        <label for="sbTable">Table name (public schema)</label><input id="sbTable" class="workspace-input" maxlength="100" placeholder="table_name">
+        <div class="workspace-actions"><button type="button" class="primary" id="sbBrowse">Browse rows (read-only)</button><button type="button" class="ghost" id="sbSave">Save connection locally</button><label><input id="sbAttachRows" type="checkbox"> Attach selected rows to AI Team context</label><span id="sbStatus" class="status"></span></div>
+        <div class="two-col"><div><label for="sbPAT">Management API token (scoped PAT)</label><input id="sbPAT" class="workspace-input" type="password" maxlength="4096" autocomplete="off" placeholder="Optional, read-only scopes recommended"><button type="button" class="mini" id="sbSavePAT">Save token locally</button></div><div><label for="sbRef">Project reference</label><input id="sbRef" class="workspace-input" maxlength="20" placeholder="20-character project ref"></div></div>
+        <div class="workspace-actions"><button type="button" class="ghost" id="sbListProjects">List projects</button><button type="button" class="ghost" id="sbProjectDetails">Project details</button><button type="button" class="ghost" id="sbFunctions">Edge Functions</button><button type="button" class="ghost" id="sbBuckets">Storage buckets</button><span id="sbMgmtStatus" class="status"></span></div><div class="two-col"><div><label for="sbLogStart">Logs start</label><input id="sbLogStart" type="datetime-local" class="workspace-input"></div><div><label for="sbLogEnd">Logs end</label><input id="sbLogEnd" type="datetime-local" class="workspace-input"></div></div><div class="workspace-actions"><button type="button" class="ghost" id="sbLogs">Project logs (last hour)</button></div>
+        <label for="sbQuery">Read-only SQL query</label><textarea id="sbQuery" class="workspace-input" rows="4" maxlength="8000" placeholder="SELECT … FROM public.your_table LIMIT 25;"></textarea>
+        <div class="workspace-actions"><button type="button" class="primary" id="sbRunQuery">Run read-only query</button><label><input id="sbAttachQuery" type="checkbox"> Attach query results to AI Team context</label></div>
+        <p class="hintline">The table browser uses the publishable/anon key and Row Level Security. Management API access requires a scoped PAT. SQL uses Supabase's read-only endpoint; avoid side-effecting functions because read-only transactions do not prevent every function side effect. No service-role or secret API key is supported.</p><div id="sbOutput" class="workspace-output"></div>
+      </section>
+      <section class="workspace-panel" id="videoWorkspace" data-workspace="video" hidden>
+        <div class="two-col"><div><label for="videoMode">Video mode</label><select id="videoMode" class="workspace-input"><option value="stickman">Historical stickman animation</option><option value="roblox">Roblox story production kit</option></select></div><div><label for="videoTitle">Project title</label><input id="videoTitle" class="workspace-input" maxlength="120" placeholder="Video title"></div></div>
+        <label for="videoPrompt">Story idea</label><textarea id="videoPrompt" class="workspace-input" rows="3" maxlength="3000" placeholder="Describe the story or historical event…"></textarea>
+        <div class="workspace-actions"><button type="button" class="primary" id="videoGenerate">Generate storyboard</button><button type="button" class="ghost" id="videoPreview">Preview animation</button><button type="button" class="ghost" id="videoExport">Export WebM</button><button type="button" class="ghost" id="videoCancel" disabled>Cancel export</button><button type="button" class="ghost" id="videoSave">Save project</button><select id="videoProjectSelect" class="workspace-input" title="Saved video projects"></select><button type="button" class="ghost" id="videoLoad">Load</button><span id="videoStatus" class="status"></span></div>
+        <canvas id="videoCanvas" width="640" height="360" class="video-canvas" aria-label="Video preview"></canvas><div id="videoScenes" class="workspace-output"></div>
+      </section>
+    </section>
   </section>
-
   <section class="panel" id="chatPanel">
-    <div class="grip" id="chatGrip" role="separator" aria-orientation="horizontal"
-         tabindex="0" title="Drag to resize the chat, double-click to expand"></div>
-    <div class="panelhead">
-      <span class="ptitle">Chat</span>
-      <span id="chatStatus" class="chatstatus"></span>
-      <select id="logSel" class="logsel" title="Conversations"></select>
-      <label class="webchk" title="Search the web with Parallel before each reply">
-        <input type="checkbox" id="webOn"> Web
-      </label>
-      <button type="button" class="mini" id="newLog">New</button>
-      <button type="button" class="mini" id="delLog">Delete</button>
-      <button type="button" class="mini" id="chatGrow" title="Expand chat" aria-label="Expand chat">⤢</button>
-    </div>
-    <div id="chatLog" class="chatlog"></div>
-    <form id="chatForm" class="chatrow" autocomplete="off">
-      <input id="chatIn" type="text" placeholder="Ask about the code, or say what to change" maxlength="2000">
-      <button type="submit" class="primary" id="sendBtn">Send</button>
-    </form>
+    <div class="grip" id="chatGrip" role="separator" aria-orientation="horizontal" tabindex="0" title="Drag to resize the chat, double-click to expand"></div>
+    <div class="panelhead"><span class="ptitle">Chat</span><span id="chatStatus" class="chatstatus"></span><button type="button" class="mini" id="insertCode" title="Insert the latest assistant code block at the cursor or replace selected code" disabled>Insert code</button><select id="logSel" class="logsel" title="Conversations"></select><label class="webchk" title="Search the web with Parallel before each reply"><input type="checkbox" id="webOn"> Web</label><button type="button" class="mini" id="newLog">New</button><button type="button" class="mini" id="delLog">Delete</button><button type="button" class="mini" id="chatGrow" title="Expand chat" aria-label="Expand chat">⤢</button></div>
+    <div id="chatLog" class="chatlog"></div><form id="chatForm" class="chatrow" autocomplete="off"><input id="chatIn" type="text" placeholder="Ask about the code, or say what to change" maxlength="2000"><button type="submit" class="primary" id="sendBtn">Send</button></form>
   </section>
-
 </div>
-
-<dialog id="dlgSet">
-  <form id="setForm" method="dialog">
-    <h2>Claude Code settings</h2>
-    <p class="hintline">This key is separate from the assistant's key and is never included in a backup export.</p>
-    <label>brewkeg key <input id="ccKeyIn" type="password" placeholder="paste your key" autocomplete="off"></label>
-    <label>Parallel API key <input id="pcKeyIn" type="password" placeholder="only needed for web search" autocomplete="off"></label>
-    <p class="hintline">The Parallel key powers the <b>Web</b> toggle in the chat: each message is searched on
-      api.parallel.ai before the reply is written. It is stored locally and never exported.</p>
-    <label>Model
-      <select id="ccModel">
-        <option value="claude-sonnet-5-5">claude-sonnet-5-5</option>
-        <option value="claude-opus-5-5">claude-opus-5-5</option>
-        <option value="claude-haiku-5-5">claude-haiku-5-5</option>
-      </select>
-    </label>
-    <div id="setStatus" class="status"></div>
-    <div class="row">
-      <button type="button" class="ghost" id="setCancel">Cancel</button>
-      <button type="submit" class="primary">Save</button>
-    </div>
-  </form>
-</dialog>
-
-<dialog id="dlgPush">
-  <form id="pushForm" method="dialog">
-    <h2>Push to GitHub</h2>
-    <p class="hintline">Writes the file in the editor to a repo. You'll see the change before anything is sent.</p>
-    <label>Repository <input id="pushRepo" type="text" placeholder="owner/repo" maxlength="120"></label>
-    <label>Path <input id="pushPath" type="text" placeholder="src/example.js" maxlength="200"></label>
-    <label>Commit message <input id="pushMsg" type="text" maxlength="120"></label>
-    <div id="pushStatus" class="status"></div>
-    <div id="pushDiff" class="diffbox" hidden></div>
-    <div class="row">
-      <button type="button" class="ghost" id="pushCancel">Cancel</button>
-      <button type="button" class="ghost" id="pushReview">Review</button>
-      <button type="button" class="primary" id="pushGo" disabled>Push</button>
-    </div>
-  </form>
-</dialog>
-
-<script src="claude-app.js"></script>
+<dialog id="dlgSet"><form id="setForm" method="dialog">
+  <h2>AI Workspace settings</h2><p class="hintline">Credentials are stored in extension-local storage and excluded from backup exports. Never paste service-role secrets into the browser.</p>
+  <label>Brewkeg API key<input id="ccKeyIn" type="password" autocomplete="off" placeholder="Brewkeg key"></label>
+  <label>Parallel Search API key<input id="pcKeyIn" type="password" autocomplete="off" placeholder="Optional web-search key"></label>
+  <label>Chat provider<select id="ccProvider"><option value="brewkeg">Brewkeg compatible API</option><option value="openai">OpenAI direct</option><option value="anthropic">Anthropic direct</option></select></label>
+  <label>Model<input id="ccModel" list="ccModelList" maxlength="120" value="claude-sonnet-5-5"><datalist id="ccModelList"></datalist></label>
+  <label>OpenAI API key<input id="openAIKeyIn" type="password" autocomplete="off" placeholder="Optional direct API key"></label>
+  <label>Anthropic API key<input id="anthropicKeyIn" type="password" autocomplete="off" placeholder="Optional direct API key"></label>
+  <div id="setStatus" class="status"></div><div class="row"><button type="button" class="ghost" id="setCancel">Cancel</button><button type="submit" class="primary">Save</button></div>
+</form></dialog>
+<dialog id="dlgPush"><form id="pushForm" method="dialog"><h2>Push to GitHub</h2><p class="hintline">Writes the file in the editor to a repo. You'll see the change before anything is sent.</p><label>Repository<input id="pushRepo" type="text" placeholder="owner/repo" maxlength="120"></label><label>Path<input id="pushPath" type="text" placeholder="src/example.js" maxlength="200"></label><label>Branch<input id="pushBranch" type="text" maxlength="120" value="main"></label><label>Commit message<input id="pushMsg" type="text" maxlength="120"></label><div id="pushStatus" class="status"></div><div id="pushDiff" class="diffbox" hidden></div><div class="row"><button type="button" class="ghost" id="pushCancel">Cancel</button><button type="button" class="ghost" id="pushReview">Review</button><button type="button" class="primary" id="pushGo" disabled>Push</button></div></form></dialog>
+<script src="claude-app-providers.js"></script><script src="claude-app-workspaces.js"></script><script src="claude-app.js"></script>
 </body></html>
