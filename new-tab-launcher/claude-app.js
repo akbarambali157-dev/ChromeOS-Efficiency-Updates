@@ -21,6 +21,7 @@
      characters, and ten messages of history. That is why long answers looked
      cut off: the tail of the conversation fell out of the request. */
   var MAX_TOKENS = 4096;
+  var MAX_PROJECT_DATA_BYTES = 4.3 * 1024 * 1024;
   var FILE_BUDGET = 24000;   /* characters of file text across all open files */
   var HISTORY = 24;          /* messages of conversation sent back */
   var HISTORY_CHARS = 12000; /* per-message cap when replaying history */
@@ -110,7 +111,8 @@
     projectData[activeProjectId]=projectData[activeProjectId]||{};
     projectData[activeProjectId].files=files.map(function(f){return {id:f.id,name:f.name,content:f.content,attached:f.attached!==false};});
     projectData[activeProjectId].logs=logs.slice(0,MAX_LOGS).map(function(l){return {id:l.id,title:l.title,when:l.when,messages:l.messages.slice(-40)};});
-    chrome.storage.local.set({ccProjectData:projectData,ccActiveProject:activeProjectId});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){say('chatStatus','Project storage limit reached. Current data was not saved.',true);return;}
+    chrome.storage.local.set({ccProjectData:projectData,ccActiveProject:activeProjectId},function(){if(chrome.runtime.lastError)say('chatStatus','Could not save project data. Storage may be full.',true);});
   }
   function loadProject(id) {
     if(window.CCWorkspaces&&window.CCWorkspaces.flushProjectNotes)window.CCWorkspaces.flushProjectNotes();
@@ -153,6 +155,7 @@
     projects=projects.filter(function(x){return x.id!==p.id;});delete projectData[p.id];var next=projects[0].id;
     chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData},function(){if(chrome.runtime.lastError){say('chatStatus','Could not delete project.',true);return;}$('dlgProject').close();loadProject(next);say('chatStatus','Project deleted.');});
   }
+  function projectDataBytes() { return new TextEncoder().encode(JSON.stringify(projectData)).length; }
   function persistFiles(callback) {
     if (files.length > MAX_FILES) {
       if (callback) callback(false);
@@ -161,9 +164,9 @@
     var out = files.map(function (f) {
       return { id: f.id, name: f.name, content: f.content, attached: f.attached !== false };
     });
-    projectData[activeProjectId] = projectData[activeProjectId] || {}; projectData[activeProjectId].files = out; chrome.storage.local.set({ ccProjectData: projectData }, function () {
-      if (callback) callback(!chrome.runtime.lastError);
-    });
+    var previous=projectData[activeProjectId];projectData[activeProjectId]=Object.assign({},previous||{},{files:out});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){projectData[activeProjectId]=previous;say('chatStatus','Project storage limit reached (4.3 MiB across projects). Remove or shorten files before saving.',true);if(callback)callback(false);return;}
+    chrome.storage.local.set({ ccProjectData: projectData }, function () {if(callback)callback(!chrome.runtime.lastError);});
   }
 
   function saveFiles() {
@@ -246,7 +249,9 @@
     var out = logs.slice(0, MAX_LOGS).map(function (l) {
       return { id: l.id, title: l.title, when: l.when, messages: l.messages.slice(-40) };
     });
-    projectData[activeProjectId] = projectData[activeProjectId] || {}; projectData[activeProjectId].logs = out; chrome.storage.local.set({ ccProjectData: projectData });
+    var previous=projectData[activeProjectId];projectData[activeProjectId]=Object.assign({},previous||{},{logs:out});
+    if(projectDataBytes()>MAX_PROJECT_DATA_BYTES){projectData[activeProjectId]=previous;say('chatStatus','Conversation storage limit reached. Delete older conversations or shorten saved chats.',true);return;}
+    chrome.storage.local.set({ ccProjectData: projectData },function(){if(chrome.runtime.lastError)say('chatStatus','Could not save conversations. Storage may be full.',true);});
   }
 
   function newLog() {
@@ -757,7 +762,7 @@
     projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
     activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
     if(!projectData[activeProjectId]) projectData[activeProjectId]={files:Array.isArray(d.ccFiles)?d.ccFiles:[],logs:Array.isArray(d.ccLogs)?d.ccLogs:[]};
-    chrome.storage.local.set({ccProjects:projects,ccProjectData:projectData,ccActiveProject:activeProjectId});
+    var migrationWrite={ccProjects:projects,ccProjectData:projectData,ccActiveProject:activeProjectId};if(!Array.isArray(d.ccProjects)){migrationWrite.ccFiles=[];migrationWrite.ccLogs=[];}chrome.storage.local.set(migrationWrite,function(){if(chrome.runtime.lastError)say('chatStatus','Could not complete project migration. Storage may be full.',true);});
     files = Array.isArray(projectData[activeProjectId].files) ? projectData[activeProjectId].files.filter(function (f) {
       return f && typeof f.id === 'string' && typeof f.name === 'string' && typeof f.content === 'string';
     }).slice(0, MAX_FILES).map(function (f) {
