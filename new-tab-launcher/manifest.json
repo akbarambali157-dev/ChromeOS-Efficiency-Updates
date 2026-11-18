@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "5.0.0",
+  "version": "5.3.0",
   "description": "Lightweight Chromebook launcher with persistent AI project workspaces, a multi-model assistant, and animation studio.",
   "minimum_chrome_version": "103",
   "permissions": [
