@@ -305,3 +305,10 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
 .context-item-meta{font-size:11px;color:#8193a7;margin-top:3px;white-space:pre-wrap;overflow-wrap:anywhere}
 .context-dialog-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-top:1px solid #253241;color:#8294a8;font-size:11px}
 @media(max-width:500px){.context-summary{grid-template-columns:1fr 1fr}.context-summary .project-stat:first-child{grid-column:1/-1}}
+
+/* Safe code review before applying assistant output */
+#dlgCodeReview{width:min(900px,calc(100vw - 24px));max-height:90vh;padding:0;border:1px solid #2b3a4b;border-radius:14px;background:#101720;color:#dce8f3;box-shadow:0 20px 70px #0009}
+#dlgCodeReview::backdrop{background:#05080cbb}
+.code-review-meta{padding:10px 18px;color:#8294a8;font-size:11px;border-bottom:1px solid #253241}
+.code-review-label{display:block;padding:10px 18px 4px;font-size:11px;color:#8b9bb0;text-transform:uppercase;letter-spacing:.06em}
+#codeReviewText{display:block;margin:0 18px;width:calc(100% - 36px);height:min(48vh,440px);resize:vertical;border:1px solid #253241;border-radius:8px;background:#0c1219;color:#dce8f3;padding:12px;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:2}
