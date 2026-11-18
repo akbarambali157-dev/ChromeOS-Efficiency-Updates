@@ -169,6 +169,31 @@ function relayAnthropic(msg, sendResponse) {
     .catch(function (e) { sendResponse({ status: 0, text: String((e && e.message) || e) }); });
   return true;
 }
+/* Supabase Management API relay. The browser can call only project listing,
+   project detail, and the official read-only SQL endpoint. No arbitrary URL,
+   write endpoint, service-role key, or project mutation is relayed. */
+function relaySupabaseManagement(msg, sendResponse) {
+  if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
+    sendResponse({ status: 400, text: 'Invalid Supabase Management API request.' }); return true;
+  }
+  var path=String(msg.body.path||''),method=String(msg.body.method||'GET').toUpperCase(),body=msg.body.payload||null;
+  var project=/^\/v1\/projects\/([a-z]{20})$/.exec(path),query=/^\/v1\/projects\/([a-z]{20})\/database\/query\/read-only$/.exec(path);
+  var allowed=(path==='/v1/projects'&&method==='GET')||(project&&method==='GET')||(query&&method==='POST');
+  if(!allowed){sendResponse({status:403,text:'This Supabase operation is not enabled in the workspace.'});return true;}
+  var payload=null;
+  if(query){
+    var sql=body&&typeof body.query==='string'?body.query.trim():'';
+    if(!sql||sql.length>8000||/[;](?=\s*\S)/.test(sql)||! /^(select|with|values|table|show|explain)\b/i.test(sql)||/\b(insert|update|delete|drop|alter|create|truncate|grant|revoke|copy|call|do|execute|vacuum|set)\b/i.test(sql)||/\b(pg_terminate_backend|dblink|set_config|lo_import|lo_export|nextval|currval)\s*\(/i.test(sql)){
+      sendResponse({status:400,text:'Query rejected by the conservative read-only filter. Use a single SELECT/CTE/VALUES/TABLE/SHOW/EXPLAIN query without mutating statements or side-effecting functions.'});return true;
+    }
+    payload=JSON.stringify({query:sql});
+  }
+  fetch('https://api.supabase.com'+path,{method:method,headers:{'Authorization':'Bearer '+msg.key,'Accept':'application/json','Content-Type':'application/json'},body:payload})
+    .then(function(r){return r.text().then(function(t){sendResponse({status:r.status,text:t});});})
+    .catch(function(e){sendResponse({status:0,text:String((e&&e.message)||e)});});
+  return true;
+}
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
   if (msg.type === 'darkSync') { applyDark(); return; }
@@ -190,7 +215,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     return relayRequest(msg, sendResponse, 'https://brewkeg.dev/v1/chat/completions',
       'Authorization', 200000, 'Chat');
   }
-  if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
+  if (msg.type === 'supabase.management') return relaySupabaseManagement(msg, sendResponse);\n  if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
   if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse);
   if (msg.type === 'search') {
     return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
