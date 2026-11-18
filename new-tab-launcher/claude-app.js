@@ -708,7 +708,13 @@
         var a = files.filter(function (f) { return f.attached !== false && f.content; });
         return a.map(function (f) { return '--- ' + f.name + (activeFile && f.id === activeFile.id ? ' (active editor)' : '') + ' ---\n' + f.content; }).join('\n\n').slice(0, FILE_BUDGET);
       },
-      getSearchKey: function () { return pcKey; }
+      getSearchKey: function () { return pcKey; },
+      importFile: function (name, content) {
+        if (files.length >= MAX_FILES) return false;
+        var f={id:uid(),name:String(name||'remote-file').slice(0,60),content:String(content||'').slice(0,1048576),attached:true};
+        files.unshift(f);activeFile=f;persistFiles(function(ok){if(ok){renderFiles();loadEditor();$('contextStatus').textContent=files.filter(function(x){return x.attached!==false;}).length+' files in context';}});
+        return true;
+      }
     };
     $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
 
