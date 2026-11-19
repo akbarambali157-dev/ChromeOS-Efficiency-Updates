@@ -378,8 +378,14 @@
     return out.trim();
   }
   function requestAssistantWithResearch(messages,searchCount) {
-    return chatPost({model:model,messages:messages,max_tokens:MAX_TOKENS}).then(function(res){
-      var out=readAssistantText(res),match=out.match(/\[\[WEB_SEARCH:\s*([\s\S]*?)\]\]/i);
+    return CCResponse.request(provider,model,messages,MAX_TOKENS,
+      {brewkeg:ccKey,openai:openAIKey,anthropic:anthropicKey},'Assistant',function(info){
+        if(info&&info.stage==='continuing'){
+          cstat('Finishing your response…');
+          if(window.CCActivity)CCActivity.phase('Finishing your response…','The provider cut off the response. Continuing automatically ('+info.attempt+' of '+info.maxAttempts+').');
+        }
+      }).then(function(out){
+      var match=out.match(/\[\[WEB_SEARCH:\s*([\s\S]*?)\]\]/i);
       if(!match)return out;
       if(!pcKey)return 'I need web research for this part, but no Parallel key is saved. Add it in Settings and ask again.';
       if(searchCount>=2)return 'I reached the two-search limit for this reply. Ask a narrower follow-up for another search.';
@@ -536,7 +542,10 @@
     }).catch(function (e) {
       var m = e.message || 'Something went wrong.';
       if (m.indexOf('net:') === 0) m = 'Could not reach the model. Check your internet connection.';
-      pushMessage('assistant', m);
+      if(e&&e.partialText){
+        pushMessage('assistant',e.partialText+'\n\n[The response was cut off. Automatic continuation could not finish it.]');
+        cstat('Continuation stopped: '+m,true);
+      } else pushMessage('assistant', m);
     }).then(function () {
       if(window.CCActivity)CCActivity.end();
       busy = false;
