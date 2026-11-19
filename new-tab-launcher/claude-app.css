@@ -384,3 +384,7 @@ body.workspace-open .workspace-card{overflow-wrap:anywhere}
 .activity-indicator.continuing{border-color:#477d70;background:#10221e}
 .activity-indicator.continuing .activity-dot{width:9px;height:9px;flex-basis:9px;background:transparent;border:2px solid #7fd1b9;border-right-color:transparent;box-shadow:none;animation:cc-spin .8s linear infinite}
 @keyframes cc-spin{to{transform:rotate(360deg)}}
+
+/* Video Studio continuation status */
+.v45 .status.continuing{display:inline-flex;align-items:center;gap:7px;color:#9edcc8}
+.v45 .status.continuing::before{content:'';width:10px;height:10px;flex:0 0 10px;border:2px solid #7fd1b9;border-right-color:transparent;border-radius:50%;animation:cc-spin .8s linear infinite}
