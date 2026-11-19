@@ -1,6 +1,6 @@
 # My Launcher architecture
 
-**Release baseline:** 5.6.0 candidate  
+**Release baseline:** 5.7.0 candidate  
 **Implementation note:** target-device browser QA remains pending  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
@@ -37,7 +37,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | assistant-core.js | Shared assistant logic, speech, commands, context and Brewkeg requests |
 | assistant.js, orb.js | Full-page and floating assistant views; neither duplicates the assistant brain |
 | commandbar.js | Command matching, shortcuts, open tabs, bookmarks and history |
-| claude-app-creative-library.js | Lazy-loaded local creative-reference library; metadata, collections and profiles in IndexedDB, binary Blobs in a separate object store |
+| claude-app-creative-library.js | Lazy-loaded local creative-reference library; metadata, collections, profiles and bounded experiment records in IndexedDB, binary Blobs in a separate object store |
 | claude-app.js | Lightweight editor, chat, search, diff review and snapshot-bound GitHub push workflow |
 | github-api.js | Shared authenticated GitHub REST client and status/error handling |
 | github.js | GitHub dashboard, Codespaces, pull requests, commits and builds |
@@ -164,7 +164,7 @@ The 40-app catalogue, initial 12 complete apps, polished storefront, full backup
 - Backup/restore includes local app registrations and app data, with per-app and total byte limits. Credentials remain excluded.
 
 
-## Creative Library storage contract (5.6.0)
+## Recreation Lab contract (5.7.0)\n\nRecreation Lab is lazy-loaded independently and reuses the Creative Library IndexedDB database. Version 2 adds an experiments object store without changing existing asset, blob, collection or style-profile records. Each saved experiment is bounded to five references, eight criteria and fixed text limits; up to 100 experiments are retained. AI planning requires a per-run confirmation naming the selected provider/model. The request contains only the brief, style guidance and reference metadata; it never includes binary files or original file contents. Images and videos are not visually analysed. Generated plans, result notes and comparison notes are stored locally.\n\n## Creative Library storage contract (5.6.0)
 
 The Creative Library is loaded only when the user opens its navigation item. Its IndexedDB database, cc-creative-library, separates small asset metadata from the blobs store. Collection and style-profile records are independent object stores. The list view reads metadata only; a binary Blob is fetched only for the selected preview or an explicitly requested text analysis. The library is capped at 500 metadata records, imports at most eight files per batch, and enforces per-type size limits. It adds no host permission, background task or third-party dependency.
 
