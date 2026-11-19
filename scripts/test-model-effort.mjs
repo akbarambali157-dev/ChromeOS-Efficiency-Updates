@@ -29,6 +29,9 @@ assert.deepEqual(Array.from(gpt.supported),['low','medium','high','xhigh','max']
 assert.deepEqual(Array.from(gpt.reasoningModes),['standard','pro']);
 const luna=api.effortProfile('openai','gpt-6-luna');
 assert.equal(luna.supported[0],'none');
+const terra=api.effortProfile('openai','gpt-6.1-terra');
+assert.equal(terra.supported[0],'none');
+assert.equal(api.resolveEffort('openai','gpt-6.1-sol',{effort:'none'}).effort,'medium');
 
 const proxy=api.effortProfile('brewkeg','claude-opus-5-5');
 assert.deepEqual(Array.from(proxy.supported),['low','medium','high','xhigh','max']);
