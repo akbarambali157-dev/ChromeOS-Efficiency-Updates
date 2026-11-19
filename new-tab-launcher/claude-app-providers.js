@@ -58,13 +58,14 @@
         reasoningMode:options.reasoningMode||settings.reasoningMode
       });
       if(resolved.effort) {
-        if(provider==='anthropic') body.output_config={effort:resolved.effort};
+        if(provider==='anthropic'||(provider==='brewkeg'&&/^claude-/.test(body.model))) body.output_config={effort:resolved.effort};
+        if(provider==='brewkeg'&&/^gpt-/.test(body.model)) body.reasoning_effort=resolved.effort;
         if(provider==='openai') {
           body.reasoning={effort:resolved.effort};
           if(resolved.profile.reasoningModes.length)body.reasoning.mode=resolved.reasoningMode;
         }
       }
-      if(provider==='anthropic') {
+      if(provider==='anthropic'||(provider==='brewkeg'&&/^claude-/.test(body.model))) {
         var sys = messages.filter(function (m) { return m.role === 'system'; }).map(function (m) { return m.content; }).join('\n\n');
         body.system = sys;
         body.messages = messages.filter(function (m) { return m.role !== 'system'; });
