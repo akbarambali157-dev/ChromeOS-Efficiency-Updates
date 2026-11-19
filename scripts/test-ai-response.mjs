@@ -6,6 +6,11 @@ const box={window:{}};vm.runInNewContext(source,box);const api=box.window.CCResp
 assert.equal(api.extract({status:200,text:JSON.stringify({choices:[{finish_reason:'stop',message:{content:'Readable answer'}}]})},'test','model'),'Readable answer');
 assert.equal(api.extract({status:200,text:JSON.stringify({output_text:'Responses answer',status:'completed'})},'test','model'),'Responses answer');
 assert.equal(api.extract({status:200,text:JSON.stringify({content:[{type:'text',text:'Anthropic answer'}],stop_reason:'end_turn'})},'test','model'),'Anthropic answer');
+assert.equal(api.extract({status:200,text:JSON.stringify({output:[{type:'message',content:[{type:'output_text',text:'Nested output block'}]}],status:'completed'})},'test','model'),'Nested output block');
+assert.throws(()=>api.extract({status:200,requestId:'req-http200-error',text:JSON.stringify({error:{type:'server_error',message:'Provider reported an internal failure'}})},'test','model'),e=>e.status===200&&e.providerError&&/internal failure/.test(e.message)&&/req-http200-error/.test(e.diagnostic));
+assert.throws(()=>api.extract({status:200,text:JSON.stringify({id:'resp-tool-1',choices:[{finish_reason:'tool_calls',message:{content:''}}]})},'test','model'),e=>e.status===200&&/tool call/.test(e.diagnostic));
+assert.throws(()=>api.extract({status:200,text:'<html>upstream gateway page</html>'},'test','model'),e=>e.status===200&&/invalid response JSON/.test(e.message)&&/Raw response/.test(e.diagnostic));
+
 assert.equal(api.extract({status:200,text:JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:'Gemini answer'}]}}]})},'test','model'),'Gemini answer');
 assert.throws(()=>api.extract({status:200,text:JSON.stringify({candidates:[{finishReason:'MAX_TOKENS',content:{parts:[]}}]})},'test','model'),e=>e.finishReason==='length');
 assert.throws(()=>api.extract({status:200,text:JSON.stringify({choices:[{finish_reason:'length',message:{content:''}}]})},'reviewer','model'),e=>e.finishReason==='length'&&/no readable text/.test(e.message)&&!!e.diagnostic);
