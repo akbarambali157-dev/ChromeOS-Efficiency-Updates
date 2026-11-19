@@ -353,30 +353,7 @@
     return CCProviders.request(provider, body.model || model, body.messages || [], body.max_tokens || MAX_TOKENS,
       { brewkeg: ccKey, openai: openAIKey, anthropic: anthropicKey });
   }
-  function readAssistantText(res) {
-    if(!res||Number(res.status)<200||Number(res.status)>=300){
-      var code=Number(res&&res.status)||0,raw=String(res&&res.text||'').slice(0,800),detail=raw;
-      try{var j=JSON.parse(raw);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||raw;}catch(e){}
-      if(code===401)throw new Error('API key rejected (401). Check the selected provider key.');
-      if(code===402)throw new Error('Provider balance or quota exhausted (402).');
-      if(code===403)throw new Error('Access denied (403). Check model permissions.');
-      if(code===404)throw new Error('Model or endpoint not found (404). Check the model ID.');
-      if(code===413)throw new Error('Request too large (413). Reduce attached context.');
-      if(code===429)throw new Error('Rate limit reached (429). Wait before retrying.');
-      if(code>=500)throw new Error('Provider service error ('+code+'): '+detail);
-      if(code===400)throw new Error('Invalid provider request (400): '+detail);
-      if(code===0){var network=String(res&&res.text||detail||'No response from the extension service worker.');if(/timed out/i.test(network))throw new Error('Model request timed out after 90 seconds. Check your connection and retry.');if(/failed to fetch|network|load failed|connection/i.test(network))throw new Error('Model network request failed (HTTP 0). The extension could not reach the selected provider. Check internet access, provider availability and Chrome extension permissions. Details: '+network);throw new Error('Model request failed before an HTTP response (HTTP 0). Details: '+network);}
-      throw new Error('Model request failed ('+code+'): '+detail);
-    }
-    var d;try{d=JSON.parse(res.text||'{}');}catch(e){throw new Error('Provider returned invalid JSON: '+String(res.text||'').slice(0,500));}
-    function collect(v){if(typeof v==='string')return v;if(Array.isArray(v))return v.map(function(x){return typeof x==='string'?x:(x&&(x.text||x.content))||'';}).join('');if(v&&typeof v==='object')return String(v.text||v.content||'');return '';}
-    var choice=d&&d.choices&&d.choices[0],msg=choice&&choice.message,out=collect(msg&&(msg.content||msg.refusal));
-    if(!out&&d)out=collect(d.output_text||d.content);
-    if(!out&&d&&Array.isArray(d.output))out=d.output.map(function(x){return collect(x.content||x.text);}).join('');
-    if(!out)throw new Error('Provider returned HTTP '+res.status+' but no readable text. Response fields: '+Object.keys(d||{}).join(', ')+'. Raw response: '+String(res.text||'').slice(0,700));
-    if(choice&&choice.finish_reason==='length')out+='\n\n[The provider reached its output-token limit; this answer may be incomplete.]';
-    return out.trim();
-  }
+  function readAssistantText(res) { return CCResponse.extract(res,provider,model); }
   function requestAssistantWithResearch(messages,searchCount) {
     return CCResponse.request(provider,model,messages,MAX_TOKENS,
       {brewkeg:ccKey,openai:openAIKey,anthropic:anthropicKey},'Assistant',function(info){
@@ -880,6 +857,7 @@
   $('setForm').addEventListener('submit', function (e) {
     e.preventDefault();
     ccKey = $('ccKeyIn').value.trim();
+    effort = $('ccEffort').value || 'medium'; reasoningMode = $('ccReasoningMode').value || 'standard';
     pcKey = $('pcKeyIn').value.trim();
     openAIKey = $('openAIKeyIn').value.trim();
     anthropicKey = $('anthropicKeyIn').value.trim();
