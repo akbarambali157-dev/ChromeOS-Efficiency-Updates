@@ -830,7 +830,8 @@
     });
   }
 
-  function updateGlobalEffort(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.populateEffort($('ccEffort'),p,m,effort,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;if(!profile.reasoningModes.length)$('ccReasoningMode').value='standard';$('effortHelp').textContent=profile.note+' '+(profile.supported.length?'Available: '+profile.supported.join(', ')+'.':'Effort is not exposed for this provider/model combination.');}\n  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); updateGlobalEffort(); });\n  $('ccModel').addEventListener('change',updateGlobalEffort);
+  function updateGlobalEffort(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.populateEffort($('ccEffort'),p,m,effort,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;if(!profile.reasoningModes.length)$('ccReasoningMode').value='standard';$('effortHelp').textContent=profile.note+' '+(profile.supported.length?'Available: '+profile.supported.join(', ')+'.':'Effort is not exposed for this provider/model combination.');}
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); updateGlobalEffort(); });\n  $('ccModel').addEventListener('change',updateGlobalEffort);
   $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('testConnection').addEventListener('click',function(){
     var p=$('ccProvider').value,m=$('ccModel').value.trim(),keys={brewkeg:$('ccKeyIn').value.trim(),openai:$('openAIKeyIn').value.trim(),anthropic:$('anthropicKeyIn').value.trim()};
