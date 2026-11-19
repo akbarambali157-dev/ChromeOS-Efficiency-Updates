@@ -129,7 +129,7 @@ function relayOpenAI(msg, sendResponse) {
   }
   var payload;
   try {
-    var requestBody={model:String(msg.body.model||'').slice(0,120),input:Array.isArray(msg.body.messages)?msg.body.messages:[],max_output_tokens:Math.min(8192,Math.max(1,Number(msg.body.max_tokens)||2048))};
+    var requestBody={model:String(msg.body.model||'').slice(0,120),input:Array.isArray(msg.body.messages)?msg.body.messages:[],max_output_tokens:Math.min(16384,Math.max(1,Number(msg.body.max_tokens)||2048))};
     if(msg.body.reasoning&&typeof msg.body.reasoning==='object'){
       var effort=String(msg.body.reasoning.effort||'');
       var mode=String(msg.body.reasoning.mode||'standard');
