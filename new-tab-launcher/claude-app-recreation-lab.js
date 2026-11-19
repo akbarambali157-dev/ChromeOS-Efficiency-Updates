@@ -94,7 +94,8 @@ function generate(){
  ui.generate.disabled=true;ui.save.disabled=true;setStatus('Preparing a structured experiment…');var run=++generation;
  app.runCreativeExperiment(request).then(function(answer){
   if(!active||run!==generation)return;
-  var answerText=String(answer||'').trim();if(!answerText)throw new Error('The provider returned an empty response; no experiment was saved.');\n  ui.output.textContent=answerText.slice(0,16000);
+  var answerText=String(answer||'').trim();if(!answerText)throw new Error('The provider returned an empty response; no experiment was saved.');
+  ui.output.textContent=answerText.slice(0,16000);
   var record=currentRecord();record.generatedPlan=ui.output.textContent;
   return g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;ui.generate.disabled=false;ui.save.disabled=false;setStatus('Experiment plan generated and saved locally. Add your result and comparison notes, then save again.');});
  }).catch(function(e){if(active&&run===generation)setStatus('Experiment generation failed: '+(e.message||e),true);}).then(function(){if(active&&run===generation){ui.generate.disabled=false;ui.save.disabled=false;}});
