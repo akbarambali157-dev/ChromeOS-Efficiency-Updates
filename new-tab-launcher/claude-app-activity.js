@@ -7,9 +7,9 @@
   function render(){
     if(!active)return;
     var sec=elapsed(), label=continuing?'Finishing your response…':base;
-    if(sec>=30)label='Still working through this…';
+    if(!continuing){if(sec>=30)label='Still working through this…';
     else if(sec>=15)label='Taking a little longer to reason through this…';
-    else if(sec>=6)label='Reasoning through your request…';
+    else if(sec>=6)label='Reasoning through your request…';}
     if(agentName)label=agentName+' · '+label;
     var title=$('activityTitle'), detail=$('activityDetail'), time=$('activityTime'), box=$('activityIndicator');
     if(title)title.textContent=label;
