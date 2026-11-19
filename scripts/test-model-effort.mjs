@@ -38,6 +38,7 @@ assert.equal(api.resolveEffort('anthropic','claude-opus-5-5',{effort:'ultracode'
 await api.request('anthropic','claude-opus-5-5',[{role:'user',content:'test'}],1024,{anthropic:'key'},{effort:'xhigh'});
 assert.equal(calls[0].type,'provider.anthropic');
 assert.equal(calls[0].body.output_config.effort,'xhigh');
+assert.equal(calls[0].body.max_tokens,16384);
 assert.equal('reasoning' in calls[0].body,false);
 
 await api.request('openai','gpt-6-astra',[{role:'user',content:'test'}],1024,{openai:'key'},{effort:'high',reasoningMode:'pro'});
