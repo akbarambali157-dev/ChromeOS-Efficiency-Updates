@@ -88,7 +88,7 @@ function saveCurrent(){
  g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;setStatus('Experiment saved on this device.');}).catch(function(e){setStatus('Could not save experiment: '+(e.message||e),true);});
 }
 function loadExperiment(id){
- var record=experiments.filter(function(x){return x.id===id;})[0];if(!record){selectedId='';ui.delete.disabled=true;ui.output.textContent='Your generated plan will appear here.';ui.resultNotes.value='';ui.comparison.value='';return;}
+ var record=experiments.filter(function(x){return x.id===id;})[0];if(!record){selectedId='';scoreState={};renderScorecard();ui.delete.disabled=true;ui.output.textContent='Your generated plan will appear here.';ui.resultNotes.value='';ui.comparison.value='';return;}
  selectedId=record.id;ui.title.value=record.title||'';ui.brief.value=record.brief||'';ui.criteria.value=(record.criteria||[]).join('\n');scoreState={};(record.scores||[]).forEach(function(x){if(x&&x.criterion)scoreState[x.criterion]={score:String(x.score||''),note:String(x.note||'')};});renderScorecard();ui.output.textContent=record.generatedPlan||'No plan has been generated yet.';ui.resultNotes.value=record.resultNotes||'';ui.comparison.value=record.comparisonNotes||'';
  selectedRefs=(record.referenceIds||[]).filter(function(refId){return refs.some(function(r){return r.id===refId;});});renderProfiles(record.profileId||'');renderReferences();ui.delete.disabled=false;setStatus('Loaded saved experiment.');
 }
