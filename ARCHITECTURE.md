@@ -1,6 +1,6 @@
 # My Launcher architecture
 
-**Release baseline:** 5.7.0 candidate  
+**Release baseline:** 5.7.0 merged to main 19 November 2026  
 **Implementation note:** target-device browser QA remains pending  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
