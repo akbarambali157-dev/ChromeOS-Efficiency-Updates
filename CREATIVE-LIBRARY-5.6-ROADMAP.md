@@ -8,7 +8,7 @@ Limits: 500 metadata records, 8 files per import batch, 15 MiB per image, 50 MiB
 
 ## 5.7.0 — Recreation Lab (implementation candidate)
 
-Adds an independently lazy-loaded experiment workspace. Users can select up to five local references, choose a saved style profile, write a creative brief and up to eight comparison criteria, and request a structured plan with approaches, workflow and trade-offs. Every AI request requires confirmation naming the configured provider/model. Only the brief, style guidance and reference metadata (names, types, descriptions, tags and saved text analysis) are sent; original assets and file contents remain local. Experiments, generated plans, result notes and comparison notes persist in a versioned IndexedDB object store, with a 100-record limit. This is not image understanding, exact visual recreation or model training. Manual ChromeOS 103 / 2 GB RAM QA remains outstanding.
+Adds an independently lazy-loaded experiment workspace. Users can select up to five local references, choose a saved style profile, write a creative brief and up to eight comparison criteria, and request a structured plan with approaches, workflow and trade-offs. Every AI request requires confirmation naming the configured provider/model. Only the brief, style guidance and reference metadata (names, types, descriptions, tags and saved text analysis) are sent; original assets and file contents remain local. Experiments, generated plans, result notes, comparison notes and per-criterion 1–5 scores with evidence notes persist in a versioned IndexedDB object store, with a 100-record limit. This is not image understanding, exact visual recreation or model training. Manual ChromeOS 103 / 2 GB RAM QA remains outstanding.
 
 ## 5.8.0 — Video Studio Evolution
 
