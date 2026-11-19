@@ -16,7 +16,7 @@
     results.push(check('Main app script tag',!!document.querySelector('script[src="claude-app.js"]'),'claude-app.js is referenced by the page.'));
     results.push(check('Provider module',!!window.CCProviders||!!window.CCProvidersModule||!!window.CCProviders,'Provider module availability depends on its export.'));
     results.push(check('Workspace module',!!window.CCWorkspaces,'Workspace module export is available.'));
-    var required=['paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneSet','editor','dlgSet','videoWorkspace','creativeWorkspace','teamWorkspace','researchWorkspace','githubWorkspace','supabaseWorkspace'];
+    var required=['paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation','paneSet','editor','dlgSet','videoWorkspace','creativeWorkspace','recreationWorkspace','teamWorkspace','researchWorkspace','githubWorkspace','supabaseWorkspace'];
     var missing=required.filter(function(id){return !$(id);});
     results.push(check('Required interface elements',missing.length===0,missing.length?('Missing IDs: '+missing.join(', ')):'All '+required.length+' required elements found.'));
     var nav=['paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneSet'];
