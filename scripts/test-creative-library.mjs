@@ -44,6 +44,8 @@ assert.match(appSource,/getCreativeAnalysisTarget: function/,'the workspace must
 assert.match(workspaceSource,/current==='creative'&&g\.CCCreativeLibrary&&g\.CCCreativeLibrary\.suspend/,'switching to the editor/chat must release library media previews');
 assert.match(workspaceSource,/current==='creative'&&g\.CCCreativeLibrary&&g\.CCCreativeLibrary\.open/,'a late module load must not open the library after the user has left it');
 assert.match(source,/generation!==openGeneration/,'an in-flight library refresh must stop after the workspace is suspended');
+assert.match(source,/if\(!active\)return;.*renderCollections/s,'background completion must not rebuild hidden library UI');
+assert.match(source,/!active\|\|generation!==openGeneration/,'late preview loads must not allocate media URLs after the library is suspended');
 assert.match(source,/if\(asset\.type==='text'&&app&&app\.analyzeCreativeText\)/,'only text references may use the current provider bridge');
 assert.doesNotMatch(source,/new\s+FileReader\s*\(/);
 assert.doesNotMatch(source,/createImageBitmap\s*\(/);

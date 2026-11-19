@@ -4,7 +4,7 @@
 'use strict';
 var DB='cc-creative-library',VERSION=1,MAX_ASSETS=500,MAX_BATCH=8,PAGE=30,MAX_ANALYSIS=12000;
 var LIMITS={image:15*1024*1024,video:50*1024*1024,text:2*1024*1024,document:20*1024*1024};
-var db=null,dbPromise=null,app=null,root=null,ui=null,assets=[],collections=[],profiles=[],selectedId='',selectedProfileId='',objectUrl='',pageLimit=PAGE,openGeneration=0;
+var db=null,dbPromise=null,app=null,root=null,ui=null,assets=[],collections=[],profiles=[],selectedId='',selectedProfileId='',objectUrl='',pageLimit=PAGE,openGeneration=0,active=false;
 function uid(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
 function el(tag,value,cls){var n=document.createElement(tag);if(value!==undefined&&value!==null)n.textContent=value;if(cls)n.className=cls;return n;}
 function button(value,cls){var n=el('button',value,cls||'ghost');n.type='button';return n;}
@@ -153,14 +153,15 @@ function renderProfiles(){
 }
 function loadBlob(id){return txRun('blobs','readonly',function(tx){return tx.objectStore('blobs').get(id);});}
 function renderPreview(asset,box){
- releasePreview();box.textContent='';
+ var generation=openGeneration;releasePreview();box.textContent='';
+ if(!active)return;
  if(asset.type==='document'){box.appendChild(el('p','PDF stored locally. Text extraction and in-app PDF rendering are not included.','cl-muted'));return;}
  loadBlob(asset.id).then(function(record){
-  if(!record||!record.blob||selectedId!==asset.id)return;objectUrl=g.URL.createObjectURL(record.blob);
+  if(!active||generation!==openGeneration||!record||!record.blob||selectedId!==asset.id)return;objectUrl=g.URL.createObjectURL(record.blob);
   if(asset.type==='image'){var img=el('img');img.alt=asset.name;img.loading='lazy';img.src=objectUrl;img.className='cl-preview-image';box.appendChild(img);return;}
   if(asset.type==='video'){var video=el('video');video.controls=true;video.preload='metadata';video.playsInline=true;video.src=objectUrl;video.className='cl-preview-video';box.appendChild(video);box.appendChild(el('p','Only browser metadata/preview is requested; the full video is not decoded into app memory.','cl-muted'));return;}
-  if(asset.type==='text')record.blob.slice(0,49152).text().then(function(text){if(selectedId===asset.id)box.appendChild(el('pre',text.slice(0,MAX_ANALYSIS),'cl-preview-text'));});
- }).catch(function(e){if(selectedId===asset.id)box.appendChild(el('p','Preview unavailable: '+(e.message||e),'cl-muted'));});
+  if(asset.type==='text')record.blob.slice(0,49152).text().then(function(text){if(active&&generation===openGeneration&&selectedId===asset.id)box.appendChild(el('pre',text.slice(0,MAX_ANALYSIS),'cl-preview-text'));});
+ }).catch(function(e){if(active&&generation===openGeneration&&selectedId===asset.id)box.appendChild(el('p','Preview unavailable: '+(e.message||e),'cl-muted'));});
 }
 function renderDetail(){
  releasePreview();ui.detail.textContent='';var asset=activeAsset();if(!asset){ui.detail.appendChild(el('p','Select a reference to inspect it, or import your first file.','cl-empty'));return;}
@@ -196,7 +197,7 @@ function renderDetail(){
  else if(asset.type!=='text')ui.detail.appendChild(el('p','AI analysis is text-only in this release. This asset remains on-device.','cl-muted'));
  if(asset.analysis){ui.detail.appendChild(el('h4','Saved AI analysis'));ui.detail.appendChild(el('pre',asset.analysis,'cl-analysis'));}
 }
-function render(){renderCollections();renderProfiles();renderList();renderDetail();}
+function render(){if(!active)return;renderCollections();renderProfiles();renderList();renderDetail();}
 function refresh(generation){
  return Promise.all([getAll('assets'),getAll('collections'),getAll('profiles')]).then(function(v){
   if(generation!==openGeneration)return;
@@ -273,11 +274,11 @@ function analyzeText(asset){
 }
 function open(appInstance){
  app=appInstance||app;root=document.getElementById('creativeLibraryRoot');if(!root)return Promise.reject(new Error('Creative Library panel is missing.'));
- var generation=++openGeneration;
+ var generation=++openGeneration;active=true;
  if(!ui)buildUI();setStatus('Opening local Creative Library…');
  return openDb().then(ensureDefault).then(function(){return refresh(generation);}).then(function(){if(generation===openGeneration)setStatus(assets.length+' local reference(s) ready.');});
 }
-function suspend(){openGeneration++;if(ui&&ui.detail){var video=ui.detail.querySelector('video');if(video){try{video.pause();}catch(ignore){}}}releasePreview();}
+function suspend(){active=false;openGeneration++;if(ui&&ui.detail){var video=ui.detail.querySelector('video');if(video){try{video.pause();}catch(ignore){}}}releasePreview();}
 function close(){suspend();if(db){db.close();db=null;dbPromise=null;}}
 g.addEventListener('pagehide',suspend);
 g.CCCreativeLibrary=Object.freeze({open:open,suspend:suspend,close:close,test:Object.freeze({classifyFile:classifyFile,mimeFor:mimeFor,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,mergeAsset:mergeAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
