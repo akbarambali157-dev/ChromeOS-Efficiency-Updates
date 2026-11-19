@@ -178,7 +178,8 @@ function relayAnthropic(msg, sendResponse, useBrewkeg) {
     payload=JSON.stringify(requestBody);
   } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
-  var endpoint=useBrewkeg?'https://brewkeg.dev/v1/messages':'https://api.anthropic.com/v1/messages';\n  var authHeaders={'Content-Type':'application/json','anthropic-version':'2023-06-01'};if(useBrewkeg)authHeaders.Authorization='Bearer '+msg.key;else{authHeaders['x-api-key']=msg.key;authHeaders['anthropic-dangerous-direct-browser-access']='true';}\n  relayFetch(endpoint, { method: 'POST', headers: authHeaders, body: payload }, useBrewkeg?'Brewkeg Anthropic':'Anthropic')
+  var endpoint=useBrewkeg?'https://brewkeg.dev/v1/messages':'https://api.anthropic.com/v1/messages';
+  var authHeaders={'Content-Type':'application/json','anthropic-version':'2023-06-01'};if(useBrewkeg)authHeaders.Authorization='Bearer '+msg.key;else{authHeaders['x-api-key']=msg.key;authHeaders['anthropic-dangerous-direct-browser-access']='true';}\n  relayFetch(endpoint, { method: 'POST', headers: authHeaders, body: payload }, useBrewkeg?'Brewkeg Anthropic':'Anthropic')
     .then(function (r) {
       return r.text().then(function (t) {
         var requestId=r.headers.get('request-id')||r.headers.get('x-request-id')||'';
@@ -255,7 +256,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   }
   if (msg.type === 'supabase.management') return relaySupabaseManagement(msg, sendResponse);
   if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
-  if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse, false);\n  if (msg.type === 'provider.brewkegAnthropic') return relayAnthropic(msg, sendResponse, true);
+  if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse, false);
+  if (msg.type === 'provider.brewkegAnthropic') return relayAnthropic(msg, sendResponse, true);
   if (msg.type === 'search') {
     return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
       'x-api-key', 100000, 'Search');
