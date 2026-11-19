@@ -16,7 +16,8 @@ assert.deepEqual(JSON.parse(JSON.stringify(clean)),{id:'r1',name:'Poster',type:'
 assert.match(source,/No original image, video, PDF or other file contents are uploaded/);
 assert.match(source,/g\.CCCreativeLibrary\.openCatalog/);
 assert.match(source,/g\.CCCreativeLibrary\.saveExperiment/);
-assert.match(source,/g\.CCCreativeLibrary\.deleteExperiment/);\nassert.match(source,/return refresh\(\)\.then/,'opening the lab should use one bounded catalog refresh');\nassert.doesNotMatch(source,/Promise\.all\(\[g\.CCCreativeLibrary\.listReferences/,'avoid duplicate IndexedDB catalog reads');\nassert.match(source,/ui\.generate\.disabled=false;ui\.save\.disabled=false/,'controls must recover after reopening the workspace');
+assert.match(source,/g\.CCCreativeLibrary\.deleteExperiment/);
+assert.match(source,/return refresh\(\)\.then/,'opening the lab should use one bounded catalog refresh');\nassert.doesNotMatch(source,/Promise\.all\(\[g\.CCCreativeLibrary\.listReferences/,'avoid duplicate IndexedDB catalog reads');\nassert.match(source,/ui\.generate\.disabled=false;ui\.save\.disabled=false/,'controls must recover after reopening the workspace');
 assert.match(source,/confirm\(disclosure\+' Continue\?'\)/,'each provider run must require an explicit consent confirmation');
 const library=fs.readFileSync(new URL('../new-tab-launcher/claude-app-creative-library.js',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../new-tab-launcher/claude-app.js',import.meta.url),'utf8');
