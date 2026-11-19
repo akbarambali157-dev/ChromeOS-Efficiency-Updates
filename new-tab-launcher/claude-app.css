@@ -379,3 +379,8 @@ body.workspace-open .workspace-card{overflow-wrap:anywhere}
   .project-dashboard-open select{flex:1 1 100%}
   .project-dashboard-open button{width:100%}
 }
+
+/* 5.5 automatic response continuation indicator */
+.activity-indicator.continuing{border-color:#477d70;background:#10221e}
+.activity-indicator.continuing .activity-dot{width:9px;height:9px;flex-basis:9px;background:transparent;border:2px solid #7fd1b9;border-right-color:transparent;box-shadow:none;animation:cc-spin .8s linear infinite}
+@keyframes cc-spin{to{transform:rotate(360deg)}}
