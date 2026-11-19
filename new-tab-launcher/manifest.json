@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "5.6.0",
-  "description": "Lightweight Chromebook launcher with persistent AI workspaces, automatic response continuation, and a local creative reference library.",
+  "version": "5.7.0",
+  "description": "Lightweight Chromebook launcher with persistent AI workspaces, automatic response continuation, a local creative reference library, and structured creative experiments.",
   "minimum_chrome_version": "103",
   "permissions": [
     "storage",
