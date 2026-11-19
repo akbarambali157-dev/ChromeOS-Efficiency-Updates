@@ -9,7 +9,14 @@
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
   function context() { var base=app&&app.getContext?app.getContext().slice(0,48000):''; if($('researchAttach')&&$('researchAttach').checked&&researchContext)base+='\n\n--- Web research context ---\n'+researchContext; if($('sbAttachRows')&&$('sbAttachRows').checked&&supabaseRowsContext)base+='\n\n--- Supabase table rows ---\n'+supabaseRowsContext; if($('sbAttachQuery')&&$('sbAttachQuery').checked&&supabaseQueryContext)base+='\n\n--- Supabase read-only SQL results ---\n'+supabaseQueryContext; return base.slice(0,48000); }
   function settings() { return CCProviders.readSettings(); }
-  function reqText(provider, model, messages, tokens, keys) { return CCResponse.request(provider,model,messages,tokens,keys,'AI Team'); }
+  function reqText(provider, model, messages, tokens, keys) {
+    return CCResponse.request(provider,model,messages,tokens,keys,'AI Team',function(info){
+      if(info&&info.stage==='continuing'){
+        status('teamStatus','Finishing your response…');
+        if(window.CCActivity)CCActivity.phase('Finishing your response…','The '+(info.model||'AI Team agent')+' response was cut off. Continuing automatically ('+info.attempt+' of '+info.maxAttempts+').');
+      }
+    });
+  }
   function modelOpts(select, provider, chosen) { CCProviders.populate(select,provider,chosen); }
   function setWorkspace(name) {
     current=name;

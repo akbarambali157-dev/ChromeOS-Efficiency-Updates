@@ -20,5 +20,24 @@ vm.runInNewContext(source,retryBox);
 const recovered=await retryBox.window.CCResponse.request('brewkeg','test-model',[{role:'system',content:'system'},{role:'user',content:'task'}],4096,{},'test');
 assert.equal(recovered,'Recovered complete answer');
 assert.equal(calls,2);
-assert.equal(budgets[1],8192);
-console.log('AI response normalization tests passed (14 assertions).');
+assert.equal(budgets[1],4096);
+
+// Automatic continuation: preserve partial output, send compact context, and append once.
+let continuationCalls=0,continuationMessages=[],progressEvents=[];
+const continuationBox={window:{CCProviders:{request:(provider,model,messages,tokens)=>{continuationCalls++;continuationMessages.push(messages);return Promise.resolve({status:200,text:JSON.stringify(continuationCalls===1?{choices:[{finish_reason:'length',message:{content:'First part of the answer.'}}]}:{choices:[{finish_reason:'stop',message:{content:' Second part completes it.'}}]})});}}}};
+vm.runInNewContext(source,continuationBox);
+const continuation=await continuationBox.window.CCResponse.request('brewkeg','test-model',[{role:'system',content:'Be precise.'},{role:'user',content:'Explain the task.'}],2048,{},'test',e=>progressEvents.push(e));
+assert.equal(continuation,'First part of the answer.\nSecond part completes it.');
+assert.equal(continuationCalls,2);
+assert.equal(continuationMessages[1].some(m=>m.role==='assistant'&&m.content==='First part of the answer.'),true);
+assert.equal(continuationMessages[1].some(m=>m.role==='user'&&/Continue directly from its exact final character/.test(m.content)),true);
+assert.equal(progressEvents.length,1);
+assert.equal(progressEvents[0].stage,'continuing');
+// Repeated truncation is bounded and returns the accumulated partial response.
+let repeated=0;
+const boundedBox={window:{CCProviders:{request:()=>{repeated++;return Promise.resolve({status:200,text:JSON.stringify({choices:[{finish_reason:'length',message:{content:'part '+repeated}}]})});}}}};
+vm.runInNewContext(source,boundedBox);
+await assert.rejects(()=>boundedBox.window.CCResponse.request('brewkeg','test-model',[{role:'user',content:'Long task'}],1024,{},'test'),e=>String(e.partialText||'').replace(/\s+/g,'')==='part1part2part3'&&/could not complete/i.test(e.message));
+assert.equal(repeated,3);
+
+console.log('AI response normalization and continuation tests passed.');
