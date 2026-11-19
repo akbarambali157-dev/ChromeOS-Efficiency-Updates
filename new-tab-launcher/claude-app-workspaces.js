@@ -153,22 +153,24 @@
     }).catch(function(e){if(e&&e.partialText)$('teamOutput').appendChild(card('Incomplete output · not accepted',e.partialText));if(e&&e.diagnostic)$('teamOutput').appendChild(card('Model response diagnostics',e.diagnostic));progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
   function search(q) {
-    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g,' ').split(/\s+/).filter(function(x){return x.length>2;});
-    var queries=[words.slice(0,5).join(' '),words.slice(1,6).join(' ')].filter(function(x,i,a){return x&&a.indexOf(x)===i;});
-    if(!queries.length)queries=[raw.slice(0,180)];if(queries.length===1)queries.push((queries[0]+' overview').slice(0,180));
+    var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\\s.+#/_-]/g,' ').split(/\\s+/).filter(function(x){return x.length>1;});
+    function makeQuery(list,suffix){var out=list.slice(0,5);(suffix||[]).forEach(function(x){if(out.length<6&&out.indexOf(x)<0)out.push(x);});while(out.length<3)out.push(['latest','official','sources'][out.length]||'research');return out.slice(0,6).join(' ');}
+    var base=words.slice(0,5),shift=words.slice(1,6),queries=[makeQuery(base,['latest','official','sources']),makeQuery(shift.length?shift:base,['official','documentation','updates'])];
+    if(queries[0]===queries[1])queries[1]=makeQuery(base.slice(-3),['official','documentation','updates']);
+    queries=queries.filter(function(x,i,all){return x&&all.indexOf(x)===i;}).slice(0,3);
     var objective='Find reliable, current sources that answer: '+raw;
     return new Promise(function(resolve,reject){
-      function dispatch(body,retried){
+      function dispatch(body,retried,firstFailure){
         chrome.runtime.sendMessage({type:'search',key:app&&app.getSearchKey?app.getSearchKey():'',body:body},function(r){
           if(chrome.runtime.lastError||!r)return reject(new Error('Parallel relay unavailable: '+((chrome.runtime.lastError&&chrome.runtime.lastError.message)||'no response')));
-          var code=Number(r.status)||0,detail=String(r.text||'').slice(0,700);
-          if(code===400&&!retried){dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast'},true);return;}
-          if(code===401||code===403)return reject(new Error('Parallel rejected the saved key (HTTP '+code+'). Check the key and permissions.'));
-          if(code<200||code>=300){try{var j=JSON.parse(detail);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||detail;}catch(e){}return reject(new Error('Parallel Search failed (HTTP '+(code||'network')+'): '+detail));}
-          try{resolve(JSON.parse(r.text||'{}'));}catch(e){reject(new Error('Parallel returned invalid JSON: '+detail.slice(0,300)));}
+          var code=Number(r.status)||0;
+          if((code===400||code===422)&&!retried){dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast'},true,null);return;}
+          if(code<200||code>=300){var detail=String(r.text||'').slice(0,700);try{var j=JSON.parse(detail);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||detail;}catch(ignore){}var failure=new Error('Parallel Search failed (HTTP '+(code||'network')+'): '+detail);failure.status=code;failure.diagnostic='HTTP: '+code+'\\nContent-Type: '+(r.contentType||'not supplied')+'\\nRequest ID: '+(r.requestId||'not supplied')+'\\nResponse excerpt:\\n'+String(r.text||'').slice(0,2000);return reject(failure);}
+          try{return resolve(CCParallelSearch.parseResponse(code,r.text,{contentType:r.contentType,requestId:r.requestId}));}
+          catch(e){if(!retried&&(e.kind==='malformed_json'||e.kind==='empty'||e.kind==='invalid_shape')){dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast'},true,e);return;}if(firstFailure)e.diagnostic+='\\n\\nFirst attempt also failed: '+firstFailure.message+'\\n'+(firstFailure.diagnostic||'');reject(e);}
         });
       }
-      dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}},false);
+      dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}},false,null);
     });
   }
   function runResearch() {
