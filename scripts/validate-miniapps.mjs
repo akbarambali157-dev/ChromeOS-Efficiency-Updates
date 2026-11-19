@@ -28,6 +28,8 @@ const claudeActivity = read('new-tab-launcher/claude-app-activity.js');
 const claudeCss = read('new-tab-launcher/claude-app.css');
 const claudeProviders = read('new-tab-launcher/claude-app-providers.js');
 const claudeResponse = read('new-tab-launcher/claude-app-response.js');
+const claudeParallelSearch = read('new-tab-launcher/claude-app-parallel-search.js');
+const parallelSearchTests = read('scripts/test-parallel-search.mjs');
 const claudeWorkspaces = read('new-tab-launcher/claude-app-workspaces.js');
 const claudeVideo = read('new-tab-launcher/claude-app-video-studio.js');
 const aiResponseTests = read('scripts/test-ai-response.mjs');
@@ -99,6 +101,9 @@ check(claudeVideo.includes('id="v45TestWriter"') && claudeVideo.includes('id="v4
 check(claudeVideo.includes('id="v45Status"'), 'Video Studio status target must exist.');
 check(claudeWorkspaces.includes('CCResponse.request') && !claudeWorkspaces.includes('function responseContent(d)'), 'AI Team must use shared response extraction.');
 check(claudeWorkspaces.includes('Finishing your response') && claudeVideo.includes('Finishing your response') && claudeApp.includes('CCResponse.request(provider,model,messages,MAX_TOKENS'), 'Main chat, AI Team and Video Studio must all use automatic continuation.');
+check(claudeHtml.includes('claude-app-parallel-search.js') && claudeHtml.indexOf('claude-app-parallel-search.js') < claudeHtml.indexOf('claude-app-workspaces.js'), 'Parallel Search normalizer must load before the research workspace.');
+check(claudeWorkspaces.includes('CCParallelSearch.parseResponse') && claudeParallelSearch.includes('function parseResponse'), 'Parallel Search must use its dedicated response normalizer.');
+check(parallelSearchTests.includes('malformed_json') && parallelSearchTests.includes('invalid_shape') && parallelSearchTests.includes('empty'), 'Parallel Search regression tests must cover malformed, unexpected-shape and empty responses.');
 check(claudeResponse.includes('finishReason') && claudeResponse.includes('partialText') && claudeResponse.includes('parseObject'), 'Shared response module must preserve truncation metadata.');
 check(claudeResponse.includes('compactMessages') && claudeResponse.includes('maxAttempts:2') && claudeResponse.includes('Continue directly from its exact final character'), 'Shared response module must automatically continue truncated responses with compact context and a bounded retry count.');
 check(claudeActivity.includes('Finishing your response') && claudeActivity.includes("classList.toggle('continuing'" ) && claudeCss.includes('.activity-indicator.continuing'), 'Automatic continuation must have a dedicated loading state.');

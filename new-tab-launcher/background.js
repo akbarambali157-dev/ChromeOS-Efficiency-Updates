@@ -112,7 +112,7 @@ function relayRequest(msg, sendResponse, endpoint, authHeader, maxLength, label)
   headers[authHeader] = authHeader === 'Authorization' ? 'Bearer ' + msg.key : msg.key;
   relayFetch(endpoint, { method: 'POST', headers: headers, body: payload }, label)
     .then(function (r) {
-      return r.text().then(function (t) { sendResponse({ status: r.status, text: t }); });
+      return r.text().then(function (t) { sendResponse({ status: r.status, text: t, contentType: r.headers.get('content-type') || '', requestId: r.headers.get('x-request-id') || r.headers.get('request-id') || '' }); });
     })
     .catch(function (e) {
       sendResponse({ status: 0, code: e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR', text: e && e.name === 'AbortError' ? 'Request timed out after 90 seconds.' : 'Network error: '+String((e && e.message) || e) });

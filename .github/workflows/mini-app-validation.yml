@@ -39,6 +39,8 @@ jobs:
           done < <(find new-tab-launcher -type f -name '*.js' -print0)
       - name: Test shared AI response normalization and continuation
         run: node scripts/test-ai-response.mjs
+      - name: Test Parallel Search response handling
+        run: node scripts/test-parallel-search.mjs
       - name: Test Creative Library validation and privacy contracts
         run: node scripts/test-creative-library.mjs
       - name: Test Recreation Lab structure and privacy contracts

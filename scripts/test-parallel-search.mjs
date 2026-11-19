@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=fs.readFileSync(new URL('../new-tab-launcher/claude-app-parallel-search.js',import.meta.url),'utf8');
+const box={window:{}};vm.runInNewContext(source,box);const api=box.window.CCParallelSearch;
+const payload={search_id:'search_test',session_id:'session_test',results:[{title:'Official source',url:'https://example.com/docs',excerpts:['Relevant passage']},{title:'Second source',url:'https://example.org',excerpts:[{text:'Another passage'}]}],warnings:[],usage:[]};
+const parsed=api.parseResponse(200,JSON.stringify(payload),{contentType:'application/json',requestId:'req-1'});
+assert.equal(parsed.results.length,2);assert.equal(parsed.results[0].title,'Official source');assert.equal(parsed.results[1].excerpts[0],'Another passage');assert.equal(parsed.search_id,'search_test');
+assert.deepEqual(JSON.parse(JSON.stringify(api.parseResponse(200,JSON.stringify({results:[]})).results)),[]);
+assert.throws(()=>api.parseResponse(200,''),e=>e.kind==='empty'&&e.status===200&&!!e.diagnostic);
+assert.throws(()=>api.parseResponse(200,'<html><body>proxy error</body></html>',{contentType:'text/html'}),e=>e.kind==='malformed_json'&&/HTML or proxy page/.test(e.message)&&/text\/html/.test(e.diagnostic));
+assert.throws(()=>api.parseResponse(200,'{bad json'),e=>e.kind==='malformed_json'&&e.diagnostic.includes('Response excerpt'));
+assert.throws(()=>api.parseResponse(200,JSON.stringify({error:{message:'Invalid request'}})),e=>e.kind==='provider_error'&&/Invalid request/.test(e.message));
+assert.throws(()=>api.parseResponse(200,JSON.stringify({ok:true})),e=>e.kind==='invalid_shape'&&/results array/.test(e.message));
+assert.throws(()=>api.parseResponse(200,JSON.stringify({results:[{title:'No URL',excerpts:['text']}]})),e=>e.kind==='invalid_results');
+assert.throws(()=>api.parseResponse(503,'upstream unavailable'),e=>e.kind==='http_error'&&e.status===503);
+console.log('Parallel Search response handling tests passed.');
