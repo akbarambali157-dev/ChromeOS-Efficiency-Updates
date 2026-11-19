@@ -19,7 +19,7 @@
     var required=['paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation','paneSet','editor','dlgSet','videoWorkspace','creativeWorkspace','recreationWorkspace','teamWorkspace','researchWorkspace','githubWorkspace','supabaseWorkspace'];
     var missing=required.filter(function(id){return !$(id);});
     results.push(check('Required interface elements',missing.length===0,missing.length?('Missing IDs: '+missing.join(', ')):'All '+required.length+' required elements found.'));
-    var nav=['paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneSet'];
+    var nav=['paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation','paneSet'];
     var navMissing=nav.filter(function(id){return !$(id)||!$(id).matches('button,a');});
     results.push(check('Navigation controls',navMissing.length===0,navMissing.length?('Missing or invalid controls: '+navMissing.join(', ')):'All navigation controls exist.'));
     results.push(check('Chrome extension storage API',!!(window.chrome&&chrome.storage&&chrome.storage.local),'chrome.storage.local is '+(window.chrome&&chrome.storage&&chrome.storage.local?'available':'unavailable')));
