@@ -37,7 +37,7 @@ assert.equal(progressEvents[0].stage,'continuing');
 let repeated=0;
 const boundedBox={window:{CCProviders:{request:()=>{repeated++;return Promise.resolve({status:200,text:JSON.stringify({choices:[{finish_reason:'length',message:{content:'part '+repeated}}]})});}}}};
 vm.runInNewContext(source,boundedBox);
-await assert.rejects(()=>boundedBox.window.CCResponse.request('brewkeg','test-model',[{role:'user',content:'Long task'}],1024,{},'test'),e=>String(e.partialText||'').replace(/\\s+/g,'')==='part1part2part3'&&/could not complete/i.test(e.message));
+await assert.rejects(()=>boundedBox.window.CCResponse.request('brewkeg','test-model',[{role:'user',content:'Long task'}],1024,{},'test'),e=>String(e.partialText||'').replace(/\s+/g,'')==='part1part2part3'&&/could not complete/i.test(e.message));
 assert.equal(repeated,3);
 
 console.log('AI response normalization and continuation tests passed.');
