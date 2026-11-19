@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 5.6.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; device QA pending)
+**Version 5.7.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; device QA pending)
 
 ---
 
@@ -18,7 +18,7 @@ optional background auto-suspend alarm exists only when that feature is enabled.
 
 **Creative Library (5.6.0)** — a lazily loaded reference workspace for local PNG/JPEG/WebP images, MP4/WebM videos, TXT/Markdown text and PDFs. Asset metadata and binary Blobs are stored separately in IndexedDB, so browsing a collection does not load every image or video into memory. Collections, tags, descriptions, notes, reusable style profiles and project associations persist locally. The library previews only the selected item and releases preview object URLs when selection changes. Video previews request metadata only; the app does not decode whole videos locally. Text-reference AI analysis is an explicit, per-action choice and sends at most the first 12,000 characters after a confirmation prompt. Image/video AI analysis and PDF text extraction are not enabled in this release; those assets remain local. No new extension permissions or external dependencies are added.
 
-## Install
+**Recreation Lab (5.7.0)** — a lazy-loaded experiment workbench built on the Creative Library. Choose up to five local references and a reusable style profile, define comparison criteria, and ask the configured text model for a structured experiment plan with alternatives, workflow and trade-offs. Every AI run requires explicit confirmation. Only the brief, style guidance and reference metadata (names, types, descriptions, tags and saved text analysis) are sent; original images, videos, PDFs and file contents are not uploaded. Save experiments locally, reload them later, and record results and comparison notes side by side. This is structured creative planning, not model training or automatic visual replication.\n\n## Install
 
 1. Open `chrome://extensions`
 2. Turn on **Developer mode**
