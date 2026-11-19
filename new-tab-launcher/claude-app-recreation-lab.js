@@ -96,12 +96,12 @@ function generate(){
   if(!active||run!==generation)return;
   ui.output.textContent=String(answer||'').slice(0,16000)||'The provider returned an empty experiment plan.';
   var record=currentRecord();record.generatedPlan=ui.output.textContent;
-  return g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;setStatus('Experiment plan generated and saved locally. Add your result and comparison notes, then save again.');});
+  return g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;ui.generate.disabled=false;setStatus('Experiment plan generated and saved locally. Add your result and comparison notes, then save again.');});
  }).catch(function(e){if(active&&run===generation)setStatus('Experiment generation failed: '+(e.message||e),true);}).then(function(){if(active&&run===generation)ui.generate.disabled=false;});
 }
 function open(appInstance){
  app=appInstance||app;root=document.getElementById('recreationLabRoot');if(!root)return Promise.reject(new Error('Recreation Lab panel is missing.'));
- active=true;if(!ui)build();setStatus('Loading local references and experiments…');
+ active=true;if(!ui)build();ui.generate.disabled=false;setStatus('Loading local references and experiments…');
  return g.CCCreativeLibrary.openCatalog().then(refresh).then(function(){if(active)setStatus(refs.length+' references and '+experiments.length+' saved experiments ready.');});
 }
 function suspend(){active=false;generation++;}
