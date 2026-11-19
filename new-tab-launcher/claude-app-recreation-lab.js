@@ -103,7 +103,7 @@ function generate(){
  if(!refsSelected.length)return setStatus('Choose at least one reference from your Creative Library.',true);
  var profile=profiles.filter(function(p){return p.id===ui.profile.value;})[0]||null,criteria=criteriaList(ui.criteria.value);
  var target=app.getCreativeAnalysisTarget?app.getCreativeAnalysisTarget():{},destination=String(target.provider||'selected provider')+(target.model?' · '+target.model:'');
- var disclosure='This request sends only your brief, '+(profile?'the selected style profile guidance, ':'')+'reference names, file types, descriptions, tags and saved text analysis, and comparison criteria to '+destination+'. No original image, video, PDF or other file contents are uploaded.';
+ var disclosure='This request sends only your brief, '+(profile?'the selected style profile name, description and guidance, ':'')+'reference names, file types, descriptions, tags and saved text analysis, and comparison criteria to '+destination+'. No original image, video, PDF or other file contents are uploaded.';
  if(!g.confirm(disclosure+' Continue?'))return;
  var request={title:ui.title.value.trim().slice(0,100),brief:brief,profile:profile?{name:profile.name,prompt:profile.prompt,description:profile.description}:null,references:refsSelected,criteria:criteria};
  ui.generate.disabled=true;ui.save.disabled=true;setStatus('Preparing a structured experiment…');var run=++generation;
