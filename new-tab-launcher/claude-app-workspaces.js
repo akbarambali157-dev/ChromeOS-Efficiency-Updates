@@ -98,8 +98,20 @@
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');}); $('paneFiles').classList.add('on');
     current='editor';
   }
+  function syncTeamEffort(role) {
+    var providerId=role==='lead'?'teamProvider':role==='reviewer'?'reviewProvider':'workerProvider';
+    var modelId=role==='lead'?'teamModel':role==='reviewer'?'reviewModel':'workerModel';
+    var effortId=role==='lead'?'teamEffort':role==='reviewer'?'reviewEffort':'workerEffort';
+    var selected=$(effortId)?$(''+effortId).value:'inherit';
+    CCProviders.populateEffort($(effortId),$(providerId).value,$(modelId).value,selected,true);
+  }
   function initTeam() {
-    settings().then(function(s){$('teamProvider').value=s.provider; $('reviewProvider').value=s.provider; $('workerProvider').value=s.provider; modelOpts($('teamModel'),s.provider,s.model); modelOpts($('reviewModel'),s.provider,s.model); modelOpts($('workerModel'),s.provider,s.provider==='brewkeg'?'claude-haiku-5-5':s.model);});
+    settings().then(function(s){
+      $('teamProvider').value=s.provider;$('reviewProvider').value=s.provider;$('workerProvider').value=s.provider;
+      modelOpts($('teamModel'),s.provider,s.model);modelOpts($('reviewModel'),s.provider,s.model);
+      modelOpts($('workerModel'),s.provider,s.provider==='brewkeg'?'claude-haiku-5-5':s.model);
+      ['lead','reviewer','worker'].forEach(syncTeamEffort);
+    });
   }
   function testTeamRole(role) {
     var providerId=role==='lead'?'teamProvider':role==='reviewer'?'reviewProvider':'workerProvider';
@@ -335,9 +347,12 @@
     $('projectTaskForm').addEventListener('submit',addProjectTask);
     $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
     ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation'].forEach(function(id){$(id).addEventListener('click',function(){var name={paneTeam:'team',paneResearch:'research',paneGitHub:'github',paneSupabase:'supabase',paneVideo:'video',paneCreative:'creative',paneRecreation:'recreation'}[id];setWorkspace(name);});});
-    $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
-    $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
-    $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);});});
+    $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);syncTeamEffort('lead');});});
+    $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);syncTeamEffort('reviewer');});});
+    $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);syncTeamEffort('worker');});});
+    $('teamModel').addEventListener('change',function(){syncTeamEffort('lead');});
+    $('reviewModel').addEventListener('change',function(){syncTeamEffort('reviewer');});
+    $('workerModel').addEventListener('change',function(){syncTeamEffort('worker');});
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('teamTestLead').addEventListener('click',function(){testTeamRole('lead');});$('teamTestReviewer').addEventListener('click',function(){testTeamRole('reviewer');});$('teamTestWorker').addEventListener('click',function(){testTeamRole('worker');});
