@@ -21,10 +21,10 @@
   function keyFor(settings, provider) { return settings.keys[provider] || ''; }
   function effortProfile(provider, model) {
     provider=String(provider||'').toLowerCase();model=String(model||'').toLowerCase();
-    if(provider==='anthropic' && /^claude-(opus|sonnet|haiku)-5-5$/.test(model)) {
+    if((provider==='anthropic'||provider==='brewkeg') && /^claude-(opus|sonnet|haiku)-5-5$/.test(model)) {
       return {supported:EFFORTS.slice(),defaultEffort:model.indexOf('sonnet')>=0?'high':'medium',parameter:'output_config.effort',reasoningModes:[],note:'Anthropic Messages API effort control.'};
     }
-    if(provider==='openai') {
+    if(provider==='brewkeg' && (model==='gpt-6-astra'||model==='gpt-6.1-sol')) return {supported:EFFORTS.slice(),defaultEffort:'medium',parameter:'reasoning_effort',reasoningModes:[],note:'Brewkeg OpenAI-compatible chat endpoint; reasoning_effort is forwarded for this GPT model.'};\n    if(provider==='brewkeg' && model==='gpt-6-luna') return {supported:['none'].concat(EFFORTS),defaultEffort:'medium',parameter:'reasoning_effort',reasoningModes:[],note:'Brewkeg OpenAI-compatible chat endpoint; reasoning_effort is forwarded for this GPT model.'};\n    if(provider==='openai') {
       if(model==='gpt-6-astra'||model==='gpt-6.1-sol') return {supported:EFFORTS.slice(),defaultEffort:'medium',parameter:'reasoning.effort',reasoningModes:['standard','pro'],note:'OpenAI Responses API reasoning control.'};
       if(model==='gpt-6-luna') return {supported:['none'].concat(EFFORTS),defaultEffort:'medium',parameter:'reasoning.effort',reasoningModes:['standard','pro'],note:'OpenAI Responses API reasoning control.'};
     }
@@ -66,7 +66,7 @@
         var sys = messages.filter(function (m) { return m.role === 'system'; }).map(function (m) { return m.content; }).join('\n\n');
         body.system = sys;
         body.messages = messages.filter(function (m) { return m.role !== 'system'; });
-        return relay('provider.anthropic', key, body);
+        return relay(provider==='anthropic'?'provider.anthropic':'provider.brewkegAnthropic', key, body);
       }
       return relay(provider === 'openai' ? 'provider.openai' : 'chat', key, body);
     }
