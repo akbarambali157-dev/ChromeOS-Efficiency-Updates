@@ -41,5 +41,7 @@ jobs:
         run: node scripts/test-ai-response.mjs
       - name: Test Creative Library validation and privacy contracts
         run: node scripts/test-creative-library.mjs
+      - name: Test Recreation Lab structure and privacy contracts
+        run: node scripts/test-recreation-lab.mjs
       - name: Validate mini-app contracts
         run: node scripts/validate-miniapps.mjs

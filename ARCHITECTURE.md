@@ -1,6 +1,6 @@
 # My Launcher architecture
 
-**Release baseline:** 5.6.0 candidate  
+**Release baseline:** 5.7.0 candidate  
 **Implementation note:** target-device browser QA remains pending  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
@@ -37,7 +37,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | assistant-core.js | Shared assistant logic, speech, commands, context and Brewkeg requests |
 | assistant.js, orb.js | Full-page and floating assistant views; neither duplicates the assistant brain |
 | commandbar.js | Command matching, shortcuts, open tabs, bookmarks and history |
-| claude-app-creative-library.js | Lazy-loaded local creative-reference library; metadata, collections and profiles in IndexedDB, binary Blobs in a separate object store |
+| claude-app-creative-library.js | Lazy-loaded local creative-reference library; metadata, collections, profiles and bounded experiment records in IndexedDB, binary Blobs in a separate object store |
 | claude-app.js | Lightweight editor, chat, search, diff review and snapshot-bound GitHub push workflow |
 | github-api.js | Shared authenticated GitHub REST client and status/error handling |
 | github.js | GitHub dashboard, Codespaces, pull requests, commits and builds |
@@ -163,6 +163,10 @@ The 40-app catalogue, initial 12 complete apps, polished storefront, full backup
 - Workspace appearance now reads the launcher's theme, custom accent palette, text size, density, high-contrast and reduced-motion preferences and propagates them to the sandboxed app.
 - Backup/restore includes local app registrations and app data, with per-app and total byte limits. Credentials remain excluded.
 
+
+## Recreation Lab contract (5.7.0)
+
+Recreation Lab is lazy-loaded independently and reuses the Creative Library IndexedDB database. Version 2 adds an experiments object store without changing existing asset, blob, collection or style-profile records. Each saved experiment is bounded to five references, eight criteria, eight 1–5 score entries and fixed text limits; up to 100 experiments are retained. AI planning requires a per-run confirmation naming the selected provider/model. The request contains only the brief, style guidance and reference metadata; it never includes binary files or original file contents. Images and videos are not visually analysed. Generated plans, result notes and comparison notes are stored locally.
 
 ## Creative Library storage contract (5.6.0)
 

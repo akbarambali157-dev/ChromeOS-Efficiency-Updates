@@ -2,7 +2,7 @@
    Binary assets stay in IndexedDB; list rendering reads metadata only. */
 (function(g){
 'use strict';
-var DB='cc-creative-library',VERSION=1,MAX_ASSETS=500,MAX_BATCH=8,PAGE=30,MAX_ANALYSIS=12000;
+var DB='cc-creative-library',VERSION=2,MAX_ASSETS=500,MAX_BATCH=8,PAGE=30,MAX_ANALYSIS=12000;
 var LIMITS={image:15*1024*1024,video:50*1024*1024,text:2*1024*1024,document:20*1024*1024};
 var db=null,dbPromise=null,app=null,root=null,ui=null,assets=[],collections=[],profiles=[],selectedId='',selectedProfileId='',objectUrl='',pageLimit=PAGE,openGeneration=0,active=false;
 function uid(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
@@ -73,6 +73,7 @@ function openDb(){
    if(!d.objectStoreNames.contains('blobs'))d.createObjectStore('blobs',{keyPath:'id'});
    if(!d.objectStoreNames.contains('collections'))d.createObjectStore('collections',{keyPath:'id'});
    if(!d.objectStoreNames.contains('profiles'))d.createObjectStore('profiles',{keyPath:'id'});
+   if(!d.objectStoreNames.contains('experiments'))d.createObjectStore('experiments',{keyPath:'id'});
   };
   request.onsuccess=function(){db=request.result;db.onversionchange=function(){db.close();db=null;dbPromise=null;};resolve(db);};
   request.onerror=function(){dbPromise=null;reject(request.error||new Error('Could not open Creative Library storage.'));};
@@ -272,6 +273,16 @@ function analyzeText(asset){
   return put('assets',updated).then(function(){assets=assets.map(function(a){return a.id===updated.id?updated:a;});render();setStatus('AI analysis saved locally.');});
  }).catch(function(e){setStatus('Analysis failed: '+(e.message||e),true);});
 }
+function openCatalog(){return openDb().then(function(){return Promise.all([getAll('assets'),getAll('profiles'),getAll('experiments')]);}).then(function(v){return{references:v[0].filter(function(x){return x&&typeof x.id==='string';}).slice(0,MAX_ASSETS),profiles:v[1].filter(function(x){return x&&typeof x.id==='string';}).slice(0,100),experiments:v[2].filter(function(x){return x&&typeof x.id==='string';}).slice(0,100)};});}
+function listReferences(){return openDb().then(function(){return getAll('assets');}).then(function(v){return v.filter(function(x){return x&&typeof x.id==='string'&&typeof x.name==='string';}).slice(0,MAX_ASSETS).map(function(x){return{id:x.id,name:x.name,type:x.type,description:x.description||'',tags:Array.isArray(x.tags)?x.tags.slice(0,12):[],analysis:String(x.analysis||'').slice(0,1000)};});});}
+function listProfiles(){return openDb().then(function(){return getAll('profiles');}).then(function(v){return v.filter(function(x){return x&&typeof x.id==='string'&&typeof x.name==='string';}).slice(0,100).map(function(x){return{id:x.id,name:String(x.name).slice(0,60),description:String(x.description||'').slice(0,500),prompt:String(x.prompt||'').slice(0,1200)};});});}
+function listExperiments(){return openDb().then(function(){return getAll('experiments');}).then(function(v){return v.filter(function(x){return x&&typeof x.id==='string';}).slice(0,100);});}
+function saveExperiment(record){
+ if(!record||typeof record!=='object'||!String(record.id||'').trim())return Promise.reject(new Error('A valid experiment record is required.'));
+ var safe={id:String(record.id).slice(0,80),title:String(record.title||'Untitled experiment').slice(0,100),brief:String(record.brief||'').slice(0,3000),profileId:String(record.profileId||'').slice(0,80),profileName:String(record.profileName||'').slice(0,60),profilePrompt:String(record.profilePrompt||'').slice(0,1200),referenceIds:Array.isArray(record.referenceIds)?record.referenceIds.slice(0,5).map(function(x){return String(x).slice(0,80);}):[],references:Array.isArray(record.references)?record.references.slice(0,5).map(function(x){return{id:String(x.id||'').slice(0,80),name:String(x.name||'').slice(0,120),type:String(x.type||'').slice(0,20),description:String(x.description||'').slice(0,700),tags:Array.isArray(x.tags)?x.tags.slice(0,8).map(function(t){return String(t).slice(0,32);}):[],analysis:String(x.analysis||'').slice(0,1000)};}):[],criteria:Array.isArray(record.criteria)?record.criteria.slice(0,8).map(function(x){return String(x).slice(0,120);}):[],scores:Array.isArray(record.scores)?record.scores.slice(0,8).map(function(x){var n=Number(x.score)||0;return{criterion:String(x.criterion||'').slice(0,120),score:n>=1&&n<=5?Math.round(n):0,note:String(x.note||'').slice(0,500)};}):[],generatedPlan:String(record.generatedPlan||'').slice(0,16000),resultNotes:String(record.resultNotes||'').slice(0,4000),comparisonNotes:String(record.comparisonNotes||'').slice(0,4000),createdAt:Number(record.createdAt)||Date.now(),updatedAt:Date.now()};
+ return openDb().then(function(){return getAll('experiments');}).then(function(all){if(!all.some(function(x){return x.id===safe.id;})&&all.length>=100)throw new Error('Saved experiment limit reached (100).');return put('experiments',safe);}).then(function(){return safe;});
+}
+function deleteExperiment(id){return openDb().then(function(){return txRun('experiments','readwrite',function(tx){return tx.objectStore('experiments').delete(String(id||''));});});}
 function open(appInstance){
  app=appInstance||app;root=document.getElementById('creativeLibraryRoot');if(!root)return Promise.reject(new Error('Creative Library panel is missing.'));
  var generation=++openGeneration;active=true;
@@ -281,5 +292,5 @@ function open(appInstance){
 function suspend(){active=false;openGeneration++;if(ui&&ui.detail){var video=ui.detail.querySelector('video');if(video){try{video.pause();}catch(ignore){}}}releasePreview();}
 function close(){suspend();if(db){db.close();db=null;dbPromise=null;}}
 g.addEventListener('pagehide',suspend);
-g.CCCreativeLibrary=Object.freeze({open:open,suspend:suspend,close:close,test:Object.freeze({classifyFile:classifyFile,mimeFor:mimeFor,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,mergeAsset:mergeAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
+g.CCCreativeLibrary=Object.freeze({open:open,openCatalog:openCatalog,listReferences:listReferences,listProfiles:listProfiles,listExperiments:listExperiments,saveExperiment:saveExperiment,deleteExperiment:deleteExperiment,suspend:suspend,close:close,test:Object.freeze({classifyFile:classifyFile,mimeFor:mimeFor,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,mergeAsset:mergeAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
 })(window);

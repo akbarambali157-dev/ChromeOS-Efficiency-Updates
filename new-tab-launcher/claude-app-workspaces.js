@@ -2,7 +2,7 @@
    read-only Supabase REST browsing and lightweight storyboard rendering. */
 (function (g) {
   'use strict';
-  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false, creativeLoadPromise = null;
+  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false, creativeLoadPromise = null, recreationLoadPromise = null;
   var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '', projectNotesTimer = null;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
@@ -24,21 +24,31 @@
     if(!document.querySelector('link[data-creative-library]')){var link=document.createElement('link');link.rel='stylesheet';link.href='claude-app-creative-library.css';link.setAttribute('data-creative-library','');document.head.appendChild(link);}
     creativeLoadPromise=new Promise(function(resolve,reject){var script=document.createElement('script');script.src='claude-app-creative-library.js';script.onload=function(){creativeLoadPromise=null;if(current==='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.open)g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});resolve();};script.onerror=function(){creativeLoadPromise=null;var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library module failed to load. Check the extension files and reload.';reject(new Error('Creative Library module failed to load.'));};document.body.appendChild(script);});creativeLoadPromise.catch(function(){});
   }
+  function loadRecreationLab() {
+    if(g.CCRecreationLab&&g.CCRecreationLab.open){g.CCRecreationLab.open(app).catch(function(e){var r=$('recreationLabRoot');if(r)r.textContent='Recreation Lab could not open: '+(e.message||e);});return;}
+    if(recreationLoadPromise)return;
+    function loadScript(src){return new Promise(function(resolve,reject){var script=document.createElement('script');script.src=src;script.onload=resolve;script.onerror=function(){reject(new Error(src+' failed to load.'));};document.body.appendChild(script);});}
+    recreationLoadPromise=(g.CCCreativeLibrary?Promise.resolve():loadScript('claude-app-creative-library.js'))
+      .then(function(){if(!document.querySelector('link[data-recreation-lab]')){var link=document.createElement('link');link.rel='stylesheet';link.href='claude-app-recreation-lab.css';link.setAttribute('data-recreation-lab','');document.head.appendChild(link);}return loadScript('claude-app-recreation-lab.js');})
+      .then(function(){recreationLoadPromise=null;if(current==='recreation'&&g.CCRecreationLab)g.CCRecreationLab.open(app).catch(function(e){var r=$('recreationLabRoot');if(r)r.textContent='Recreation Lab could not open: '+(e.message||e);});})
+      .catch(function(e){recreationLoadPromise=null;var r=$('recreationLabRoot');if(r)r.textContent='Recreation Lab could not load: '+(e.message||e);});
+  }
   function setWorkspace(name) {
     var previous=current;
     if(previous==='creative'&&name!=='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();
+    if(previous==='recreation'&&name!=='recreation'&&g.CCRecreationLab&&g.CCRecreationLab.suspend)g.CCRecreationLab.suspend();
     current=name;
     document.body.classList.add('workspace-open');
     $('workspaceExtra').hidden=false;
     $('editor').hidden=true;
     $('tabName').parentNode.hidden=true;
     $('contextStatus').hidden=true;
-    $('workspaceTitle').textContent={team:'AI Team',research:'Web Research',github:'GitHub Workspace',supabase:'Supabase Workspace',video:'Video Studio',creative:'Creative Library',project:'Project Dashboard'}[name]||name;
-    $('workspaceSubtitle').textContent={team:'Coordinated model calls with independent review',research:'Search current web sources and inspect the results',github:'Read repositories and inspect files using your GitHub token',supabase:'Read table rows through the Supabase Data API and RLS',video:'Create a storyboard and lightweight animatic',creative:'Local references, reusable style profiles and project links',project:'Project tasks, notes and context'}[name]||'';
+    $('workspaceTitle').textContent={team:'AI Team',research:'Web Research',github:'GitHub Workspace',supabase:'Supabase Workspace',video:'Video Studio',creative:'Creative Library',recreation:'Recreation Lab',project:'Project Dashboard'}[name]||name;
+    $('workspaceSubtitle').textContent={team:'Coordinated model calls with independent review',research:'Search current web sources and inspect the results',github:'Read repositories and inspect files using your GitHub token',supabase:'Read table rows through the Supabase Data API and RLS',video:'Create a storyboard and lightweight animatic',creative:'Local references, reusable style profiles and project links',recreation:'Structured experiments using local references and style guidance',project:'Project tasks, notes and context'}[name]||'';
     document.querySelectorAll('[data-workspace]').forEach(function(p){p.hidden=p.getAttribute('data-workspace')!==name;});
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');});
-    var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo',creative:'paneCreative',project:'paneProject'}[name]; if(button)$(button).classList.add('on');
-    if(name==='team') initTeam(); if(name==='video'&&g.CCVideoStudio&&g.CCVideoStudio.open)g.CCVideoStudio.open(); if(name==='creative')loadCreativeLibrary();
+    var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo',creative:'paneCreative',recreation:'paneRecreation',project:'paneProject'}[name]; if(button)$(button).classList.add('on');
+    if(name==='team') initTeam(); if(name==='video'&&g.CCVideoStudio&&g.CCVideoStudio.open)g.CCVideoStudio.open(); if(name==='creative')loadCreativeLibrary(); if(name==='recreation')loadRecreationLab();
   }
   function refreshProject() {
     if(!app||!app.getProjectInfo)return;
@@ -82,6 +92,7 @@
   }
   function editorWorkspace() {
     if(current==='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();
+    if(current==='recreation'&&g.CCRecreationLab&&g.CCRecreationLab.suspend)g.CCRecreationLab.suspend();
     document.body.classList.remove('workspace-open');
     $('workspaceExtra').hidden=true; $('editor').hidden=false; $('tabName').parentNode.hidden=false; $('contextStatus').hidden=false;
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');}); $('paneFiles').classList.add('on');
@@ -273,7 +284,7 @@
     $('paneProject').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('projectTaskForm').addEventListener('submit',addProjectTask);
     $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
-    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative'].forEach(function(id){$(id).addEventListener('click',function(){var name={paneTeam:'team',paneResearch:'research',paneGitHub:'github',paneSupabase:'supabase',paneVideo:'video',paneCreative:'creative'}[id];setWorkspace(name);});});
+    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation'].forEach(function(id){$(id).addEventListener('click',function(){var name={paneTeam:'team',paneResearch:'research',paneGitHub:'github',paneSupabase:'supabase',paneVideo:'video',paneCreative:'creative',paneRecreation:'recreation'}[id];setWorkspace(name);});});
     $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
     $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
     $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);});});
