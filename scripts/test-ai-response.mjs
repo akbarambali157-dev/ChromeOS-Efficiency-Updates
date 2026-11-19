@@ -20,7 +20,7 @@ vm.runInNewContext(source,retryBox);
 const recovered=await retryBox.window.CCResponse.request('brewkeg','test-model',[{role:'system',content:'system'},{role:'user',content:'task'}],4096,{},'test');
 assert.equal(recovered,'Recovered complete answer');
 assert.equal(calls,2);
-assert.equal(budgets[1],8192);
+assert.equal(budgets[1],4096);
 
 // Automatic continuation: preserve partial output, send compact context, and append once.
 let continuationCalls=0,continuationMessages=[],progressEvents=[];
