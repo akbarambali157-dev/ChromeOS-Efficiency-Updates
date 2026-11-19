@@ -54,9 +54,9 @@ function renderSaved(){
 }
 function refresh(){
  var run=++generation;
- return Promise.all([g.CCCreativeLibrary.listReferences(),g.CCCreativeLibrary.listProfiles(),g.CCCreativeLibrary.listExperiments()]).then(function(values){
+ return g.CCCreativeLibrary.openCatalog().then(function(catalog){
   if(!active||run!==generation)return;
-  refs=values[0].map(cleanReference).slice(0,500);profiles=values[1].slice(0,100);experiments=values[2].slice(0,100);
+  refs=(catalog.references||[]).map(cleanReference).slice(0,500);profiles=(catalog.profiles||[]).slice(0,100);experiments=(catalog.experiments||[]).slice(0,100);
   selectedRefs=selectedRefs.filter(function(id){return refs.some(function(r){return r.id===id;});});
   renderProfiles(ui.profile.value);renderReferences();renderSaved();
  });
@@ -73,7 +73,7 @@ function saveCurrent(){
  g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;setStatus('Experiment saved on this device.');}).catch(function(e){setStatus('Could not save experiment: '+(e.message||e),true);});
 }
 function loadExperiment(id){
- var record=experiments.filter(function(x){return x.id===id;})[0];if(!record){selectedId='';ui.delete.disabled=true;return;}
+ var record=experiments.filter(function(x){return x.id===id;})[0];if(!record){selectedId='';ui.delete.disabled=true;ui.output.textContent='Your generated plan will appear here.';ui.resultNotes.value='';ui.comparison.value='';return;}
  selectedId=record.id;ui.title.value=record.title||'';ui.brief.value=record.brief||'';ui.criteria.value=(record.criteria||[]).join('\n');ui.output.textContent=record.generatedPlan||'No plan has been generated yet.';ui.resultNotes.value=record.resultNotes||'';ui.comparison.value=record.comparisonNotes||'';
  selectedRefs=(record.referenceIds||[]).filter(function(refId){return refs.some(function(r){return r.id===refId;});});renderProfiles(record.profileId||'');renderReferences();ui.delete.disabled=false;setStatus('Loaded saved experiment.');
 }
@@ -91,18 +91,18 @@ function generate(){
  var disclosure='This request sends only your brief, '+(profile?'the selected style profile guidance, ':'')+'reference names, file types, descriptions, tags and saved text analysis, and comparison criteria to '+destination+'. No original image, video, PDF or other file contents are uploaded.';
  if(!g.confirm(disclosure+' Continue?'))return;
  var request={title:ui.title.value.trim().slice(0,100),brief:brief,profile:profile?{name:profile.name,prompt:profile.prompt,description:profile.description}:null,references:refsSelected,criteria:criteria};
- ui.generate.disabled=true;setStatus('Preparing a structured experiment…');var run=++generation;
+ ui.generate.disabled=true;ui.save.disabled=true;setStatus('Preparing a structured experiment…');var run=++generation;
  app.runCreativeExperiment(request).then(function(answer){
   if(!active||run!==generation)return;
   ui.output.textContent=String(answer||'').slice(0,16000)||'The provider returned an empty experiment plan.';
   var record=currentRecord();record.generatedPlan=ui.output.textContent;
-  return g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;ui.generate.disabled=false;setStatus('Experiment plan generated and saved locally. Add your result and comparison notes, then save again.');});
- }).catch(function(e){if(active&&run===generation)setStatus('Experiment generation failed: '+(e.message||e),true);}).then(function(){if(active&&run===generation)ui.generate.disabled=false;});
+  return g.CCCreativeLibrary.saveExperiment(record).then(function(saved){selectedId=saved.id;return refresh();}).then(function(){ui.saved.value=selectedId;ui.generate.disabled=false;ui.save.disabled=false;setStatus('Experiment plan generated and saved locally. Add your result and comparison notes, then save again.');});
+ }).catch(function(e){if(active&&run===generation)setStatus('Experiment generation failed: '+(e.message||e),true);}).then(function(){if(active&&run===generation){ui.generate.disabled=false;ui.save.disabled=false;}});
 }
 function open(appInstance){
  app=appInstance||app;root=document.getElementById('recreationLabRoot');if(!root)return Promise.reject(new Error('Recreation Lab panel is missing.'));
- active=true;if(!ui)build();ui.generate.disabled=false;setStatus('Loading local references and experiments…');
- return g.CCCreativeLibrary.openCatalog().then(refresh).then(function(){if(active)setStatus(refs.length+' references and '+experiments.length+' saved experiments ready.');});
+ active=true;if(!ui)build();ui.generate.disabled=false;ui.save.disabled=false;setStatus('Loading local references and experiments…');
+ return refresh().then(function(){if(active)setStatus(refs.length+' references and '+experiments.length+' saved experiments ready.');});
 }
 function suspend(){active=false;generation++;}
 g.CCRecreationLab=Object.freeze({open:open,suspend:suspend,test:Object.freeze({criteriaList:criteriaList,cleanReference:cleanReference,maxReferences:5,maxCriteria:8})});
