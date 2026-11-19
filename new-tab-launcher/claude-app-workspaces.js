@@ -22,7 +22,7 @@
     if(g.CCCreativeLibrary&&g.CCCreativeLibrary.open){g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});return;}
     if(creativeLoadPromise)return;
     if(!document.querySelector('link[data-creative-library]')){var link=document.createElement('link');link.rel='stylesheet';link.href='claude-app-creative-library.css';link.setAttribute('data-creative-library','');document.head.appendChild(link);}
-    creativeLoadPromise=new Promise(function(resolve,reject){var script=document.createElement('script');script.src='claude-app-creative-library.js';script.onload=function(){creativeLoadPromise=null;if(g.CCCreativeLibrary&&g.CCCreativeLibrary.open)g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});resolve();};script.onerror=function(){creativeLoadPromise=null;var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library module failed to load. Check the extension files and reload.';reject(new Error('Creative Library module failed to load.'));};document.body.appendChild(script);});creativeLoadPromise.catch(function(){});
+    creativeLoadPromise=new Promise(function(resolve,reject){var script=document.createElement('script');script.src='claude-app-creative-library.js';script.onload=function(){creativeLoadPromise=null;if(current==='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.open)g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});resolve();};script.onerror=function(){creativeLoadPromise=null;var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library module failed to load. Check the extension files and reload.';reject(new Error('Creative Library module failed to load.'));};document.body.appendChild(script);});creativeLoadPromise.catch(function(){});
   }
   function setWorkspace(name) {
     var previous=current;
@@ -81,6 +81,7 @@
     app.updateProjectMeta({notes:$('projectNotes').value},function(ok){status('projectNotesStatus',ok?'Notes saved locally.':'Could not save notes.',!ok);});
   }
   function editorWorkspace() {
+    if(current==='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();
     document.body.classList.remove('workspace-open');
     $('workspaceExtra').hidden=true; $('editor').hidden=false; $('tabName').parentNode.hidden=false; $('contextStatus').hidden=false;
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');}); $('paneFiles').classList.add('on');
