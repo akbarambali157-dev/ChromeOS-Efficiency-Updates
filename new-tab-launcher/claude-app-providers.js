@@ -11,8 +11,9 @@
   function readSettings() {
     return new Promise(function (resolve) {
       chrome.storage.local.get(STORAGE, function (d) {
-        resolve({ provider: d.ccProvider || 'brewkeg', model: d.ccModel || 'claude-sonnet-5-5',
-          effort: d.ccEffort || 'medium', reasoningMode: d.ccReasoningMode || 'standard',
+        var provider=d.ccProvider||'brewkeg',model=d.ccModel||'claude-sonnet-5-5';
+        resolve({ provider: provider, model: model,
+          effort: d.ccEffort || effortProfile(provider,model).defaultEffort || 'medium', reasoningMode: d.ccReasoningMode || 'standard',
           keys: { brewkeg: d.ccKey || '', openai: d.ccOpenAIKey || '', anthropic: d.ccAnthropicKey || '' } });
       });
     });
