@@ -13,7 +13,7 @@
   var MAX_FILES = 40;
 
   var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {}, projectModalMode = 'edit';
-  var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
+  var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '', effort = 'medium', reasoningMode = 'standard';
   var webOn = false, chatH = 250, planNext = false;
   var saveTimer = null, busy = false, lastCodeApply = null, pendingFileEdits = [];
 
@@ -309,7 +309,7 @@
     var seen={},edits=payload.edits.map(function(item){
       if(!item||typeof item.file!=='string'||typeof item.content!=='string')throw new Error('A proposed edit is missing its file name or complete file content.');
       if(seen[item.file])throw new Error('The assistant proposed the same file more than once: '+item.file);seen[item.file]=true;
-      var file=files.filter(function(f){return f.name===item.file;})[0];if(!file)throw new Error('Unknown project file: '+item.file+'. Only existing project files can be edited.');
+      var file=files.filter(function(f){return f.name===item.file;})[0];if(!file)throw new Error('Unknown project file: '+item.file+'. Only existing project files can be edited.');if(file.attached===false)throw new Error('File is detached from AI context: '+item.file+'. Attach it before requesting edits.');
       if(item.content.length>1048576)throw new Error('Proposed file is too large: '+item.file);
       return {fileId:file.id,file:item.file,before:file.content,after:item.content};
     });
@@ -789,6 +789,8 @@
     $('anthropicKeyIn').value = anthropicKey;
     $('ccProvider').value = provider;
     CCProviders.populate($('ccModel'), provider, model);
+    CCProviders.populateEffort($('ccEffort'),provider,model,effort,false);
+    var globalProfile=CCProviders.effortProfile(provider,model);$('ccReasoningMode').disabled=!globalProfile.reasoningModes.length;$('ccReasoningMode').value=globalProfile.reasoningModes.indexOf(reasoningMode)>=0?reasoningMode:'standard';$('effortHelp').textContent=globalProfile.note+' '+(globalProfile.supported.length?'Available: '+globalProfile.supported.join(', ')+'.':'Effort is not exposed for this provider/model combination.');
     say('setStatus', '');
     $('dlgSet').showModal();
   });
@@ -851,7 +853,7 @@
     });
   }
 
-  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
+  function updateGlobalEffort(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.populateEffort($('ccEffort'),p,m,effort,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;if(!profile.reasoningModes.length)$('ccReasoningMode').value='standard';$('effortHelp').textContent=profile.note+' '+(profile.supported.length?'Available: '+profile.supported.join(', ')+'.':'Effort is not exposed for this provider/model combination.');}\n  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); updateGlobalEffort(); });\n  $('ccModel').addEventListener('change',updateGlobalEffort);
   $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('testConnection').addEventListener('click',function(){
     var p=$('ccProvider').value,m=$('ccModel').value.trim(),keys={brewkeg:$('ccKeyIn').value.trim(),openai:$('openAIKeyIn').value.trim(),anthropic:$('anthropicKeyIn').value.trim()};
@@ -883,7 +885,7 @@
     anthropicKey = $('anthropicKeyIn').value.trim();
     provider = $('ccProvider').value;
     model = $('ccModel').value;
-    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model }, function () {
+    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model, ccEffort: $('ccEffort').value||effort, ccReasoningMode: $('ccReasoningMode').value||'standard' }, function () {
       say('setStatus', 'Settings saved.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
     });
@@ -897,7 +899,7 @@
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccPlanMode', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccPlanMode', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH', 'ccEffort', 'ccReasoningMode'], function (d) {
     projects = Array.isArray(d.ccProjects)&&d.ccProjects.length ? d.ccProjects.slice(0,12) : [{id:'default',name:'General',createdAt:Date.now()}];
     projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
     activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
@@ -912,6 +914,7 @@
     ccKey = d.ccKey || '';
     provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
+    effort = d.ccEffort || 'medium'; reasoningMode = d.ccReasoningMode || 'standard';
     openAIKey = d.ccOpenAIKey || '';
     anthropicKey = d.ccAnthropicKey || '';
     ghToken = d.ghToken || '';
@@ -961,7 +964,7 @@
         chrome.storage.local.set({ccProjects:projects},function(){if(callback)callback(!chrome.runtime.lastError);});
         return true;
       },
-      getSearchKey: function () { return pcKey; },
+      getSearchKey: function () { return pcKey; },\n      presentFileEdits: function (output) { try { var parsed=parseFileEdits(output); if(!parsed.edits.length)return {ok:false,error:'The team did not return a file-edits block.'}; pendingFileEdits=parsed.edits; renderFileEditReview(); return {ok:true,count:parsed.edits.length}; } catch(e) { return {ok:false,error:e.message||'Could not validate the proposed edits.'}; } },
       importFile: function (name, content) {
         if (files.length >= MAX_FILES) return false;
         var f={id:uid(),name:String(name||'remote-file').slice(0,60),content:String(content||'').slice(0,1048576),attached:true};
