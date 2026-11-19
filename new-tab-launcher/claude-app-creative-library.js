@@ -72,7 +72,8 @@ function openDb(){
    if(!d.objectStoreNames.contains('assets')){var a=d.createObjectStore('assets',{keyPath:'id'});a.createIndex('createdAt','createdAt',{unique:false});a.createIndex('type','type',{unique:false});a.createIndex('collectionId','collectionId',{unique:false});}
    if(!d.objectStoreNames.contains('blobs'))d.createObjectStore('blobs',{keyPath:'id'});
    if(!d.objectStoreNames.contains('collections'))d.createObjectStore('collections',{keyPath:'id'});
-   if(!d.objectStoreNames.contains('profiles'))d.createObjectStore('profiles',{keyPath:'id'});\n   if(!d.objectStoreNames.contains('experiments'))d.createObjectStore('experiments',{keyPath:'id'});
+   if(!d.objectStoreNames.contains('profiles'))d.createObjectStore('profiles',{keyPath:'id'});
+   if(!d.objectStoreNames.contains('experiments'))d.createObjectStore('experiments',{keyPath:'id'});
   };
   request.onsuccess=function(){db=request.result;db.onversionchange=function(){db.close();db=null;dbPromise=null;};resolve(db);};
   request.onerror=function(){dbPromise=null;reject(request.error||new Error('Could not open Creative Library storage.'));};
