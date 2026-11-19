@@ -25,10 +25,11 @@
       return {supported:EFFORTS.slice(),defaultEffort:model.indexOf('sonnet')>=0?'high':'medium',parameter:'output_config.effort',reasoningModes:[],note:'Anthropic Messages API effort control.'};
     }
     if(provider==='brewkeg' && (model==='gpt-6-astra'||model==='gpt-6.1-sol')) return {supported:EFFORTS.slice(),defaultEffort:'medium',parameter:'reasoning_effort',reasoningModes:[],note:'Brewkeg OpenAI-compatible chat endpoint; reasoning_effort is forwarded for this GPT model.'};
+    if(provider==='brewkeg' && model==='gpt-6.1-terra') return {supported:['none'].concat(EFFORTS),defaultEffort:'medium',parameter:'reasoning_effort',reasoningModes:[],note:'Brewkeg OpenAI-compatible chat endpoint; reasoning_effort is sent for this GPT model.'};
     if(provider==='brewkeg' && model==='gpt-6-luna') return {supported:['none'].concat(EFFORTS),defaultEffort:'medium',parameter:'reasoning_effort',reasoningModes:[],note:'Brewkeg OpenAI-compatible chat endpoint; reasoning_effort is forwarded for this GPT model.'};
     if(provider==='openai') {
       if(model==='gpt-6-astra'||model==='gpt-6.1-sol') return {supported:EFFORTS.slice(),defaultEffort:'medium',parameter:'reasoning.effort',reasoningModes:['standard','pro'],note:'OpenAI Responses API reasoning control.'};
-      if(model==='gpt-6-luna') return {supported:['none'].concat(EFFORTS),defaultEffort:'medium',parameter:'reasoning.effort',reasoningModes:['standard','pro'],note:'OpenAI Responses API reasoning control.'};
+      if(model==='gpt-6-luna'||model==='gpt-6.1-terra') return {supported:['none'].concat(EFFORTS),defaultEffort:'medium',parameter:'reasoning.effort',reasoningModes:['standard','pro'],note:'OpenAI Responses API reasoning control.'};
     }
     return {supported:[],defaultEffort:'provider',parameter:'',reasoningModes:[],note:provider==='brewkeg'?'Brewkeg-compatible routing does not currently advertise a verified effort parameter; provider default is used.':'Effort support is not verified for this provider/model combination; provider default is used.'};
   }
@@ -51,13 +52,14 @@
     var key = keys && keys[provider] || '';
     if (!key) return Promise.reject(new Error('Add a key for ' + provider + ' in Settings.'));
     options=options||{};
-    var body = { model: String(model || MODELS[provider][0]), messages: messages, max_tokens: Math.max(1, Math.min(8192, Number(maxTokens) || 2048)) };
+    var body = { model: String(model || MODELS[provider][0]), messages: messages, max_tokens: Math.max(1, Math.min(16384, Number(maxTokens) || 2048)) };
     function send(settings) {
       var resolved=resolveEffort(provider,body.model,{
         effort:options.effort||settings.effort,
         reasoningMode:options.reasoningMode||settings.reasoningMode
       });
       if(resolved.effort) {
+        if(['high','xhigh','max'].indexOf(resolved.effort)>=0)body.max_tokens=Math.max(body.max_tokens,resolved.effort==='high'?12288:16384);
         if(provider==='anthropic'||(provider==='brewkeg'&&/^claude-/.test(body.model))) body.output_config={effort:resolved.effort};
         if(provider==='brewkeg'&&/^gpt-/.test(body.model)) body.reasoning_effort=resolved.effort;
         if(provider==='openai') {
