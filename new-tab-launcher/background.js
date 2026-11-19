@@ -179,7 +179,8 @@ function relayAnthropic(msg, sendResponse, useBrewkeg) {
   } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
   var endpoint=useBrewkeg?'https://brewkeg.dev/v1/messages':'https://api.anthropic.com/v1/messages';
-  var authHeaders={'Content-Type':'application/json','anthropic-version':'2023-06-01'};if(useBrewkeg)authHeaders.Authorization='Bearer '+msg.key;else{authHeaders['x-api-key']=msg.key;authHeaders['anthropic-dangerous-direct-browser-access']='true';}\n  relayFetch(endpoint, { method: 'POST', headers: authHeaders, body: payload }, useBrewkeg?'Brewkeg Anthropic':'Anthropic')
+  var authHeaders={'Content-Type':'application/json','anthropic-version':'2023-06-01'};if(useBrewkeg)authHeaders.Authorization='Bearer '+msg.key;else{authHeaders['x-api-key']=msg.key;authHeaders['anthropic-dangerous-direct-browser-access']='true';}
+  relayFetch(endpoint, { method: 'POST', headers: authHeaders, body: payload }, useBrewkeg?'Brewkeg Anthropic':'Anthropic')
     .then(function (r) {
       return r.text().then(function (t) {
         var requestId=r.headers.get('request-id')||r.headers.get('x-request-id')||'';
