@@ -9,13 +9,13 @@
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
   function context() { var base=app&&app.getContext?app.getContext().slice(0,48000):''; if($('researchAttach')&&$('researchAttach').checked&&researchContext)base+='\n\n--- Web research context ---\n'+researchContext; if($('sbAttachRows')&&$('sbAttachRows').checked&&supabaseRowsContext)base+='\n\n--- Supabase table rows ---\n'+supabaseRowsContext; if($('sbAttachQuery')&&$('sbAttachQuery').checked&&supabaseQueryContext)base+='\n\n--- Supabase read-only SQL results ---\n'+supabaseQueryContext; return base.slice(0,48000); }
   function settings() { return CCProviders.readSettings(); }
-  function reqText(provider, model, messages, tokens, keys) {
+  function reqText(provider, model, messages, tokens, keys, options) {
     return CCResponse.request(provider,model,messages,tokens,keys,'AI Team',function(info){
       if(info&&info.stage==='continuing'){
         status('teamStatus','Finishing your response…');
         if(window.CCActivity)CCActivity.phase('Finishing your response…','The '+(info.model||'AI Team agent')+' response was cut off. Continuing automatically ('+info.attempt+' of '+info.maxAttempts+').');
       }
-    });
+    },options||{});
   }
   function modelOpts(select, provider, chosen) { CCProviders.populate(select,provider,chosen); }
   function loadCreativeLibrary() {
@@ -120,37 +120,87 @@
   }
   function runTeam() {
     var task=$('teamTask').value.trim();if(!task)return status('teamStatus','Enter a task first.',true);
-    cancelRun=false; $('runTeam').disabled=true; $('cancelTeam').disabled=false; $('teamOutput').textContent='';
-    var progress=[{title:'Lead analysis',detail:'Prepare the first response',state:'pending'},{title:'Independent review',detail:'Check the proposal or audit independently',state:'pending'},{title:'Final synthesis / worker',detail:'Finish the workflow',state:'pending'}];renderTeamProgress(progress);status('teamStatus','Starting the AI Team workflow…');
+    cancelRun=false;$('runTeam').disabled=true;$('cancelTeam').disabled=false;$('teamOutput').textContent='';
+    var mode=$('teamMode').value,buildMode=mode==='implement';
+    var progress=[{title:buildMode?'Lead implementation':'Lead analysis',detail:'Prepare the first response',state:'pending'},{title:buildMode?'Independent code review':'Independent review',detail:'Check correctness and gaps',state:'pending'},{title:buildMode?'Integration and final patch':'Final synthesis / worker',detail:'Finish the workflow',state:'pending'}];
+    renderTeamProgress(progress);status('teamStatus','Starting the AI Team workflow…');
     if(window.CCActivity)CCActivity.begin('AI Team',task.slice(0,90));
     settings().then(function(s){
-      var leadProvider=$('teamProvider').value||s.provider, reviewProvider=$('reviewProvider').value||s.provider;
-      var keys=s.keys, lead=$('teamModel').value||s.model, reviewer=$('reviewModel').value||s.model, ctx=context(), mode=$('teamMode').value;
-      progress[2].title=mode==='audit'?'Audit completion':'Final synthesis / worker';if(mode==='audit')progress[2].detail='Not used in the two-agent audit workflow';renderTeamProgress(progress);
-      var leadRole=mode==='audit'?'Independent repository auditor. Identify defects, missing tests, compatibility risks and security concerns.':'Lead developer. Analyze the task and propose a concrete plan.';
-      var primary=buildMessages(leadRole,task,ctx), out=$('teamOutput');
-      function runAgent(title,role,providerName,modelName,tokens,extra,stageIndex){
+      var leadProvider=$('teamProvider').value||s.provider,reviewProvider=$('reviewProvider').value||s.provider,workerProvider=$('workerProvider').value||s.provider;
+      var keys=s.keys,lead=$('teamModel').value||s.model,reviewer=$('reviewModel').value||s.model,worker=$('workerModel').value||s.model,ctx=context();
+      function chosenEffort(id,providerName,modelName){
+        var value=$(id)?$(''+id).value:'inherit';
+        if(value==='inherit'||value===undefined)return s.effort||'medium';
+        return value||undefined;
+      }
+      function runAgent(title,role,providerName,modelName,tokens,extra,stageIndex,effortId){
         if(cancelRun)return Promise.reject(new Error('Cancellation requested.'));
-        progress.forEach(function(s){if(s.state==='active')s.state='pending';});if(progress[stageIndex]){progress[stageIndex].state='active';progress[stageIndex].detail=title+' is running';}renderTeamProgress(progress);
-        status('teamStatus',title+' is working.');if(window.CCActivity)CCActivity.agent(title,task.slice(0,90));
-        return reqText(providerName,modelName,buildMessages(role,task,ctx,extra),tokens,keys).then(function(answer){if(cancelRun)throw new Error('Cancellation requested.');if(progress[stageIndex]){progress[stageIndex].state='done';progress[stageIndex].detail='Completed · '+answer.length.toLocaleString()+' characters';}renderTeamProgress(progress);out.appendChild(card(title,answer));return answer;}).catch(function(e){if(progress[stageIndex]){progress[stageIndex].state=cancelRun?'cancelled':'failed';progress[stageIndex].detail=cancelRun?'Cancelled':e.message||'Failed';}renderTeamProgress(progress);throw e;});
+        progress.forEach(function(x){if(x.state==='active')x.state='pending';});
+        if(progress[stageIndex]){progress[stageIndex].state='active';progress[stageIndex].detail=title+' is running';}
+        renderTeamProgress(progress);status('teamStatus',title+' is working.');
+        if(window.CCActivity)CCActivity.agent(title,task.slice(0,90));
+        var options={effort:chosenEffort(effortId,providerName,modelName),reasoningMode:s.reasoningMode||'standard'};
+        return reqText(providerName,modelName,buildMessages(role,task,ctx,extra),tokens,keys,options).then(function(answer){
+          if(cancelRun)throw new Error('Cancellation requested.');
+          if(progress[stageIndex]){progress[stageIndex].state='done';progress[stageIndex].detail='Completed · '+answer.length.toLocaleString()+' characters';}
+          renderTeamProgress(progress);out.appendChild(card(title,answer));return answer;
+        }).catch(function(e){
+          if(progress[stageIndex]){progress[stageIndex].state=cancelRun?'cancelled':'failed';progress[stageIndex].detail=cancelRun?'Cancelled':e.message||'Failed';}
+          renderTeamProgress(progress);throw e;
+        });
+      }
+      var out=$('teamOutput');
+      if(buildMode){
+        var details=app&&app.getContextDetails?app.getContextDetails():null;
+        var attached=details&&Array.isArray(details.files)?details.files.filter(function(f){return f.attached&&f.characters>0;}):[];
+        if(!attached.length)throw new Error('Attach at least one existing project file before asking the team to implement code. The team only edits files included in the approved local context.');
+        var fileList=attached.map(function(f){return f.name;}).join(', ');
+        var leadRole='Lead implementation engineer. Produce an actual code implementation proposal, not just a plan. Work only with these attached existing files: '+fileList+'. Return complete replacement contents for every file that needs changes, with at most five files. Your final output MUST contain exactly one fenced block labelled file-edits with valid JSON shaped as {"edits":[{"file":"exact existing filename","content":"complete replacement file contents"}]}. Do not invent files, omit unchanged files, use placeholders, or claim tests were run. Keep changes scoped to the task and preserve compatibility.';
+        var leadExtra='Implementation request: '+task+'\n\nReturn complete proposed code changes using the required file-edits JSON block. The current project files and context are supplied above.';
+        return runAgent('Agent 1 · Lead implementer',leadRole,leadProvider,lead,8192,leadExtra,0,'teamEffort').then(function(proposal){
+          if(cancelRun)throw new Error('Cancellation requested.');
+          var reviewerRole='Independent senior code reviewer. Inspect the lead implementation against the original task and supplied source files. Find concrete correctness, security, compatibility, performance, and regression risks. Do not merely approve. Return a concise review with blocking issues, required fixes, and any verified-safe decisions. Do not claim to run tests.';
+          return runAgent('Agent 2 · Independent code reviewer',reviewerRole,reviewProvider,reviewer,6144,'Original lead implementation proposal:\n'+proposal+'\n\nReview the proposed code against the task and source context.',1,'reviewEffort').then(function(review){
+            if(cancelRun)throw new Error('Cancellation requested.');
+            var integrationRole='Implementation integrator. Reconcile the lead proposal with the independent reviewer. Fix valid issues and reject incorrect objections with brief reasons. You must produce the final complete code patch, not a plan. Return one fenced file-edits JSON block in the exact shape {"edits":[{"file":"exact existing filename","content":"complete replacement file contents"}]}. Only edit the attached existing files: '+fileList+'. Maximum five files. No placeholders, no invented filenames, no claims that files or tests were already changed/run.';
+            return runAgent('Agent 3 · Integrator and patch author',integrationRole,leadProvider,lead,8192,'Original proposal:\n'+proposal+'\n\nIndependent review:\n'+review+'\n\nProduce the final corrected file-edits block now.',2,'teamEffort').then(function(finalPatch){
+              if(cancelRun)throw new Error('Cancellation requested.');
+              var action=node('div',undefined,'workspace-actions');
+              var reviewButton=node('button','Review team code changes','primary');reviewButton.type='button';
+              reviewButton.addEventListener('click',function(){
+                if(!app||!app.presentFileEdits){status('teamStatus','The local code-review bridge is unavailable.',true);return;}
+                var result=app.presentFileEdits(finalPatch);
+                if(!result||!result.ok){status('teamStatus',(result&&result.error)||'The team did not return a valid patch for the attached existing files.',true);return;}
+                status('teamStatus','Final team patch is ready for your review. Nothing changes until you accept the diff.');
+              });
+              action.appendChild(reviewButton);out.appendChild(action);
+              status('teamStatus','Team implementation complete: lead, reviewer and integrator finished. Review the proposed patch before applying it.');
+            });
+          });
+        });
       }
       if(mode==='parallel'||mode==='audit'){
-        /* Single-agent concurrency limit: independent roles run sequentially. */
-        var first,review,worker;
-        return runAgent('Agent 1 · Lead',leadRole,leadProvider,lead,4096,null,0).then(function(v){first=v;return runAgent('Agent 2 · Independent reviewer','Independent analyst. Do not read or rely on another agent. Analyze the original task, project context and risks.',reviewProvider,reviewer,4096,null,1);}).then(function(v){review=v;if(mode==='parallel')return runAgent('Agent 3 · Fast worker','Fast worker. Produce a concise checklist of relevant files, likely issues, verification steps and small implementation suggestions. Be independent and do not claim execution.',$('workerProvider').value||s.provider,$('workerModel').value||s.model,2048,null,2);}).then(function(v){worker=v;if(mode==='audit'){progress[2].state='cancelled';progress[2].detail='Not used in the two-agent audit workflow';renderTeamProgress(progress);}status('teamStatus','All agents completed sequentially. No files were changed.');});
+        return runAgent('Agent 1 · Lead','Lead analyst. Analyze the task and propose a concrete plan.',leadProvider,lead,4096,null,0,'teamEffort').then(function(first){
+          return runAgent('Agent 2 · Independent reviewer','Independent analyst. Analyze the original task, context and risks without relying on the lead.',reviewProvider,reviewer,4096,null,1,'reviewEffort').then(function(review){
+            if(mode==='parallel')return runAgent('Agent 3 · Fast worker','Produce a concise checklist of relevant files, likely issues and verification steps. Do not claim execution.',workerProvider,worker,2048,'Lead:\n'+first+'\n\nReview:\n'+review,2,'workerEffort');
+            progress[2].state='cancelled';progress[2].detail='Not used in the two-agent audit workflow';renderTeamProgress(progress);
+          });
+        }).then(function(){status('teamStatus','All agents completed sequentially. No files were changed.');});
       }
       var first;
-      progress[0].state='active';progress[0].detail='Lead is preparing a proposal';renderTeamProgress(progress);status('teamStatus','Lead agent is planning…');if(window.CCActivity)CCActivity.agent('Agent 1 · Lead',task.slice(0,90));
-      return reqText(leadProvider,lead,primary,4096,keys).then(function(answer){
-        first=answer;if(cancelRun)throw new Error('Cancellation requested.');
-        progress[0].state='done';progress[0].detail='Proposal completed';renderTeamProgress(progress);out.appendChild(card('Agent 1 · Lead proposal',first));
-        return runAgent('Agent 2 · Critical reviewer','Independent critical reviewer. Do not agree by default. Identify specific correctness, security, compatibility, performance and test gaps. If no material issue exists, say so.',reviewProvider,reviewer,4096,'Lead proposal:\n'+first,1);
+      return runAgent('Agent 1 · Lead proposal','Lead developer. Analyze the task and propose a concrete plan.',leadProvider,lead,4096,null,0,'teamEffort').then(function(answer){
+        first=answer;
+        return runAgent('Agent 2 · Critical reviewer','Independent critical reviewer. Identify specific correctness, security, compatibility, performance and test gaps. Do not agree by default.',reviewProvider,reviewer,4096,'Lead proposal:\n'+first,1,'reviewEffort');
       }).then(function(review){
         if(cancelRun)throw new Error('Cancellation requested.');
-        return runAgent('Agent 1 · Final synthesis','Lead developer. Reconcile the review with your original proposal. Address valid concerns, reject unsupported objections with reasons, and give a final actionable recommendation.',leadProvider,lead,4096,'Proposal:\n'+first+'\n\nReview:\n'+review,2);
+        return runAgent('Agent 1 · Final synthesis','Lead developer. Reconcile the review with your original proposal and give a final actionable recommendation.',leadProvider,lead,4096,'Proposal:\n'+first+'\n\nReview:\n'+review,2,'teamEffort');
       }).then(function(){status('teamStatus','Sequential AI Team review completed. No files were changed.');});
-    }).catch(function(e){if(e&&e.partialText)$('teamOutput').appendChild(card('Incomplete output · not accepted',e.partialText));if(e&&e.diagnostic)$('teamOutput').appendChild(card('Model response diagnostics',e.diagnostic));progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending'){stage.state='cancelled';}});renderTeamProgress(progress);if(cancelRun){status('teamStatus','Workflow cancelled. Completed outputs are retained.',true);}else{status('teamStatus',e.message||'Agent task failed.',true);}}).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
+    }).catch(function(e){
+      if(e&&e.partialText)$('teamOutput').appendChild(card('Incomplete output · not accepted',e.partialText));
+      if(e&&e.diagnostic)$('teamOutput').appendChild(card('Model response diagnostics',e.diagnostic));
+      progress.forEach(function(stage){if(stage.state==='active'){stage.state=cancelRun?'cancelled':'failed';stage.detail=cancelRun?'Cancelled':e.message||'Failed';}else if(cancelRun&&stage.state==='pending')stage.state='cancelled';});
+      renderTeamProgress(progress);status('teamStatus',cancelRun?'Workflow cancelled. Completed outputs are retained.':(e.message||'Agent task failed.'),true);
+    }).then(function(){if(window.CCActivity)CCActivity.end();$('runTeam').disabled=false;$('cancelTeam').disabled=true;});
   }
   function search(q) {
     var raw=String(q||'').trim().slice(0,900),words=raw.toLowerCase().replace(/[^a-z0-9\s.+#/_-]/g,' ').split(/\s+/).filter(function(x){return x.length>2;});
