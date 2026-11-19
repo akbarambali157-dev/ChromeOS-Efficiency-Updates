@@ -836,7 +836,7 @@
   $('testConnection').addEventListener('click',function(){
     var p=$('ccProvider').value,m=$('ccModel').value.trim(),keys={brewkeg:$('ccKeyIn').value.trim(),openai:$('openAIKeyIn').value.trim(),anthropic:$('anthropicKeyIn').value.trim()};
     $('testConnectionStatus').textContent='Testing '+p+' · '+m+'…';$('testConnectionStatus').className='status';
-    CCProviders.request(p,m,[{role:'user',content:'Reply with exactly CONNECTION_OK.'}],96,keys).then(function(res){
+    CCProviders.request(p,m,[{role:'user',content:'Reply with exactly CONNECTION_OK.'}],96,keys,{effort:$('ccEffort').value||undefined,reasoningMode:$('ccReasoningMode').value||'standard'}).then(function(res){
       var out=readAssistantText(res);
       $('testConnectionStatus').textContent='Connected · '+out.slice(0,100);$('testConnectionStatus').className='status ok';
     }).catch(function(e){$('testConnectionStatus').textContent=e.message||'Connection test failed.';$('testConnectionStatus').className='status err';});
@@ -893,7 +893,7 @@
     ccKey = d.ccKey || '';
     provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
-    effort = d.ccEffort || 'medium'; reasoningMode = d.ccReasoningMode || 'standard';
+    effort = d.ccEffort || CCProviders.effortProfile(provider,model).defaultEffort || 'medium'; reasoningMode = d.ccReasoningMode || 'standard';
     openAIKey = d.ccOpenAIKey || '';
     anthropicKey = d.ccAnthropicKey || '';
     ghToken = d.ghToken || '';
