@@ -154,7 +154,7 @@ function relayOpenAI(msg, sendResponse) {
             output=d.output.map(function(item){
               var blocks=Array.isArray(item.content)?item.content:[];
               return blocks.filter(function(part){return part&&(['output_text','text','refusal'].indexOf(part.type)>=0)&&typeof part.text==='string';})
-                .map(function(part){return part.text;}).join('\n');
+                .map(function(part){return part.type==='refusal'?(part.refusal||''):part.text;}).filter(Boolean).join('\n');
             }).filter(Boolean).join('\n');
           }
           var inc=d.status==='incomplete'&&d.incomplete_details;
@@ -187,7 +187,7 @@ function relayAnthropic(msg, sendResponse) {
           var d=JSON.parse(t);
           if(d&&d.error){sendResponse({status:r.status,text:t,requestId:requestId});return;}
           var blocks=Array.isArray(d.content)?d.content:[];
-          var text=blocks.filter(function(x){return x&&x.type==='text'&&typeof x.text==='string';}).map(function(x){return x.text;}).join('\n');
+          var text=blocks.filter(function(x){return x&&x.type==='text'&&typeof x.text==='string';}).map(function(x){return x.text;}).join('\n');if(!text&&typeof d.refusal==='string')text=d.refusal;
           var finish=d.stop_reason==='max_tokens'?'length':(d.stop_reason==='end_turn'||d.stop_reason==='stop_sequence'?'stop':(d.stop_reason||''));
           sendResponse({status:r.status,requestId:requestId,text:JSON.stringify({id:d.id,request_id:requestId,model:d.model,usage:d.usage,stop_reason:d.stop_reason,content_types:blocks.map(function(x){return x.type||'unknown';}),choices:[{finish_reason:finish,message:{role:'assistant',content:text}}]})});
         } catch (e) { sendResponse({ status: r.status, text: t, requestId:requestId }); }
