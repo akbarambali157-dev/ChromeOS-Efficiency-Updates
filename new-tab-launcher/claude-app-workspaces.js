@@ -2,7 +2,7 @@
    read-only Supabase REST browsing and lightweight storyboard rendering. */
 (function (g) {
   'use strict';
-  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false;
+  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false, creativeLoadPromise = null;
   var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '', projectNotesTimer = null;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
@@ -18,6 +18,12 @@
     });
   }
   function modelOpts(select, provider, chosen) { CCProviders.populate(select,provider,chosen); }
+  function loadCreativeLibrary() {
+    if(g.CCCreativeLibrary&&g.CCCreativeLibrary.open){g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});return;}
+    if(creativeLoadPromise)return;
+    if(!document.querySelector('link[data-creative-library]')){var link=document.createElement('link');link.rel='stylesheet';link.href='claude-app-creative-library.css';link.setAttribute('data-creative-library','');document.head.appendChild(link);}
+    creativeLoadPromise=new Promise(function(resolve,reject){var script=document.createElement('script');script.src='claude-app-creative-library.js';script.onload=function(){creativeLoadPromise=null;if(g.CCCreativeLibrary&&g.CCCreativeLibrary.open)g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});resolve();};script.onerror=function(){creativeLoadPromise=null;var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library module failed to load. Check the extension files and reload.';reject(new Error('Creative Library module failed to load.'));};document.body.appendChild(script);});creativeLoadPromise.catch(function(){});
+  }
   function setWorkspace(name) {
     current=name;
     document.body.classList.add('workspace-open');
@@ -25,12 +31,12 @@
     $('editor').hidden=true;
     $('tabName').parentNode.hidden=true;
     $('contextStatus').hidden=true;
-    $('workspaceTitle').textContent={team:'AI Team',research:'Web Research',github:'GitHub Workspace',supabase:'Supabase Workspace',video:'Video Studio',project:'Project Dashboard'}[name]||name;
-    $('workspaceSubtitle').textContent={team:'Coordinated model calls with independent review',research:'Search current web sources and inspect the results',github:'Read repositories and inspect files using your GitHub token',supabase:'Read table rows through the Supabase Data API and RLS',video:'Create a storyboard and lightweight animatic',project:'Project tasks, notes and context'}[name]||'';
+    $('workspaceTitle').textContent={team:'AI Team',research:'Web Research',github:'GitHub Workspace',supabase:'Supabase Workspace',video:'Video Studio',creative:'Creative Library',project:'Project Dashboard'}[name]||name;
+    $('workspaceSubtitle').textContent={team:'Coordinated model calls with independent review',research:'Search current web sources and inspect the results',github:'Read repositories and inspect files using your GitHub token',supabase:'Read table rows through the Supabase Data API and RLS',video:'Create a storyboard and lightweight animatic',creative:'Local references, reusable style profiles and project links',project:'Project tasks, notes and context'}[name]||'';
     document.querySelectorAll('[data-workspace]').forEach(function(p){p.hidden=p.getAttribute('data-workspace')!==name;});
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');});
-    var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo',project:'paneProject'}[name]; if(button)$(button).classList.add('on');
-    if(name==='team') initTeam(); if(name==='video'&&g.CCVideoStudio&&g.CCVideoStudio.open)g.CCVideoStudio.open();
+    var button={team:'paneTeam',research:'paneResearch',github:'paneGitHub',supabase:'paneSupabase',video:'paneVideo',creative:'paneCreative',project:'paneProject'}[name]; if(button)$(button).classList.add('on');
+    if(name==='team') initTeam(); if(name==='video'&&g.CCVideoStudio&&g.CCVideoStudio.open)g.CCVideoStudio.open(); if(name==='creative')loadCreativeLibrary();
   }
   function refreshProject() {
     if(!app||!app.getProjectInfo)return;
@@ -264,7 +270,7 @@
     $('paneProject').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('projectTaskForm').addEventListener('submit',addProjectTask);
     $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
-    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo'].forEach(function(id){$(id).addEventListener('click',function(){setWorkspace(id==='paneTeam'?'team':id==='paneResearch'?'research':id==='paneGitHub'?'github':id==='paneSupabase'?'supabase':'video');});});
+    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative'].forEach(function(id){$(id).addEventListener('click',function(){var name={paneTeam:'team',paneResearch:'research',paneGitHub:'github',paneSupabase:'supabase',paneVideo:'video',paneCreative:'creative'}[id];setWorkspace(name);});});
     $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
     $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
     $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);});});
