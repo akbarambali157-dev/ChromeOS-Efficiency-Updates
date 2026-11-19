@@ -31,8 +31,8 @@ const luna=api.effortProfile('openai','gpt-6-luna');
 assert.equal(luna.supported[0],'none');
 
 const proxy=api.effortProfile('brewkeg','claude-opus-5-5');
-assert.equal(proxy.supported.length,0);
-assert.equal(api.resolveEffort('brewkeg','claude-opus-5-5',{effort:'max'}).effort,null);
+assert.deepEqual(Array.from(proxy.supported),['low','medium','high','xhigh','max']);
+assert.equal(api.resolveEffort('brewkeg','claude-opus-5-5',{effort:'max'}).effort,'max');
 assert.equal(api.resolveEffort('anthropic','claude-opus-5-5',{effort:'ultracode'}).effort,'medium');
 
 await api.request('anthropic','claude-opus-5-5',[{role:'user',content:'test'}],1024,{anthropic:'key'},{effort:'xhigh'});
@@ -46,8 +46,13 @@ assert.deepEqual(JSON.parse(JSON.stringify(calls[1].body.reasoning)),{effort:'hi
 assert.equal('output_config' in calls[1].body,false);
 
 await api.request('brewkeg','claude-opus-5-5',[{role:'user',content:'test'}],1024,{brewkeg:'key'},{effort:'max'});
-assert.equal(calls[2].type,'chat');
-assert.equal('reasoning' in calls[2].body,false);
-assert.equal('output_config' in calls[2].body,false);
+assert.equal(calls[2].type,'provider.brewkegAnthropic');
+assert.equal(calls[2].body.output_config.effort,'max');
+
+await api.request('brewkeg','gpt-6-astra',[{role:'user',content:'test'}],1024,{brewkeg:'key'},{effort:'high'});
+assert.equal(calls[3].type,'chat');
+assert.equal(calls[3].body.reasoning_effort,'high');
+assert.equal('reasoning' in calls[3].body,false);
+assert.equal('output_config' in calls[3].body,false);
 
 console.log('Model-specific effort capability tests passed.');
