@@ -944,7 +944,8 @@
         chrome.storage.local.set({ccProjects:projects},function(){if(callback)callback(!chrome.runtime.lastError);});
         return true;
       },
-      getSearchKey: function () { return pcKey; },\n      presentFileEdits: function (output) { try { var parsed=parseFileEdits(output); if(!parsed.edits.length)return {ok:false,error:'The team did not return a file-edits block.'}; pendingFileEdits=parsed.edits; renderFileEditReview(); return {ok:true,count:parsed.edits.length}; } catch(e) { return {ok:false,error:e.message||'Could not validate the proposed edits.'}; } },
+      getSearchKey: function () { return pcKey; },
+      presentFileEdits: function (output) { try { var parsed=parseFileEdits(output); if(!parsed.edits.length)return {ok:false,error:'The team did not return a file-edits block.'}; pendingFileEdits=parsed.edits; renderFileEditReview(); return {ok:true,count:parsed.edits.length}; } catch(e) { return {ok:false,error:e.message||'Could not validate the proposed edits.'}; } },
       importFile: function (name, content) {
         if (files.length >= MAX_FILES) return false;
         var f={id:uid(),name:String(name||'remote-file').slice(0,60),content:String(content||'').slice(0,1048576),attached:true};
