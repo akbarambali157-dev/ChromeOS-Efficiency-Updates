@@ -21,6 +21,7 @@ assert.match(source,/return refresh\(\)\.then/,'opening the lab should use one b
 assert.doesNotMatch(source,/Promise\.all\(\[g\.CCCreativeLibrary\.listReferences/,'avoid duplicate IndexedDB catalog reads');
 assert.match(source,/ui\.generate\.disabled=false;ui\.save\.disabled=false/,'controls must recover after reopening the workspace');
 assert.match(source,/confirm\(disclosure\+' Continue\?'\)/,'each provider run must require an explicit consent confirmation');
+assert.match(source,/style profile name, description and guidance/,'the consent notice must disclose all selected profile fields');
 const library=fs.readFileSync(new URL('../new-tab-launcher/claude-app-creative-library.js',import.meta.url),'utf8');
 const app=fs.readFileSync(new URL('../new-tab-launcher/claude-app.js',import.meta.url),'utf8');
 const workspace=fs.readFileSync(new URL('../new-tab-launcher/claude-app-workspaces.js',import.meta.url),'utf8');
