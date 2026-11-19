@@ -166,7 +166,7 @@ The 40-app catalogue, initial 12 complete apps, polished storefront, full backup
 
 ## Recreation Lab contract (5.7.0)
 
-Recreation Lab is lazy-loaded independently and reuses the Creative Library IndexedDB database. Version 2 adds an experiments object store without changing existing asset, blob, collection or style-profile records. Each saved experiment is bounded to five references, eight criteria and fixed text limits; up to 100 experiments are retained. AI planning requires a per-run confirmation naming the selected provider/model. The request contains only the brief, style guidance and reference metadata; it never includes binary files or original file contents. Images and videos are not visually analysed. Generated plans, result notes and comparison notes are stored locally.
+Recreation Lab is lazy-loaded independently and reuses the Creative Library IndexedDB database. Version 2 adds an experiments object store without changing existing asset, blob, collection or style-profile records. Each saved experiment is bounded to five references, eight criteria, eight 1–5 score entries and fixed text limits; up to 100 experiments are retained. AI planning requires a per-run confirmation naming the selected provider/model. The request contains only the brief, style guidance and reference metadata; it never includes binary files or original file contents. Images and videos are not visually analysed. Generated plans, result notes and comparison notes are stored locally.
 
 ## Creative Library storage contract (5.6.0)
 
