@@ -27,7 +27,7 @@ let continuationCalls=0,continuationMessages=[],progressEvents=[];
 const continuationBox={window:{CCProviders:{request:(provider,model,messages,tokens)=>{continuationCalls++;continuationMessages.push(messages);return Promise.resolve({status:200,text:JSON.stringify(continuationCalls===1?{choices:[{finish_reason:'length',message:{content:'First part of the answer.'}}]}:{choices:[{finish_reason:'stop',message:{content:' Second part completes it.'}}]})});}}}};
 vm.runInNewContext(source,continuationBox);
 const continuation=await continuationBox.window.CCResponse.request('brewkeg','test-model',[{role:'system',content:'Be precise.'},{role:'user',content:'Explain the task.'}],2048,{},'test',e=>progressEvents.push(e));
-assert.equal(continuation,'First part of the answer.\\n Second part completes it.');
+assert.equal(continuation,'First part of the answer.\n Second part completes it.');
 assert.equal(continuationCalls,2);
 assert.equal(continuationMessages[1].some(m=>m.role==='assistant'&&m.content==='First part of the answer.'),true);
 assert.equal(continuationMessages[1].some(m=>m.role==='user'&&/Continue directly from its exact final character/.test(m.content)),true);
