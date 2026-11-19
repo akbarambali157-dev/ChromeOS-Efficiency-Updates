@@ -1,13 +1,13 @@
 /* Lazy, local-first Recreation Lab. It sends only explicitly approved text metadata. */
 (function(g){
 'use strict';
-var root=null,app=null,active=false,generation=0,refs=[],profiles=[],experiments=[],selectedId='',selectedRefs=[];
+var root=null,app=null,active=false,generation=0,refs=[],profiles=[],experiments=[],selectedId='',selectedRefs=[],scoreState={};
 function el(tag,value,cls){var n=document.createElement(tag);if(value!==undefined&&value!==null)n.textContent=value;if(cls)n.className=cls;return n;}
 function button(value,cls){var n=el('button',value,cls||'ghost');n.type='button';return n;}
 function field(labelText,tag,placeholder){var wrap=el('label',undefined,'rl-field'),label=el('span',labelText),input=document.createElement(tag||'input');if(placeholder)input.placeholder=placeholder;input.className='workspace-input';wrap.appendChild(label);wrap.appendChild(input);return{wrap:wrap,input:input};}
 function setStatus(message,bad){if(ui&&ui.status){ui.status.textContent=message||'';ui.status.className='rl-status'+(bad?' err':'');}}
 var ui=null;
-function criteriaList(value){return String(value||'').split(/\n|,/).map(function(x){return x.trim().slice(0,120);}).filter(Boolean).slice(0,8);}
+function criteriaList(value){var seen={},out=[];String(value||'').split(/\n|,/).forEach(function(x){var v=x.trim().slice(0,120),k=v.toLowerCase();if(v&&!seen[k]&&out.length<8){seen[k]=true;out.push(v);}});return out;}
 function cleanReference(a){return{id:String(a.id||''),name:String(a.name||'').slice(0,120),type:String(a.type||'file').slice(0,20),description:String(a.description||'').slice(0,700),tags:Array.isArray(a.tags)?a.tags.slice(0,8).map(function(x){return String(x).slice(0,32);}):[],analysis:String(a.analysis||'').slice(0,1000)};}
 function build(){
  root.textContent='';ui={};
@@ -19,7 +19,7 @@ function build(){
  var form=el('section',undefined,'rl-panel');form.appendChild(el('h3','Design an experiment'));
  var title=field('Experiment name','input','e.g. Editorial poster recreation'),brief=field('Creative brief','textarea','What are you trying to recreate, explore or improve?'),profile=field('Style profile','select'),criteria=field('Comparison criteria (one per line)','textarea','e.g. clarity\nvisual hierarchy\nvoice consistency\naccessibility');
  title.input.maxLength=100;brief.input.maxLength=3000;brief.input.rows=4;criteria.input.maxLength=1200;criteria.input.rows=4;ui.title=title.input;ui.brief=brief.input;ui.profile=profile.input;ui.criteria=criteria.input;
- form.appendChild(title.wrap);form.appendChild(brief.wrap);form.appendChild(profile.wrap);form.appendChild(criteria.wrap);
+ form.appendChild(title.wrap);form.appendChild(brief.wrap);form.appendChild(profile.wrap);form.appendChild(criteria.wrap);ui.scorePanel=el('div',undefined,'rl-scorecard');form.appendChild(ui.scorePanel);
  var refPanel=el('div',undefined,'rl-ref-panel');refPanel.appendChild(el('h4','Choose up to five references'));ui.refs=el('div',undefined,'rl-ref-list');refPanel.appendChild(ui.refs);form.appendChild(refPanel);
  var actions=el('div',undefined,'rl-actions');ui.generate=button('Generate experiment plan','primary');ui.save=button('Save experiment','ghost');actions.appendChild(ui.generate);actions.appendChild(ui.save);form.appendChild(actions);shell.appendChild(form);
  var results=el('section',undefined,'rl-panel');results.appendChild(el('h3','Experiment workspace'));
@@ -29,8 +29,23 @@ function build(){
  resultNotes.input.rows=5;comparison.input.rows=5;resultNotes.input.maxLength=4000;comparison.input.maxLength=4000;ui.resultNotes=resultNotes.input;ui.comparison=comparison.input;
  notes.appendChild(resultNotes.wrap);notes.appendChild(comparison.wrap);columns.appendChild(plan);columns.appendChild(notes);results.appendChild(columns);shell.appendChild(results);
  ui.status=el('div','','rl-status');ui.status.setAttribute('role','status');ui.status.setAttribute('aria-live','polite');shell.appendChild(ui.status);root.appendChild(shell);
- ui.saved.addEventListener('change',function(){loadExperiment(ui.saved.value);});
+ ui.saved.addEventListener('change',function(){loadExperiment(ui.saved.value);});ui.criteria.addEventListener('input',renderScorecard);renderScorecard();
  ui.delete.addEventListener('click',deleteExperiment);ui.generate.addEventListener('click',generate);ui.save.addEventListener('click',saveCurrent);
+}
+function renderScorecard(){
+ var names=criteriaList(ui.criteria.value),next={};ui.scorePanel.textContent='';
+ if(!names.length){ui.scorePanel.appendChild(el('p','Add comparison criteria to create a simple 1–5 scorecard.','rl-empty'));scoreState={};return;}
+ ui.scorePanel.appendChild(el('h4','Score the result against each criterion (1–5)'));
+ names.forEach(function(name){
+  var prior=scoreState[name]||{score:'',note:''},row=el('div',undefined,'rl-score-row'),label=el('strong',name),select=document.createElement('select'),blank=el('option','Not scored');blank.value='';select.appendChild(blank);
+  [1,2,3,4,5].forEach(function(n){var option=el('option',String(n)+' / 5');option.value=String(n);select.appendChild(option);});
+  select.value=String(prior.score||'');select.setAttribute('aria-label','Score for '+name);
+  var note=document.createElement('input');note.className='workspace-input';note.maxLength=500;note.placeholder='Evidence or reason for this score';note.value=prior.note||'';note.setAttribute('aria-label','Notes for '+name);
+  select.addEventListener('change',function(){scoreState[name]={score:select.value,note:note.value};});
+  note.addEventListener('input',function(){scoreState[name]={score:select.value,note:note.value};});
+  row.appendChild(label);row.appendChild(select);row.appendChild(note);ui.scorePanel.appendChild(row);next[name]={score:select.value,note:note.value};
+ });
+ scoreState=next;
 }
 function renderReferences(){
  ui.refs.textContent='';
@@ -65,7 +80,7 @@ function currentRecord(){
  var selected=refs.filter(function(r){return selectedRefs.indexOf(r.id)>=0;}).map(cleanReference);
  var profile=profiles.filter(function(p){return p.id===ui.profile.value;})[0]||null;
  var old=experiments.filter(function(x){return x.id===selectedId;})[0]||null;
- return{id:old?old.id:uid(),title:ui.title.value.trim().slice(0,100)||'Untitled experiment',brief:ui.brief.value.slice(0,3000),profileId:profile?profile.id:'',profileName:profile?String(profile.name||'').slice(0,60):'',profilePrompt:profile?String(profile.prompt||'').slice(0,1200):'',referenceIds:selected.map(function(r){return r.id;}),references:selected,criteria:criteriaList(ui.criteria.value),generatedPlan:ui.output.textContent.slice(0,16000),resultNotes:ui.resultNotes.value.slice(0,4000),comparisonNotes:ui.comparison.value.slice(0,4000),createdAt:old?old.createdAt:Date.now(),updatedAt:Date.now()};
+ return{id:old?old.id:uid(),title:ui.title.value.trim().slice(0,100)||'Untitled experiment',brief:ui.brief.value.slice(0,3000),profileId:profile?profile.id:'',profileName:profile?String(profile.name||'').slice(0,60):'',profilePrompt:profile?String(profile.prompt||'').slice(0,1200):'',referenceIds:selected.map(function(r){return r.id;}),references:selected,criteria:criteriaList(ui.criteria.value),scores:criteriaList(ui.criteria.value).map(function(name){var x=scoreState[name]||{};return{criterion:name,score:Number(x.score)||0,note:String(x.note||'').slice(0,500)};}),generatedPlan:ui.output.textContent.slice(0,16000),resultNotes:ui.resultNotes.value.slice(0,4000),comparisonNotes:ui.comparison.value.slice(0,4000),createdAt:old?old.createdAt:Date.now(),updatedAt:Date.now()};
 }
 function saveCurrent(){
  if(!ui.title.value.trim()&&!ui.brief.value.trim())return setStatus('Give the experiment a name or brief before saving.',true);
@@ -74,7 +89,7 @@ function saveCurrent(){
 }
 function loadExperiment(id){
  var record=experiments.filter(function(x){return x.id===id;})[0];if(!record){selectedId='';ui.delete.disabled=true;ui.output.textContent='Your generated plan will appear here.';ui.resultNotes.value='';ui.comparison.value='';return;}
- selectedId=record.id;ui.title.value=record.title||'';ui.brief.value=record.brief||'';ui.criteria.value=(record.criteria||[]).join('\n');ui.output.textContent=record.generatedPlan||'No plan has been generated yet.';ui.resultNotes.value=record.resultNotes||'';ui.comparison.value=record.comparisonNotes||'';
+ selectedId=record.id;ui.title.value=record.title||'';ui.brief.value=record.brief||'';ui.criteria.value=(record.criteria||[]).join('\n');scoreState={};(record.scores||[]).forEach(function(x){if(x&&x.criterion)scoreState[x.criterion]={score:String(x.score||''),note:String(x.note||'')};});renderScorecard();ui.output.textContent=record.generatedPlan||'No plan has been generated yet.';ui.resultNotes.value=record.resultNotes||'';ui.comparison.value=record.comparisonNotes||'';
  selectedRefs=(record.referenceIds||[]).filter(function(refId){return refs.some(function(r){return r.id===refId;});});renderProfiles(record.profileId||'');renderReferences();ui.delete.disabled=false;setStatus('Loaded saved experiment.');
 }
 function deleteExperiment(){
