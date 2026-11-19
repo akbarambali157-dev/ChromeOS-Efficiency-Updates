@@ -25,6 +25,8 @@
     creativeLoadPromise=new Promise(function(resolve,reject){var script=document.createElement('script');script.src='claude-app-creative-library.js';script.onload=function(){creativeLoadPromise=null;if(g.CCCreativeLibrary&&g.CCCreativeLibrary.open)g.CCCreativeLibrary.open(app).catch(function(e){var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library could not open: '+(e.message||e);});resolve();};script.onerror=function(){creativeLoadPromise=null;var r=$('creativeLibraryRoot');if(r)r.textContent='Creative Library module failed to load. Check the extension files and reload.';reject(new Error('Creative Library module failed to load.'));};document.body.appendChild(script);});creativeLoadPromise.catch(function(){});
   }
   function setWorkspace(name) {
+    var previous=current;
+    if(previous==='creative'&&name!=='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();
     current=name;
     document.body.classList.add('workspace-open');
     $('workspaceExtra').hidden=false;

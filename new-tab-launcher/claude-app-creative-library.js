@@ -259,7 +259,8 @@ function open(appInstance){
  if(!ui)buildUI();setStatus('Opening local Creative Library…');
  return openDb().then(ensureDefault).then(refresh).then(function(){setStatus(assets.length+' local reference(s) ready.');});
 }
-function close(){releasePreview();if(db){db.close();db=null;dbPromise=null;}}
-g.addEventListener('pagehide',releasePreview);
-g.CCCreativeLibrary=Object.freeze({open:open,close:close,test:Object.freeze({classifyFile:classifyFile,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
+function suspend(){if(ui&&ui.detail){var video=ui.detail.querySelector('video');if(video){try{video.pause();}catch(ignore){}}}releasePreview();}
+function close(){suspend();if(db){db.close();db=null;dbPromise=null;}}
+g.addEventListener('pagehide',suspend);
+g.CCCreativeLibrary=Object.freeze({open:open,suspend:suspend,close:close,test:Object.freeze({classifyFile:classifyFile,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
 })(window);
