@@ -9,12 +9,14 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 5.5.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation pending; device QA pending)
+**Version 5.6.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; device QA pending)
 
 ---
 
 
 **AI Development Workspace (5.5)** — the shared response layer now automatically continues responses interrupted by provider output-token limits. It detects confirmed truncation, preserves the partial answer, sends a compact continuation context, and resumes from the exact stopping point without repeating the earlier text. Up to two continuation attempts are made per response; if recovery still fails, the accumulated partial output and diagnostics remain available. The chat, AI Team agents and Video Studio Writers’ Room display a dedicated continuation indicator. Structured JSON remains subject to complete-object validation before later stages consume it. The earlier 5.4 response-normalization layer preserves provider completion reasons, usage and request IDs; rejects incomplete outputs; and retains diagnostics. OpenAI Responses and Anthropic relays preserve finish metadata. Video Studio's missing model-test controls and status target are restored, and completed Writers’ Room stages are saved so a later failure does not erase earlier work. Version 5.3 adds visible Context and Review Code controls, automatic project-file context, approved local file-edit proposals with highlighted diffs and guarded undo, and improved provider network/timeout diagnostics. Earlier workspace capabilities include model/provider selection, local project files and conversations, AI Team workflows, independent review, Parallel web research, GitHub repository browsing and reviewed file pushes, and Supabase browsing with read-only SQL. Video Studio remains a lightweight procedural story-to-animatic tool with an AI Writers’ Room, character bible, editable storyboard, preview timeline and silent WebM export; it does not claim to generate full image/video/audio assets.
+
+**Creative Library (5.6.0)** — a lazily loaded reference workspace for local PNG/JPEG/WebP images, MP4/WebM videos, TXT/Markdown text and PDFs. Asset metadata and binary Blobs are stored separately in IndexedDB, so browsing a collection does not load every image or video into memory. Collections, tags, descriptions, notes, reusable style profiles and project associations persist locally. The library previews only the selected item and releases preview object URLs when selection changes. Video previews request metadata only; the app does not decode whole videos locally. Text-reference AI analysis is an explicit, per-action choice and sends at most the first 12,000 characters after a confirmation prompt. Image/video AI analysis and PDF text extraction are not enabled in this release; those assets remain local. No new extension permissions or external dependencies are added.
 
 ## Install
 
@@ -140,6 +142,7 @@ new-tab-launcher/
   assistant-*.js       shared assistant core, intents, full page
   orb.js               floating assistant panel
   claude-app.*         Claude Code editor, chat and GitHub push
+  claude-app-creative-library.js  lazy local reference library (IndexedDB)
   github-api.js         shared GitHub REST request and error handling
   github/drive/brewkeg/sessions/memory/files  mini app pages
   popup.*              toolbar popup

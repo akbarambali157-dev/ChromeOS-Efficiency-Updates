@@ -1,6 +1,6 @@
 # My Launcher architecture
 
-**Release baseline:** 3.5.0  
+**Release baseline:** 5.6.0 candidate  
 **Implementation note:** target-device browser QA remains pending  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
@@ -37,6 +37,7 @@ Scripts are classic scripts, not ES modules. Their order in each HTML file is pa
 | assistant-core.js | Shared assistant logic, speech, commands, context and Brewkeg requests |
 | assistant.js, orb.js | Full-page and floating assistant views; neither duplicates the assistant brain |
 | commandbar.js | Command matching, shortcuts, open tabs, bookmarks and history |
+| claude-app-creative-library.js | Lazy-loaded local creative-reference library; metadata, collections and profiles in IndexedDB, binary Blobs in a separate object store |
 | claude-app.js | Lightweight editor, chat, search, diff review and snapshot-bound GitHub push workflow |
 | github-api.js | Shared authenticated GitHub REST client and status/error handling |
 | github.js | GitHub dashboard, Codespaces, pull requests, commits and builds |
@@ -79,6 +80,7 @@ Chrome extension storage is the persistence layer for extension settings and app
 | Appearance preferences | layoutPrefs, customPalette, accessibilityPrefs | customization.js |
 | Website dark mode | darkMode, darkSkip, nativeDark | background.js, home-dark.js, dark-detect.js, popup.js |
 | Assistant | assistant, aiKey | assistant-core.js, assistant.js |
+| Creative Library | IndexedDB database cc-creative-library: assets metadata, blobs, collections and style profiles | claude-app-creative-library.js |
 | Editor and imported usage | ccFiles, ccLogs, ccSessions | claude-app.js, sessions-page.js |
 | GitHub and web-search credentials | Stored separately from backup data | github.js, claude-app.js |
 | Weather | weather, weatherCache | weather.js |
@@ -160,3 +162,10 @@ The 40-app catalogue, initial 12 complete apps, polished storefront, full backup
 - The app bridge now exposes narrowly scoped, explicit user-triggered actions to read/copy the launcher quick note and add an item to the launcher task list. It does not expose arbitrary storage keys.
 - Workspace appearance now reads the launcher's theme, custom accent palette, text size, density, high-contrast and reduced-motion preferences and propagates them to the sandboxed app.
 - Backup/restore includes local app registrations and app data, with per-app and total byte limits. Credentials remain excluded.
+
+
+## Creative Library storage contract (5.6.0)
+
+The Creative Library is loaded only when the user opens its navigation item. Its IndexedDB database, cc-creative-library, separates small asset metadata from the blobs store. Collection and style-profile records are independent object stores. The list view reads metadata only; a binary Blob is fetched only for the selected preview or an explicitly requested text analysis. The library is capped at 500 metadata records, imports at most eight files per batch, and enforces per-type size limits. It adds no host permission, background task or third-party dependency.
+
+Image previews use object URLs. Video previews set preload to metadata and never decode the complete video into a JavaScript buffer. Temporary object URLs are revoked when the selected asset changes or the page is hidden. Text analysis is user-initiated after a confirmation naming the selected file and maximum content sent; the current provider bridge is text-only. Images, videos and PDFs are never uploaded by this release. PDF text extraction and multimodal analysis remain future work.
