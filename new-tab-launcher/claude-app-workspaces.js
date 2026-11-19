@@ -133,7 +133,7 @@
   function runTeam() {
     var task=$('teamTask').value.trim();if(!task)return status('teamStatus','Enter a task first.',true);
     cancelRun=false;$('runTeam').disabled=true;$('cancelTeam').disabled=false;$('teamOutput').textContent='';
-    var mode=$('teamMode').value,buildMode=mode==='implement';
+    var mode=$('teamMode').value,buildMode=mode==='implement';\n    /* Single-agent concurrency limit: lead, reviewer and integrator run sequentially for Chromebook memory safety. */
     var progress=[{title:buildMode?'Lead implementation':'Lead analysis',detail:'Prepare the first response',state:'pending'},{title:buildMode?'Independent code review':'Independent review',detail:'Check correctness and gaps',state:'pending'},{title:buildMode?'Integration and final patch':'Final synthesis / worker',detail:'Finish the workflow',state:'pending'}];
     renderTeamProgress(progress);status('teamStatus','Starting the AI Team workflow…');
     if(window.CCActivity)CCActivity.begin('AI Team',task.slice(0,90));
