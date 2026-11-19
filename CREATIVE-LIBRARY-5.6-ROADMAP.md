@@ -6,9 +6,9 @@ Adds a lazy-loaded local reference workspace for PNG/JPEG/WebP images, MP4/WebM 
 
 Limits: 500 metadata records, 8 files per import batch, 15 MiB per image, 50 MiB per video, 2 MiB per text file and 20 MiB per PDF. No new extension permission, dependency, build step or background polling.
 
-## 5.7.0 — Recreation Lab
+## 5.7.0 — Recreation Lab (implementation candidate)
 
-Use selected references and style profiles for structured experiments, user-defined comparison criteria, saved experiments and side-by-side result notes. Visual extraction or image upload must wait for a provider capability contract and explicit per-action consent. Do not claim model training.
+Adds an independently lazy-loaded experiment workspace. Users can select up to five local references, choose a saved style profile, write a creative brief and up to eight comparison criteria, and request a structured plan with approaches, workflow and trade-offs. Every AI request requires confirmation naming the configured provider/model. Only the brief, style guidance and reference metadata (names, types, descriptions, tags and saved text analysis) are sent; original assets and file contents remain local. Experiments, generated plans, result notes and comparison notes persist in a versioned IndexedDB object store, with a 100-record limit. This is not image understanding, exact visual recreation or model training. Manual ChromeOS 103 / 2 GB RAM QA remains outstanding.
 
 ## 5.8.0 — Video Studio Evolution
 
