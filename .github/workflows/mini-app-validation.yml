@@ -8,6 +8,9 @@ on:
       - 'marketplace/catalogue/**'
       - 'scripts/**'
       - 'README.md'
+      - 'ARCHITECTURE.md'
+      - 'CREATIVE-LIBRARY-5.6-ROADMAP.md'
+      - 'ROADMAP-ARCHITECTURE-FRAMEWORK.md'
       - '.github/workflows/mini-app-validation.yml'
   pull_request:
     paths:
