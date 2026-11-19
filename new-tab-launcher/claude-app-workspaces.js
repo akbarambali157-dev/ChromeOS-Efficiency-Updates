@@ -35,7 +35,8 @@
   }
   function setWorkspace(name) {
     var previous=current;
-    if(previous==='creative'&&name!=='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();\n    if(previous==='recreation'&&name!=='recreation'&&g.CCRecreationLab&&g.CCRecreationLab.suspend)g.CCRecreationLab.suspend();
+    if(previous==='creative'&&name!=='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();
+    if(previous==='recreation'&&name!=='recreation'&&g.CCRecreationLab&&g.CCRecreationLab.suspend)g.CCRecreationLab.suspend();
     current=name;
     document.body.classList.add('workspace-open');
     $('workspaceExtra').hidden=false;
@@ -90,7 +91,8 @@
     app.updateProjectMeta({notes:$('projectNotes').value},function(ok){status('projectNotesStatus',ok?'Notes saved locally.':'Could not save notes.',!ok);});
   }
   function editorWorkspace() {
-    if(current==='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();\n    if(current==='recreation'&&g.CCRecreationLab&&g.CCRecreationLab.suspend)g.CCRecreationLab.suspend();
+    if(current==='creative'&&g.CCCreativeLibrary&&g.CCCreativeLibrary.suspend)g.CCCreativeLibrary.suspend();
+    if(current==='recreation'&&g.CCRecreationLab&&g.CCRecreationLab.suspend)g.CCRecreationLab.suspend();
     document.body.classList.remove('workspace-open');
     $('workspaceExtra').hidden=true; $('editor').hidden=false; $('tabName').parentNode.hidden=false; $('contextStatus').hidden=false;
     document.querySelectorAll('.actbtn').forEach(function(b){b.classList.remove('on');}); $('paneFiles').classList.add('on');
