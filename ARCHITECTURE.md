@@ -1,6 +1,6 @@
 # My Launcher architecture
 
-**Release baseline:** 5.7.0 candidate  
+**Release baseline:** 5.7.0 merged to main 19 November 2026  
 **Implementation note:** target-device browser QA remains pending  
 **Runtime:** Chrome Extension Manifest V3, minimum Chrome 103  
 **Implementation:** plain HTML, CSS and JavaScript; no build step or third-party runtime dependency.
@@ -173,3 +173,14 @@ Recreation Lab is lazy-loaded independently and reuses the Creative Library Inde
 The Creative Library is loaded only when the user opens its navigation item. Its IndexedDB database, cc-creative-library, separates small asset metadata from the blobs store. Collection and style-profile records are independent object stores. The list view reads metadata only; a binary Blob is fetched only for the selected preview or an explicitly requested text analysis. The library is capped at 500 metadata records, imports at most eight files per batch, and enforces per-type size limits. It adds no host permission, background task or third-party dependency.
 
 Image previews use object URLs. Video previews set preload to metadata and never decode the complete video into a JavaScript buffer. Temporary object URLs are revoked when the selected asset changes or the page is hidden. Text analysis is user-initiated after a confirmation naming the selected file and maximum content sent; the current provider bridge is text-only. Images, videos and PDFs are never uploaded by this release. PDF text extraction and multimodal analysis remain future work.
+
+
+## Roadmap architecture framework (5.7.0 baseline)
+
+The current stable release baseline is 5.7.0, merged to main on 19 November 2026. The extension remains Manifest V3 with minimum Chrome 103, plain HTML/CSS/JavaScript, no build step and no third-party runtime dependency. Target-device validation remains a separate release gate and must not be inferred from CI.
+
+The cross-workspace contracts and planned domain boundaries are maintained in [ROADMAP-ARCHITECTURE-FRAMEWORK.md](ROADMAP-ARCHITECTURE-FRAMEWORK.md). The release sequence and acceptance criteria are maintained in [CREATIVE-LIBRARY-5.6-ROADMAP.md](CREATIVE-LIBRARY-5.6-ROADMAP.md).
+
+Future work must use the documented Knowledge Service, provenance envelope, context packet, provider gateway, consent gate and task orchestration contracts where applicable. Workspaces retain ownership of their UI and domain logic and must not access another workspace's raw storage schema. The framework does not authorize feature implementation by itself.
+
+The roadmap framework is intentionally local-first and bounded: preserve existing data, use versioned additive migrations, lazy-load workspaces, avoid new permissions/dependencies by default, and separately report static/unit/contract tests, CI, live-provider behavior and ChromeOS device QA.
