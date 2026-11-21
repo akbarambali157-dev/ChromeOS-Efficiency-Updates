@@ -92,6 +92,9 @@
   <label>Parallel Search API key<input id="pcKeyIn" type="password" autocomplete="off" placeholder="Optional web-search key"></label>
   <label>Chat provider<select id="ccProvider"><option value="brewkeg">Brewkeg compatible API</option><option value="openai">OpenAI direct</option><option value="anthropic">Anthropic direct</option></select></label>
   <label>Model<input id="ccModel" list="ccModelList" maxlength="120" value="claude-sonnet-5-5"><datalist id="ccModelList"></datalist></label>
+  <label>Reasoning effort<select id="ccEffort"><option value="low">Low — faster, lower usage</option><option value="medium" selected>Medium — balanced</option><option value="high">High — deeper analysis</option><option value="xhigh">Extra high — extended reasoning</option><option value="max">Maximum — deepest supported effort</option></select></label>
+  <label>Reasoning mode<select id="ccReasoningMode"><option value="standard" selected>Standard</option><option value="pro">Pro (supported OpenAI models only)</option></select></label>
+  <p class="hintline" id="ccEffortHint">Effort is selected per supported provider/model. Unsupported combinations use the provider default.</p>
   <label>OpenAI API key<input id="openAIKeyIn" type="password" autocomplete="off" placeholder="Optional direct API key"></label>
   <label>Anthropic API key<input id="anthropicKeyIn" type="password" autocomplete="off" placeholder="Optional direct API key"></label>
   <div class="workspace-actions"><button type="button" class="ghost" id="testConnection">Test model connection</button><button type="button" class="ghost" id="testSearchConnection">Test Parallel search</button><button type="button" class="ghost" id="clearKeys">Clear saved API keys</button><span id="testConnectionStatus" class="status"></span></div><div id="setStatus" class="status"></div><div class="row"><button type="button" class="ghost" id="setCancel">Cancel</button><button type="submit" class="primary">Save</button></div>
