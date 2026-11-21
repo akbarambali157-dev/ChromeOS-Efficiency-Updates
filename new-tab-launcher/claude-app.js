@@ -14,6 +14,7 @@
 
   var files = [], logs = [], activeFile = null, activeLog = null, projects = [], activeProjectId = 'default', projectData = {}, projectModalMode = 'edit';
   var ccKey = '', model = 'claude-sonnet-5-5', provider = 'brewkeg', openAIKey = '', anthropicKey = '', ghToken = '', pcKey = '';
+  var ccEffort = 'medium', ccReasoningMode = 'standard';
   var webOn = false, chatH = 250, planNext = false;
   var saveTimer = null, busy = false, lastCodeApply = null, pendingFileEdits = [];
 
@@ -352,7 +353,7 @@
   /* ---------- chat ---------- */
   function chatPost(body) {
     return CCProviders.request(provider, body.model || model, body.messages || [], body.max_tokens || MAX_TOKENS,
-      { brewkeg: ccKey, openai: openAIKey, anthropic: anthropicKey });
+      { brewkeg: ccKey, openai: openAIKey, anthropic: anthropicKey }, { effort: ccEffort, reasoningMode: ccReasoningMode });
   }
   function readAssistantText(res) {
     if(!res||Number(res.status)<200||Number(res.status)>=300){
@@ -794,7 +795,8 @@
     $('anthropicKeyIn').value = anthropicKey;
     $('ccProvider').value = provider;
     CCProviders.populate($('ccModel'), provider, model);
-    chrome.storage.local.get(['ccEffort','ccReasoningMode'],function(d){$('ccEffort').value=d.ccEffort||'medium';$('ccReasoningMode').value=d.ccReasoningMode||'standard';refreshEffortControls();});
+    refreshChatEffortControls();
+    chrome.storage.local.get(['ccEffort','ccReasoningMode'],function(d){ccEffort=d.ccEffort||'medium';ccReasoningMode=d.ccReasoningMode||'standard';$('ccEffort').value=ccEffort;$('ccReasoningMode').value=ccReasoningMode;refreshEffortControls();refreshChatEffortControls();});
     say('setStatus', '');
     $('dlgSet').showModal();
   });
@@ -857,9 +859,12 @@
     });
   }
 
-  function refreshEffortControls(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.effortProfile(p,m);CCProviders.populateEffort($('ccEffort'),p,m,$('ccEffort').value,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;$('ccReasoningMode').value=profile.reasoningModes.length?($('ccReasoningMode').value||'standard'):'standard';$('ccEffortHint').textContent=profile.note+' Unsupported effort settings fall back to the provider default.';}
+  function refreshEffortControls(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.effortProfile(p,m);CCProviders.populateEffort($('ccEffort'),p,m,$('ccEffort').value,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;$('ccReasoningMode').value=profile.reasoningModes.length?($('ccReasoningMode').value||'standard'):'standard';$('ccEffortHint').textContent=profile.note+' Unsupported effort settings fall back to the provider default.';ccEffort=$('ccEffort').value||profile.defaultEffort||'medium';ccReasoningMode=$('ccReasoningMode').value||'standard';refreshChatEffortControls();}
+  function refreshChatEffortControls(){var control=$('chatEffort');if(!control)return;var profile=CCProviders.populateEffort(control,provider,model,ccEffort,false);ccEffort=control.value||profile.defaultEffort||'medium';var status=$('chatEffortStatus');if(status)status.textContent=control.options.length?control.options[control.selectedIndex].text:'Provider default';control.title=profile.note+' Unsupported settings fall back to provider defaults.';}
+  $('chatEffort').addEventListener('change',function(){ccEffort=this.value||'medium';$('chatEffortStatus').textContent=this.options[this.selectedIndex]?this.options[this.selectedIndex].text:'Provider default';chrome.storage.local.set({ccEffort:ccEffort},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save effort setting. It may not persist after reload.',true);return;}say('chatStatus','Reasoning effort saved: '+$('chatEffortStatus').textContent);});});
   $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value);refreshEffortControls(); });
   $('ccModel').addEventListener('change',refreshEffortControls);
+  $('ccModel').addEventListener('change',refreshChatEffortControls);
   $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('testConnection').addEventListener('click',function(){
     var p=$('ccProvider').value,m=$('ccModel').value.trim(),keys={brewkeg:$('ccKeyIn').value.trim(),openai:$('openAIKeyIn').value.trim(),anthropic:$('anthropicKeyIn').value.trim()};
@@ -891,7 +896,7 @@
     anthropicKey = $('anthropicKeyIn').value.trim();
     provider = $('ccProvider').value;
     model = $('ccModel').value;
-    var effort=$('ccEffort').value,reasoningMode=$('ccReasoningMode').value;
+    var effort=$('ccEffort').value,reasoningMode=$('ccReasoningMode').value;ccEffort=effort;ccReasoningMode=reasoningMode;
     chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model, ccEffort:effort, ccReasoningMode:reasoningMode }, function () {
       say('setStatus', 'Settings saved.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
@@ -906,7 +911,7 @@
   });
 
   /* ---------- boot ---------- */
-  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccPlanMode', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH'], function (d) {
+  chrome.storage.local.get(['ccFiles', 'ccLogs', 'ccProjects', 'ccActiveProject', 'ccProjectData', 'ccPlanMode', 'ccKey', 'ccModel', 'ccProvider', 'ccOpenAIKey', 'ccAnthropicKey', 'ghToken', 'pcKey', 'ccWeb', 'ccChatH', 'ccEffort', 'ccReasoningMode'], function (d) {
     projects = Array.isArray(d.ccProjects)&&d.ccProjects.length ? d.ccProjects.slice(0,12) : [{id:'default',name:'General',createdAt:Date.now()}];
     projectData = d.ccProjectData&&typeof d.ccProjectData==='object' ? d.ccProjectData : {};
     activeProjectId = projects.some(function(p){return p.id===d.ccActiveProject;}) ? d.ccActiveProject : projects[0].id;
@@ -921,6 +926,8 @@
     ccKey = d.ccKey || '';
     provider = d.ccProvider || 'brewkeg';
     model = d.ccModel || 'claude-sonnet-5-5';
+    ccEffort = d.ccEffort || 'medium';
+    ccReasoningMode = d.ccReasoningMode || 'standard';
     openAIKey = d.ccOpenAIKey || '';
     anthropicKey = d.ccAnthropicKey || '';
     ghToken = d.ghToken || '';

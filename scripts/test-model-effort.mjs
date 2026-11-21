@@ -60,3 +60,12 @@ assert.equal('reasoning' in calls[3].body,false);
 assert.equal('output_config' in calls[3].body,false);
 
 console.log('Model-specific effort capability tests passed.');
+
+// Main-chat UI and provider routing must use the same saved effort setting.
+const chatAppSource=fs.readFileSync(new URL('../new-tab-launcher/claude-app.js',import.meta.url),'utf8');
+const chatMarkup=fs.readFileSync(new URL('../new-tab-launcher/claude-app.html',import.meta.url),'utf8');
+assert.match(chatMarkup,/id="chatEffort"/,'Effort control must be in the chat composer');
+assert.match(chatAppSource,/CCProviders\.request\([^\n]*|reasoningMode: ccReasoningMode/,'Chat requests must forward reasoning settings');
+assert.match(chatAppSource,/effort: ccEffort, reasoningMode: ccReasoningMode/,'Main chat must send the selected effort value');
+assert.match(chatAppSource,/chrome\.storage\.local\.set\(\{ccEffort:ccEffort\}/,'Chat effort changes must persist');
+console.log('Main-chat effort selector integration checks passed.');
