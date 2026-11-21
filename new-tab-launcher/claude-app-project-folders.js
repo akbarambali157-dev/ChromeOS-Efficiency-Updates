@@ -106,7 +106,7 @@
     query=String(query||'').trim();if(!query||query.length>200)fail('Enter a search term of 1–200 characters.','INVALID_QUERY');
     options=options||{};var max=Math.min(MAX_RESULTS,Math.max(1,Number(options.maxResults)||40)),needle=query.toLowerCase(),bytesRead=0;
     return list(projectId).then(function(items){var matches=[];
-      return items.reduce(function(p,item){return p.then(function(){if(matches.length>=max)return;return read(projectId,item.path).then(function(file){
+      return items.reduce(function(p,item){return p.then(function(){if(matches.length>=max||bytesRead>=MAX_SEARCH_BYTES)return;return read(projectId,item.path).then(function(file){
         var lines=file.content.split(/\r?\n/);
         for(var i=0;i<lines.length&&matches.length<max;i++)if(lines[i].toLowerCase().indexOf(needle)!==-1)matches.push({path:item.path,line:i+1,excerpt:lines[i].slice(0,240)});
       }).catch(function(e){if(e.code!=='FILE_TOO_LARGE'&&e.code!=='BINARY_FILE'&&e.code!=='UNSUPPORTED_FILE')throw e;});});},Promise.resolve()).then(function(){return {query:query,matches:matches,truncated:matches.length>=max};});
