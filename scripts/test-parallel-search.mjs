@@ -6,6 +6,7 @@ const box={window:{}};vm.runInNewContext(source,box);const api=box.window.CCPara
 const payload={search_id:'search_test',session_id:'session_test',results:[{title:'Official source',url:'https://example.com/docs',excerpts:['Relevant passage']},{title:'Second source',url:'https://example.org',excerpts:[{text:'Another passage'}]}],warnings:[],usage:[]};
 const parsed=api.parseResponse(200,JSON.stringify(payload),{contentType:'application/json',requestId:'req-1'});
 assert.equal(parsed.results.length,2);assert.equal(parsed.results[0].title,'Official source');assert.equal(parsed.results[1].excerpts[0],'Another passage');assert.equal(parsed.search_id,'search_test');
+const longExcerpt='x'.repeat(1800);const longPayload={results:[{title:'Long response source',url:'https://example.net/long',excerpts:[longExcerpt]}]};const longRaw=JSON.stringify(longPayload);assert.ok(longRaw.length>700);assert.equal(api.parseResponse(200,longRaw).results[0].excerpts[0].length,1800,'responses longer than the old 700-character cutoff must parse in full');
 assert.deepEqual(JSON.parse(JSON.stringify(api.parseResponse(200,JSON.stringify({results:[]})).results)),[]);
 assert.throws(()=>api.parseResponse(200,''),e=>e.kind==='empty'&&e.status===200&&!!e.diagnostic);
 assert.throws(()=>api.parseResponse(200,'<html><body>proxy error</body></html>',{contentType:'text/html'}),e=>e.kind==='malformed_json'&&/HTML or proxy page/.test(e.message)&&/text\/html/.test(e.diagnostic));

@@ -438,11 +438,15 @@
       function dispatch(body,retried){
         chrome.runtime.sendMessage({type:'search',key:pcKey,body:body},function(res){
           if(chrome.runtime.lastError||!res){reject(new Error('Parallel relay unavailable: '+((chrome.runtime.lastError&&chrome.runtime.lastError.message)||'no response')));return;}
-          var code=Number(res.status)||0,raw=String(res.text||'').slice(0,700);
+          var code=Number(res.status)||0,raw=String(res.text==null?'':res.text);
           if(code===400&&!retried){dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast'},true);return;}
-          if(code===401||code===403){reject(new Error('Parallel rejected the saved key (HTTP '+code+'). Check the key and access.'));return;}
-          if(code<200||code>=300){var detail=raw;try{var j=JSON.parse(raw);detail=(j.error&&(j.error.message||j.error.type||j.error))||j.message||j.detail||raw;}catch(e){}reject(new Error('Parallel Search failed (HTTP '+(code||'network')+'): '+detail));return;}
-          try{resolve(JSON.parse(raw||'{}'));}catch(e){reject(new Error('Parallel returned invalid JSON: '+raw.slice(0,300)));}
+          try{
+            if(!window.CCParallelSearch||typeof window.CCParallelSearch.parseResponse!=='function')throw new Error('Parallel Search response normalizer is unavailable. Reload the extension and try again.');
+            resolve(window.CCParallelSearch.parseResponse(code,raw,{contentType:res.contentType||'',requestId:res.requestId||''}));
+          }catch(e){
+            if(e&&e.diagnostic){e.message+='\\n'+e.diagnostic;}
+            reject(e);
+          }
         });
       }
       dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}},false);
