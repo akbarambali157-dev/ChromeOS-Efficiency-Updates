@@ -144,5 +144,50 @@
       }).then(function(){return {applied:true,path:parts.join('/')};});
     });});
   }
-  g.CCProjectFolders={connect:connect,reconnect:reconnect,status:status,disconnect:disconnect,list:list,read:read,search:search,proposeWrite:proposeWrite,applyProposal:applyProposal,validatePath:validatePath,limits:{maxFileBytes:MAX_FILE_BYTES,maxFiles:MAX_FILES,maxDepth:MAX_DEPTH,maxResults:MAX_RESULTS}};
+  function createProjectFolder(projectId,name){
+    projectId=projectKey(projectId);name=String(name||'').trim();
+    if(!name||name.length>60||name==='.'||name==='..'||/[\\\\/:*?"<>|\\u0000-\\u001f]/.test(name))fail('Choose a folder name up to 60 characters without reserved path characters.','INVALID_FOLDER_NAME');
+    if(typeof g.showDirectoryPicker!=='function')return Promise.reject(new Error('Folder access is not supported in this browser.'));
+    return g.showDirectoryPicker({id:'cc-project-parent',mode:'readwrite'}).then(function(parent){
+      return requirePermission(parent,false).then(function(){return parent.getDirectoryHandle(name,{create:true});}).then(function(handle){
+        return dbOp('readwrite',function(s){return s.put({projectId:projectId,handle:handle,connectedAt:Date.now(),name:handle.name||name});})
+          .then(function(){return {name:handle.name||name,permission:'granted'};});
+      });
+    });
+  }
+  var activeApp=null;
+  function currentProjectId(){var p=activeApp&&activeApp.getProjectInfo?activeApp.getProjectInfo():null;return p&&p.id?String(p.id):'';}
+  function setFolderStatus(message,error){var el=document.getElementById('projectFolderStatus');if(el){el.textContent=message||'';el.className='status'+(error?' err':'');}}
+  function refreshUi(){
+    var id=currentProjectId();if(!id)return Promise.resolve();
+    return status(id).then(function(s){
+      var connectBtn=document.getElementById('projectFolderConnect'),createBtn=document.getElementById('projectFolderCreate'),reconnectBtn=document.getElementById('projectFolderReconnect'),disconnectBtn=document.getElementById('projectFolderDisconnect');
+      if(connectBtn)connectBtn.hidden=s.connected;
+      if(createBtn)createBtn.hidden=s.connected;
+      if(reconnectBtn)reconnectBtn.hidden=!s.connected||s.permission==='granted';
+      if(disconnectBtn)disconnectBtn.hidden=!s.connected;
+      if(s.connected){
+        setFolderStatus(s.name+' · '+(s.permission==='granted'?'Access granted':'Reconnect to grant access'));
+        if(s.permission==='granted')return list(id).then(function(items){setFolderStatus(s.name+' · Access granted · '+items.length+' supported files found');}).catch(function(e){setFolderStatus(s.name+' · '+e.message,true);});
+      }else setFolderStatus('No folder connected. Choose an existing folder or create a project folder.');
+    }).catch(function(e){setFolderStatus(e.message||'Could not check folder status.',true);});
+  }
+  function init(appRef){
+    activeApp=appRef;
+    var connectBtn=document.getElementById('projectFolderConnect'),createBtn=document.getElementById('projectFolderCreate'),reconnectBtn=document.getElementById('projectFolderReconnect'),disconnectBtn=document.getElementById('projectFolderDisconnect');
+    if(connectBtn)connectBtn.addEventListener('click',function(){
+      var id=currentProjectId();if(!id)return;
+      connect(id).then(function(s){setFolderStatus(s.name+' connected.');return refreshUi();}).catch(function(e){setFolderStatus(e.message||'Folder connection failed.',true);});
+    });
+    if(createBtn)createBtn.addEventListener('click',function(){
+      var id=currentProjectId();if(!id)return;var p=appRef.getProjectInfo(),name=g.prompt('Name for the new project folder',p.name||'Project');
+      if(name===null)return;
+      createProjectFolder(id,name).then(function(s){setFolderStatus(s.name+' created and connected.');return refreshUi();}).catch(function(e){setFolderStatus(e.message||'Could not create project folder.',true);});
+    });
+    if(reconnectBtn)reconnectBtn.addEventListener('click',function(){var id=currentProjectId();if(!id)return;reconnect(id).then(refreshUi).catch(function(e){setFolderStatus(e.message||'Could not reconnect folder.',true);});});
+    if(disconnectBtn)disconnectBtn.addEventListener('click',function(){var id=currentProjectId();if(!id)return;if(!g.confirm('Disconnect this folder from the project? The folder and its contents will not be deleted.'))return;disconnect(id).then(refreshUi).catch(function(e){setFolderStatus(e.message||'Could not disconnect folder.',true);});});
+    refreshUi();
+  }
+  function refresh(){return refreshUi();}
+  g.CCProjectFolders={init:init,refresh:refresh,connect:connect,createProjectFolder:createProjectFolder,reconnect:reconnect,status:status,disconnect:disconnect,list:list,read:read,search:search,proposeWrite:proposeWrite,applyProposal:applyProposal,validatePath:validatePath,limits:{maxFileBytes:MAX_FILE_BYTES,maxFiles:MAX_FILES,maxDepth:MAX_DEPTH,maxResults:MAX_RESULTS}};
 })(window);
