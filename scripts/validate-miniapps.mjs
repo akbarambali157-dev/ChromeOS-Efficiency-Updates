@@ -31,6 +31,8 @@ const claudeResponse = read('new-tab-launcher/claude-app-response.js');
 const claudeParallelSearch = read('new-tab-launcher/claude-app-parallel-search.js');
 const parallelSearchTests = read('scripts/test-parallel-search.mjs');
 const claudeWorkspaces = read('new-tab-launcher/claude-app-workspaces.js');
+const claudeFolders = read('new-tab-launcher/claude-app-project-folders.js');
+const projectFolderTests = read('scripts/test-project-folders.mjs');
 const claudeVideo = read('new-tab-launcher/claude-app-video-studio.js');
 const aiResponseTests = read('scripts/test-ai-response.mjs');
 const background = read('new-tab-launcher/background.js');
@@ -84,10 +86,18 @@ check(readme.includes('leaves originals untouched'), 'README must describe the c
 
 
 // 4.0 AI Development Workspace contract and syntax checks.
-const workspaceScripts = ['claude-app-providers.js','claude-app-activity.js','claude-app-workspaces.js','claude-app-video-studio.js','claude-app.js'];
+const workspaceScripts = ['claude-app-providers.js','claude-app-activity.js','claude-app-project-folders.js','claude-app-workspaces.js','claude-app-video-studio.js','claude-app.js'];
 check(workspaceScripts.every((file) => claudeHtml.includes('src="' + file + '"')), 'AI workspace scripts must be loaded from the HTML.');
 check(claudeHtml.includes('claude-app-response.js') && claudeHtml.indexOf('claude-app-providers.js') < claudeHtml.indexOf('claude-app-response.js') && claudeHtml.indexOf('claude-app-response.js') < claudeHtml.indexOf('claude-app-activity.js'), 'Shared response module must load before AI consumers.');
 check(claudeHtml.indexOf('claude-app-providers.js') < claudeHtml.indexOf('claude-app-activity.js') && claudeHtml.indexOf('claude-app-activity.js') < claudeHtml.indexOf('claude-app-workspaces.js') && claudeHtml.indexOf('claude-app-workspaces.js') < claudeHtml.indexOf('claude-app-video-studio.js') && claudeHtml.indexOf('claude-app-video-studio.js') < claudeHtml.indexOf('claude-app.js'), 'Provider, activity and workspace modules must load before the app controller.');
+check(claudeHtml.indexOf('claude-app-project-folders.js') < claudeHtml.indexOf('claude-app-workspaces.js'), 'Project folder engine must load before workspace consumers.');
+check(['projectFolderConnect','projectFolderCreate','projectFolderReconnect','projectFolderDisconnect','projectFolderStatus'].every((id) => claudeHtml.includes('id=\"' + id + '\"')), 'Project folder connection controls must be present.');
+check(claudeApp.includes('CCProjectFolders.init(window.CCApp)') && claudeApp.includes('CCProjectFolders.refresh()'), 'Project folder connection must follow the active project lifecycle.');
+check(claudeFolders.includes('showDirectoryPicker') && claudeFolders.includes('indexedDB.open') && claudeFolders.includes('function validatePath'), 'Project folders must use explicit folder picking, IndexedDB handles and relative-path validation.');
+check(claudeFolders.includes('function search(projectId,query') && claudeFolders.includes('function read(projectId,path') && claudeFolders.includes('function list(projectId)'), 'Project folder foundation must expose bounded list, read and grep-like search tools.');
+check(claudeFolders.includes('function proposeWrite') && claudeFolders.includes('function applyProposal') && claudeFolders.includes('STALE_PROPOSAL'), 'Project writes must be staged and reject stale-file proposals.');
+check(!claudeFolders.includes('chrome.storage') && !claudeFolders.includes('removeEntry(') && !claudeFolders.includes('fetch('), 'Project folder handles must stay local; folder tools must not upload or delete files.');
+check(projectFolderTests.includes('Unsafe path should be rejected') && projectFolderTests.includes('STALE_PROPOSAL'), 'Project folder safety regression tests must cover traversal and stale proposals.');
 for (const id of ['ccProvider','ccModel','openAIKeyIn','anthropicKeyIn','insertCode','teamTask','teamProvider','reviewProvider','workerProvider','researchQuery','ghRepo','ghCreateBranch','ghCreatePR','sbPAT','sbRunQuery','videoCanvas','videoExport','projectSel','newProject','projectManage','dlgProject','projectName','projectInstructions','projectSave','projectDelete','paneProject','projectWorkspace','projectTaskForm','projectTaskInput','projectTaskList','projectNotes','activityIndicator','activityTitle','activityDetail','activityTime']) {
   check(claudeHtml.includes('id="' + id + '"'), 'AI workspace control missing: ' + id + '.');
 }
@@ -132,7 +142,7 @@ check(claudeHtml.includes('id="codeReviewBefore"') && claudeHtml.includes('Curre
 check(claudeActivity.includes('Taking a little longer to reason through this') && claudeActivity.includes('Still working through this') && claudeActivity.includes('function agent'), 'Activity indicator must expose truthful elapsed-time states and delegated-agent status.');
 check(claudeWorkspaces.includes('Single-agent concurrency limit') && !claudeWorkspaces.slice(claudeWorkspaces.indexOf('function runTeam()'),claudeWorkspaces.indexOf('function extract(res)')).includes('Promise.all'), 'AI Team must keep a single delegated agent active at a time.');
 check(!/eval\s*\(|new Function\s*\(/.test(claudeApp + claudeProviders + claudeWorkspaces + background), 'AI workspace code must not use eval or Function.');
-for (const [name, source] of [['background.js',background],['claude-app.js',claudeApp],['claude-app-providers.js',claudeProviders],['claude-app-response.js',claudeResponse],['claude-app-activity.js',claudeActivity],['claude-app-workspaces.js',claudeWorkspaces],['claude-app-video-studio.js',claudeVideo]]) {
+for (const [name, source] of [['background.js',background],['claude-app.js',claudeApp],['claude-app-providers.js',claudeProviders],['claude-app-response.js',claudeResponse],['claude-app-activity.js',claudeActivity],['claude-app-project-folders.js',claudeFolders],['claude-app-workspaces.js',claudeWorkspaces],['claude-app-video-studio.js',claudeVideo]]) {
   try { new Function(source); } catch (error) { failures.push(name + ' syntax error: ' + error.message); }
 }
 
