@@ -2,10 +2,11 @@ import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:asser
 const source=fs.readFileSync(new URL('../new-tab-launcher/claude-app-project-tools.js',import.meta.url),'utf8');
 const calls=[];const api={list:id=>Promise.resolve([{path:'src/a.js'}]),read:(id,p)=>Promise.resolve({path:p,content:'ok'}),search:(id,q,o)=>Promise.resolve({query:q,matches:[],options:o}),proposeWrite:(id,p,c)=>Promise.resolve({projectId:id,path:p,kind:'create',before:null,after:c,createdAt:1})};
 const ctx={window:{CCProjectFolders:api},JSON,Promise,String,Math};vm.runInNewContext(source,ctx);
-const app={getProjectInfo:()=>({id:'demo'})};assert.equal(ctx.window.CCProjectTools.definitions.length,4);
+const app={getProjectInfo:()=>({id:'demo'})};assert.equal(ctx.window.CCProjectTools.definitions.length,5);
+assert.equal(JSON.parse(await ctx.window.CCProjectTools.execute(app,'project_folder_status',{})).connected,undefined);
 assert.deepEqual(JSON.parse(await ctx.window.CCProjectTools.execute(app,'project_list_files',{})),[{path:'src/a.js'}]);
 assert.equal(JSON.parse(await ctx.window.CCProjectTools.execute(app,'project_read_file',{path:'src/a.js'})).content,'ok');
 assert.equal(JSON.parse(await ctx.window.CCProjectTools.execute(app,'project_grep',{query:'needle'})).query,'needle');
 const proposal=JSON.parse(await ctx.window.CCProjectTools.execute(app,'project_propose_file',{path:'notes.md',content:'draft'}));assert.equal(proposal.approvalRequired,true);assert.equal(proposal.status,'proposal_ready');
-await assert.rejects(()=>ctx.window.CCProjectTools.execute({getProjectInfo:()=>null},'project_list_files',{}));
+assert.throws(()=>ctx.window.CCProjectTools.execute({getProjectInfo:()=>null},'project_list_files',{}));
 console.log('Project tool adapter tests passed.');
