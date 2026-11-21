@@ -2,7 +2,7 @@
    project-folder security boundary; no raw filesystem path or host API escapes. */
 (function(g){
 'use strict';
-var MAX_OUTPUT=12000;
+var MAX_OUTPUT=12000,pending=Object.create(null),proposalSeq=0;
 function folders(){if(!g.CCProjectFolders)throw new Error('Project folder tools are not loaded.');return g.CCProjectFolders;}
 function projectId(app){var p=app&&app.getProjectInfo?app.getProjectInfo():null;if(!p||!p.id)throw new Error('Open a project before using project folder tools.');return String(p.id);}
 function clip(value){var s=typeof value==='string'?value:JSON.stringify(value);return s.length>MAX_OUTPUT?s.slice(0,MAX_OUTPUT)+'\n[Output clipped for memory safety.]':s;}
@@ -19,8 +19,11 @@ if(name==='project_folder_status')return api.status(id).then(clip);
 if(name==='project_list_files')return api.list(id).then(clip);
 if(name==='project_read_file')return api.read(id,String(args.path||'')).then(clip);
 if(name==='project_grep')return api.search(id,String(args.query||''),{maxResults:Math.min(40,Math.max(1,Number(args.maxResults)||30))}).then(clip);
-if(name==='project_propose_file')return api.proposeWrite(id,String(args.path||''),String(args.content===undefined?'':args.content)).then(function(proposal){return clip({status:'proposal_ready',path:proposal.path,kind:proposal.kind,before:proposal.before,after:proposal.after,createdAt:proposal.createdAt,approvalRequired:true,proposal:proposal});});
+if(name==='project_propose_file')return api.proposeWrite(id,String(args.path||''),String(args.content===undefined?'':args.content)).then(function(proposal){var proposalId='proposal-'+Date.now().toString(36)+'-'+(++proposalSeq);pending[proposalId]=proposal;return clip({status:'proposal_ready',proposalId:proposalId,path:proposal.path,kind:proposal.kind,beforePreview:String(proposal.before||'').slice(0,1500),afterPreview:String(proposal.after||'').slice(0,1500),approvalRequired:true});});
 throw new Error('Unknown project tool: '+String(name));
 }
-g.CCProjectTools=Object.freeze({definitions:definitions,execute:execute});
+function getProposal(id){return pending[String(id)]||null;}
+function applyProposal(id){var key=String(id),proposal=pending[key];if(!proposal)return Promise.reject(new Error('This proposal is no longer available. Create a fresh proposal.'));return folders().applyProposal(proposal).then(function(result){delete pending[key];return result;});}
+function rejectProposal(id){delete pending[String(id)];return true;}
+g.CCProjectTools=Object.freeze({definitions:definitions,execute:execute,getProposal:getProposal,applyProposal:applyProposal,rejectProposal:rejectProposal});
 })(window);
