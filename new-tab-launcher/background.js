@@ -129,38 +129,70 @@ function relayOpenAI(msg, sendResponse) {
   }
   var payload;
   try {
-    payload = JSON.stringify({ model: String(msg.body.model || '').slice(0,120), input: Array.isArray(msg.body.messages) ? msg.body.messages : [], max_output_tokens: Math.min(8192, Math.max(1, Number(msg.body.max_tokens)||2048)) });
+    var requestBody={model:String(msg.body.model||'').slice(0,120),input:Array.isArray(msg.body.messages)?msg.body.messages:[],max_output_tokens:Math.min(16384,Math.max(1,Number(msg.body.max_tokens)||2048))};
+    if(msg.body.reasoning&&typeof msg.body.reasoning==='object'){
+      var effort=String(msg.body.reasoning.effort||'');
+      var mode=String(msg.body.reasoning.mode||'standard');
+      if(['none','low','medium','high','xhigh','max'].indexOf(effort)>=0){
+        requestBody.reasoning={effort:effort};
+        if(['standard','pro'].indexOf(mode)>=0)requestBody.reasoning.mode=mode;
+      }
+    }
+    payload=JSON.stringify(requestBody);
   } catch (e) { sendResponse({ status: 400, text: 'Invalid OpenAI request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'OpenAI request is too large.' }); return true; }
   relayFetch('https://api.openai.com/v1/responses', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + msg.key }, body: payload }, 'OpenAI')
     .then(function (r) {
       return r.text().then(function (t) {
-        if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
+        var requestId=r.headers.get('x-request-id')||r.headers.get('request-id')||'';
+        if (!r.ok) { sendResponse({ status: r.status, text: t, requestId:requestId }); return; }
         try {
-          var d=JSON.parse(t),output=d.output_text||'';if(!output&&Array.isArray(d.output))output=d.output.map(function(item){return(item.content||[]).filter(function(part){return part.type==='output_text'||part.type==='text';}).map(function(part){return part.text||'';}).join('\\n');}).join('\\n');var inc=d.status==='incomplete'&&d.incomplete_details,finish=inc?(inc.reason==='max_output_tokens'?'length':'incomplete'):(d.status==='completed'?'stop':'');sendResponse({status:r.status,text:JSON.stringify({id:d.id,model:d.model,usage:d.usage,status:d.status,incomplete_details:d.incomplete_details,choices:[{finish_reason:finish,message:{role:'assistant',content:output}}]})});
-        } catch (e) { sendResponse({ status: r.status, text: t }); }
+          var d=JSON.parse(t);
+          if(d&&d.error){sendResponse({status:r.status,text:t,requestId:requestId});return;}
+          var output=d.output_text||'';
+          if(!output&&Array.isArray(d.output)){
+            output=d.output.map(function(item){
+              var blocks=Array.isArray(item.content)?item.content:[];
+              return blocks.filter(function(part){return part&&(['output_text','text','refusal'].indexOf(part.type)>=0)&&typeof part.text==='string';})
+                .map(function(part){return part.type==='refusal'?(part.refusal||''):part.text;}).filter(Boolean).join('\n');
+            }).filter(Boolean).join('\n');
+          }
+          var inc=d.status==='incomplete'&&d.incomplete_details;
+          var finish=inc?(inc.reason==='max_output_tokens'?'length':'incomplete'):(d.status==='completed'?'stop':'');
+          sendResponse({status:r.status,requestId:requestId,text:JSON.stringify({id:d.id,request_id:requestId,model:d.model,usage:d.usage,status:d.status,incomplete_details:d.incomplete_details,output_types:Array.isArray(d.output)?d.output.map(function(x){return x.type||'unknown';}):[],choices:[{finish_reason:finish,message:{role:'assistant',content:output}}]})});
+        } catch (e) { sendResponse({ status: r.status, text: t, requestId:requestId }); }
       });
     })
     .catch(function (e) { sendResponse({ status: 0, code: e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR', text: e && e.name === 'AbortError' ? 'Request timed out after 90 seconds.' : 'Network error: '+String((e && e.message) || e) }); });
   return true;
 }
-function relayAnthropic(msg, sendResponse) {
+function relayAnthropic(msg, sendResponse, useBrewkeg) {
   if (typeof msg.key !== 'string' || !msg.key.trim() || msg.key.length > 4096 || !msg.body || typeof msg.body !== 'object' || Array.isArray(msg.body)) {
     sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true;
   }
   var body = msg.body, payload;
   try {
     var messages = Array.isArray(body.messages) ? body.messages.filter(function (m) { return m && (m.role === 'user' || m.role === 'assistant'); }) : [];
-    payload = JSON.stringify({ model: String(body.model || '').slice(0,120), max_tokens: Math.min(8192, Math.max(1, Number(body.max_tokens)||2048)), system: String(body.system||'').slice(0,20000), messages: messages });
+    var requestBody={model:String(body.model||'').slice(0,120),max_tokens:Math.min(8192,Math.max(1,Number(body.max_tokens)||2048)),system:String(body.system||'').slice(0,20000),messages:messages};
+    if(body.output_config&&typeof body.output_config==='object'&&['low','medium','high','xhigh','max'].indexOf(String(body.output_config.effort||''))>=0)requestBody.output_config={effort:String(body.output_config.effort)};
+    payload=JSON.stringify(requestBody);
   } catch (e) { sendResponse({ status: 400, text: 'Invalid Anthropic request.' }); return true; }
   if (payload.length > 200000) { sendResponse({ status: 413, text: 'Anthropic request is too large.' }); return true; }
-  relayFetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': msg.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: payload }, 'Anthropic')
+  var endpoint=useBrewkeg?'https://brewkeg.dev/v1/messages':'https://api.anthropic.com/v1/messages';
+  var authHeaders={'Content-Type':'application/json','anthropic-version':'2023-06-01'};if(useBrewkeg)authHeaders.Authorization='Bearer '+msg.key;else{authHeaders['x-api-key']=msg.key;authHeaders['anthropic-dangerous-direct-browser-access']='true';}
+  relayFetch(endpoint, { method: 'POST', headers: authHeaders, body: payload }, useBrewkeg?'Brewkeg Anthropic':'Anthropic')
     .then(function (r) {
       return r.text().then(function (t) {
-        if (!r.ok) { sendResponse({ status: r.status, text: t }); return; }
+        var requestId=r.headers.get('request-id')||r.headers.get('x-request-id')||'';
+        if (!r.ok) { sendResponse({ status: r.status, text: t, requestId:requestId }); return; }
         try {
-          var d=JSON.parse(t),text=(d.content||[]).filter(function(x){return x.type==='text';}).map(function(x){return x.text||'';}).join('\\n'),finish=d.stop_reason==='max_tokens'?'length':(d.stop_reason==='end_turn'||d.stop_reason==='stop_sequence'?'stop':(d.stop_reason||''));sendResponse({status:r.status,text:JSON.stringify({id:d.id,model:d.model,usage:d.usage,stop_reason:d.stop_reason,choices:[{finish_reason:finish,message:{role:'assistant',content:text,refusal:d.refusal||''}}]})});
-        } catch (e) { sendResponse({ status: r.status, text: t }); }
+          var d=JSON.parse(t);
+          if(d&&d.error){sendResponse({status:r.status,text:t,requestId:requestId});return;}
+          var blocks=Array.isArray(d.content)?d.content:[];
+          var text=blocks.filter(function(x){return x&&x.type==='text'&&typeof x.text==='string';}).map(function(x){return x.text;}).join('\n');if(!text&&typeof d.refusal==='string')text=d.refusal;
+          var finish=d.stop_reason==='max_tokens'?'length':(d.stop_reason==='end_turn'||d.stop_reason==='stop_sequence'?'stop':(d.stop_reason||''));
+          sendResponse({status:r.status,requestId:requestId,text:JSON.stringify({id:d.id,request_id:requestId,model:d.model,usage:d.usage,stop_reason:d.stop_reason,content_types:blocks.map(function(x){return x.type||'unknown';}),choices:[{finish_reason:finish,message:{role:'assistant',content:text}}]})});
+        } catch (e) { sendResponse({ status: r.status, text: t, requestId:requestId }); }
       });
     })
     .catch(function (e) { sendResponse({ status: 0, code: e && e.name === 'AbortError' ? 'TIMEOUT' : 'NETWORK_ERROR', text: e && e.name === 'AbortError' ? 'Request timed out after 90 seconds.' : 'Network error: '+String((e && e.message) || e) }); });
@@ -225,7 +257,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   }
   if (msg.type === 'supabase.management') return relaySupabaseManagement(msg, sendResponse);
   if (msg.type === 'provider.openai') return relayOpenAI(msg, sendResponse);
-  if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse);
+  if (msg.type === 'provider.anthropic') return relayAnthropic(msg, sendResponse, false);
+  if (msg.type === 'provider.brewkegAnthropic') return relayAnthropic(msg, sendResponse, true);
   if (msg.type === 'search') {
     return relayRequest(msg, sendResponse, 'https://api.parallel.ai/v1/search',
       'x-api-key', 100000, 'Search');

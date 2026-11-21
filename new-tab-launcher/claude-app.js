@@ -794,6 +794,7 @@
     $('anthropicKeyIn').value = anthropicKey;
     $('ccProvider').value = provider;
     CCProviders.populate($('ccModel'), provider, model);
+    chrome.storage.local.get(['ccEffort','ccReasoningMode'],function(d){$('ccEffort').value=d.ccEffort||'medium';$('ccReasoningMode').value=d.ccReasoningMode||'standard';refreshEffortControls();});
     say('setStatus', '');
     $('dlgSet').showModal();
   });
@@ -856,7 +857,9 @@
     });
   }
 
-  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value); });
+  function refreshEffortControls(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.effortProfile(p,m);CCProviders.populateEffort($('ccEffort'),p,m,$('ccEffort').value,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;$('ccReasoningMode').value=profile.reasoningModes.length?($('ccReasoningMode').value||'standard'):'standard';$('ccEffortHint').textContent=profile.note+' Unsupported effort settings fall back to the provider default.';}
+  $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value);refreshEffortControls(); });
+  $('ccModel').addEventListener('change',refreshEffortControls);
   $('setCancel').addEventListener('click', function () { $('dlgSet').close(); });
   $('testConnection').addEventListener('click',function(){
     var p=$('ccProvider').value,m=$('ccModel').value.trim(),keys={brewkeg:$('ccKeyIn').value.trim(),openai:$('openAIKeyIn').value.trim(),anthropic:$('anthropicKeyIn').value.trim()};
@@ -888,7 +891,8 @@
     anthropicKey = $('anthropicKeyIn').value.trim();
     provider = $('ccProvider').value;
     model = $('ccModel').value;
-    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model }, function () {
+    var effort=$('ccEffort').value,reasoningMode=$('ccReasoningMode').value;
+    chrome.storage.local.set({ ccKey: ccKey, pcKey: pcKey, ccOpenAIKey: openAIKey, ccAnthropicKey: anthropicKey, ccProvider: provider, ccModel: model, ccEffort:effort, ccReasoningMode:reasoningMode }, function () {
       say('setStatus', 'Settings saved.');
       setTimeout(function () { $('dlgSet').close(); }, 500);
     });
