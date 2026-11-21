@@ -796,7 +796,7 @@
     $('ccProvider').value = provider;
     CCProviders.populate($('ccModel'), provider, model);
     refreshChatEffortControls();
-    chrome.storage.local.get(['ccEffort','ccReasoningMode'],function(d){ccEffort=d.ccEffort||'medium';ccReasoningMode=d.ccReasoningMode||'standard';$('ccEffort').value=ccEffort;$('ccReasoningMode').value=ccReasoningMode;refreshEffortControls();refreshChatEffortControls();});
+    chrome.storage.local.get(['ccEffort','ccReasoningMode'],function(d){ccEffort=d.ccEffort||ccEffort||'medium';ccReasoningMode=d.ccReasoningMode||'standard';refreshEffortControls();refreshChatEffortControls();});
     say('setStatus', '');
     $('dlgSet').showModal();
   });
@@ -859,7 +859,7 @@
     });
   }
 
-  function refreshEffortControls(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.effortProfile(p,m);CCProviders.populateEffort($('ccEffort'),p,m,$('ccEffort').value,false);$('ccReasoningMode').disabled=!profile.reasoningModes.length;$('ccReasoningMode').value=profile.reasoningModes.length?($('ccReasoningMode').value||'standard'):'standard';$('ccEffortHint').textContent=profile.note+' Unsupported effort settings fall back to the provider default.';ccEffort=$('ccEffort').value||profile.defaultEffort||'medium';ccReasoningMode=$('ccReasoningMode').value||'standard';refreshChatEffortControls();}
+  function refreshEffortControls(){var p=$('ccProvider').value,m=$('ccModel').value,profile=CCProviders.effortProfile(p,m),legacyEffort=$('ccEffort'),legacyMode=$('ccReasoningMode'),legacyHint=$('ccEffortHint');if(legacyEffort){CCProviders.populateEffort(legacyEffort,p,m,ccEffort,false);ccEffort=legacyEffort.value||profile.defaultEffort||'medium';}else{ccEffort=ccEffort||profile.defaultEffort||'medium';}if(legacyMode){legacyMode.disabled=!profile.reasoningModes.length;legacyMode.value=profile.reasoningModes.length?(legacyMode.value||ccReasoningMode||'standard'):'standard';ccReasoningMode=legacyMode.value||'standard';}if(legacyHint)legacyHint.textContent=profile.note+' Unsupported effort settings fall back to the provider default.';refreshChatEffortControls();}
   function refreshChatEffortControls(){var control=$('chatEffort');if(!control)return;var profile=CCProviders.populateEffort(control,provider,model,ccEffort,false);ccEffort=control.value||profile.defaultEffort||'medium';var status=$('chatEffortStatus');if(status)status.textContent=control.options.length?control.options[control.selectedIndex].text:'Provider default';control.title=profile.note+' Unsupported settings fall back to provider defaults.';}
   $('chatEffort').addEventListener('change',function(){ccEffort=this.value||'medium';$('chatEffortStatus').textContent=this.options[this.selectedIndex]?this.options[this.selectedIndex].text:'Provider default';chrome.storage.local.set({ccEffort:ccEffort},function(){if(chrome.runtime.lastError){say('chatStatus','Could not save effort setting. It may not persist after reload.',true);return;}say('chatStatus','Reasoning effort saved: '+$('chatEffortStatus').textContent);});});
   $('ccProvider').addEventListener('change', function () { CCProviders.populate($('ccModel'), $('ccProvider').value);refreshEffortControls(); });
