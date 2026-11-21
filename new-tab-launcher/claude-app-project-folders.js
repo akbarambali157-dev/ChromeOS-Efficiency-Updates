@@ -86,7 +86,7 @@
     if(typeof g.showDirectoryPicker!=='function')return Promise.reject(new Error('Folder access is not supported in this browser. Use the existing file import option instead.'));
     /* Must be called directly from a user click; do not move this picker into a timer. */
     return g.showDirectoryPicker({id:'cc-project-folder',mode:'readwrite'}).then(function(handle){
-      return requirePermission(handle,true).then(function(){
+      return requirePermission(handle,false).then(function(){
         return dbOp('readwrite',function(s){return s.put({projectId:projectId,handle:handle,connectedAt:Date.now(),name:handle.name||'Project folder'});}).then(function(){return {name:handle.name||'Project folder',permission:'granted'};});
       });
     });
@@ -132,12 +132,15 @@
     return getHandle(proposal.projectId).then(function(root){return requirePermission(root,false).then(function(){
       return resolveDir(root,parts,proposal.kind==='create').then(function(dir){
         var name=parts[parts.length-1];
-        return dir.getFileHandle(name,{create:proposal.kind==='create'}).then(function(fh){
-          return readHandle(fh).then(function(now){
-            if(proposal.kind==='create'||now.content!==proposal.before)fail('The file changed after this proposal was prepared. Re-read it and create a new proposal.','STALE_PROPOSAL');
-            return fh.createWritable().then(function(w){return w.write(proposal.after).then(function(){return w.close();}).catch(function(e){return w.abort().catch(function(){ }).then(function(){throw e;});});});
-          });
-        }).catch(function(e){if(e.name==='NotFoundError'&&proposal.kind==='create')return dir.getFileHandle(name,{create:true}).then(function(fh){return fh.createWritable().then(function(w){return w.write(proposal.after).then(function(){return w.close();});});});throw e;});
+        function writeHandle(fh){return fh.createWritable().then(function(w){return w.write(proposal.after).then(function(){return w.close();}).catch(function(e){return w.abort().catch(function(){ }).then(function(){throw e;});});});}
+        if(proposal.kind==='create'){
+          return dir.getFileHandle(name).then(function(){fail('A file now exists at this path. Review the folder and create a new proposal.','STALE_PROPOSAL');})
+            .catch(function(e){if(e.code==='STALE_PROPOSAL')throw e;if(e.name!=='NotFoundError')throw e;return dir.getFileHandle(name,{create:true}).then(writeHandle);});
+        }
+        return dir.getFileHandle(name).then(function(fh){return readHandle(fh).then(function(now){
+          if(now.content!==proposal.before)fail('The file changed after this proposal was prepared. Re-read it and create a new proposal.','STALE_PROPOSAL');
+          return writeHandle(fh);
+        });});
       }).then(function(){return {applied:true,path:parts.join('/')};});
     });});
   }
