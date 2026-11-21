@@ -394,3 +394,9 @@ body.workspace-open .workspace-card{overflow-wrap:anywhere}
 .project-folder-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
 .project-folder-actions button{min-height:36px}
 #projectFolderStatus{overflow-wrap:anywhere;margin-top:8px}
+
+/* Chat-level reasoning effort selector */
+.chat-effort-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:2px 1px 0;color:#8b9bb0;font-size:10px;}
+.chat-effort-row label{white-space:nowrap;}
+.chat-effort-row select{max-width:min(240px,58vw);height:25px;padding:2px 7px;border:1px solid #263341;border-radius:6px;background:#111923;color:#c6d2e0;font-size:11px;}
+#chatEffortStatus{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#6b7c90;font-size:10px;}
