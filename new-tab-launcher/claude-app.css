@@ -388,3 +388,9 @@ body.workspace-open .workspace-card{overflow-wrap:anywhere}
 /* Video Studio continuation status */
 .v45 .status.continuing{display:inline-flex;align-items:center;gap:7px;color:#9edcc8}
 .v45 .status.continuing::before{content:'';width:10px;height:10px;flex:0 0 10px;border:2px solid #7fd1b9;border-right-color:transparent;border-radius:50%;animation:cc-spin .8s linear infinite}
+
+/* Project-scoped local folder connection */
+.project-folder-box{grid-column:1/-1}
+.project-folder-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 6px}
+.project-folder-actions button{min-height:36px}
+#projectFolderStatus{overflow-wrap:anywhere;margin-top:8px}

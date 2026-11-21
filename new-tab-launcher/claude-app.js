@@ -124,6 +124,7 @@
     $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
     chrome.storage.local.set({ccActiveProject:id});
     if(window.CCWorkspaces&&window.CCWorkspaces.refreshProject)window.CCWorkspaces.refreshProject();
+    if(window.CCProjectFolders&&window.CCProjectFolders.refresh)window.CCProjectFolders.refresh();
   }
   function openProjectSettings(createMode) {
     projectModalMode=createMode?'create':'edit';
@@ -995,6 +996,7 @@
       }
     };
     CCWorkspaces.setApp(window.CCApp);CCWorkspaces.setWorkspace('project');CCWorkspaces.refreshProject();
+    if(window.CCProjectFolders&&window.CCProjectFolders.init)window.CCProjectFolders.init(window.CCApp);
     $('contextStatus').textContent = files.filter(function (f) { return f.attached !== false; }).length + ' files in context';
     if($('projectSel'))$('projectSel').addEventListener('change',function(){snapshotProject();loadProject(this.value);});
     if($('newProject'))$('newProject').addEventListener('click',function(){openProjectSettings(true);});

@@ -41,6 +41,8 @@ jobs:
         run: node scripts/test-ai-response.mjs
       - name: Test Parallel Search response handling
         run: node scripts/test-parallel-search.mjs
+      - name: Test project folder safety and path boundaries
+        run: node scripts/test-project-folders.mjs
       - name: Test Creative Library validation and privacy contracts
         run: node scripts/test-creative-library.mjs
       - name: Test Recreation Lab structure and privacy contracts
