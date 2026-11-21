@@ -1,11 +1,11 @@
 /* Project-scoped local folder foundation.
-   Folder handles are stored in IndexedDB (never chrome.storage). Every operation
+   Folder handles are stored in IndexedDB, separate from extension settings storage. Every operation
    resolves a relative path beneath the user-selected directory. Writes are staged
    and require a separate explicit apply call. */
 (function (g) {
   'use strict';
   var DB_NAME='cc-project-folders', DB_VERSION=1, STORE='handles';
-  var MAX_FILE_BYTES=1024*1024, MAX_FILES=300, MAX_DEPTH=8, MAX_RESULTS=120;
+  var MAX_FILE_BYTES=1024*1024, MAX_FILES=300, MAX_DEPTH=8, MAX_RESULTS=120, MAX_SEARCH_BYTES=12*1024*1024;
   var SKIP_DIRS={'.git':1,'node_modules':1,'.next':1,'dist':1,'build':1,'coverage':1,'.cache':1};
   var SKIP_FILES={'.env':1,'.env.local':1,'.env.production':1,'id_rsa':1,'id_ed25519':1,'credentials':1,'secrets.json':1};
   var TEXT_EXT=/\.(txt|md|js|mjs|cjs|json|css|html|xml|ya?ml|py|sql|csv|ts|tsx|jsx|sh|toml|ini|log|svg)$/i;
@@ -60,10 +60,6 @@
     if(!supportedFile(path))fail('Only supported text/code files can be read or edited.','UNSUPPORTED_FILE');
     return resolveDir(root,parts,create).then(function(dir){return dir.getFileHandle(parts[parts.length-1],{create:!!create});});
   }
-  function listFiles(dir,prefix,depth,state){
-    if(depth>MAX_DEPTH||state.count>=MAX_FILES)return Promise.resolve([]);
-    return dir.entries?Promise.resolve(dir.entries()):Promise.reject(new Error('Directory iteration is not supported.'));
-  }
   function walk(dir,prefix,depth,state,out){
     if(depth>MAX_DEPTH||state.count>=MAX_FILES)return Promise.resolve(out);
     var entries=[];
@@ -108,7 +104,7 @@
   }
   function search(projectId,query,options){
     query=String(query||'').trim();if(!query||query.length>200)fail('Enter a search term of 1–200 characters.','INVALID_QUERY');
-    options=options||{};var max=Math.min(MAX_RESULTS,Math.max(1,Number(options.maxResults)||40)),needle=query.toLowerCase();
+    options=options||{};var max=Math.min(MAX_RESULTS,Math.max(1,Number(options.maxResults)||40)),needle=query.toLowerCase(),bytesRead=0;
     return list(projectId).then(function(items){var matches=[];
       return items.reduce(function(p,item){return p.then(function(){if(matches.length>=max)return;return read(projectId,item.path).then(function(file){
         var lines=file.content.split(/\r?\n/);
@@ -118,7 +114,7 @@
   }
   function proposeWrite(projectId,path,content){
     var parts=validatePath(path);content=String(content===undefined?'':content);
-    if(content.length>MAX_FILE_BYTES)fail('Proposed file exceeds the 1 MiB limit.','FILE_TOO_LARGE');
+    if(new TextEncoder().encode(content).length>MAX_FILE_BYTES)fail('Proposed file exceeds the 1 MiB limit.','FILE_TOO_LARGE');
     if(content.indexOf('\u0000')!==-1)fail('Binary content cannot be written by this tool.','BINARY_FILE');
     if(!supportedFile(path))fail('Only supported text/code files can be proposed.','UNSUPPORTED_FILE');
     return getHandle(projectId).then(function(root){return requirePermission(root,false).then(function(){
@@ -128,7 +124,7 @@
   }
   function applyProposal(proposal){
     if(!proposal||!proposal.projectId||!proposal.path||typeof proposal.after!=='string')fail('Invalid file-change proposal.','INVALID_PROPOSAL');
-    var parts=validatePath(proposal.path);if(proposal.after.length>MAX_FILE_BYTES)fail('Proposed file exceeds the 1 MiB limit.','FILE_TOO_LARGE');
+    var parts=validatePath(proposal.path);if(new TextEncoder().encode(proposal.after).length>MAX_FILE_BYTES)fail('Proposed file exceeds the 1 MiB limit.','FILE_TOO_LARGE');
     return getHandle(proposal.projectId).then(function(root){return requirePermission(root,false).then(function(){
       return resolveDir(root,parts,proposal.kind==='create').then(function(dir){
         var name=parts[parts.length-1];
@@ -189,5 +185,5 @@
     refreshUi();
   }
   function refresh(){return refreshUi();}
-  g.CCProjectFolders={init:init,refresh:refresh,connect:connect,createProjectFolder:createProjectFolder,reconnect:reconnect,status:status,disconnect:disconnect,list:list,read:read,search:search,proposeWrite:proposeWrite,applyProposal:applyProposal,validatePath:validatePath,limits:{maxFileBytes:MAX_FILE_BYTES,maxFiles:MAX_FILES,maxDepth:MAX_DEPTH,maxResults:MAX_RESULTS}};
+  g.CCProjectFolders={init:init,refresh:refresh,connect:connect,createProjectFolder:createProjectFolder,reconnect:reconnect,status:status,disconnect:disconnect,list:list,read:read,search:search,proposeWrite:proposeWrite,applyProposal:applyProposal,validatePath:validatePath,limits:{maxFileBytes:MAX_FILE_BYTES,maxFiles:MAX_FILES,maxDepth:MAX_DEPTH,maxResults:MAX_RESULTS,maxSearchBytes:MAX_SEARCH_BYTES}};
 })(window);
