@@ -35,10 +35,17 @@
 - **Browser/device QA not performed.** Per user direction, defer browser visual QA until at least 5 master checklist features have implementation work completed.
 - Vercel preview deployment was previously blocked by daily deployment quota; that does not represent an app test result.
 
-## Next task — Phase 2: Chat & composer
-Read the approved master plan and inspect current chat behavior before implementation. First audit the state model and event flow in `claude-app.js`, `claude-app-response.js`, and related scripts. Do not blindly replace the composer or introduce storage keys.
+## Next task — Phase 2: Chat & composer (audit groundwork completed)
+The current source has now been inspected for composer/send flow and conversation persistence. Important baseline observations:
+- Input limit is 20,000 characters; the counter updates on input and flags at 90%.
+- Textarea autosizing is capped at 180px.
+- Current send shortcut is Ctrl/Cmd+Enter; regular Enter inserts a newline.
+- Submit clears the composer immediately, then calls send. If send exits early (e.g. provider key missing) or fails, user text may be lost from the composer even though the log may record a message/status.
+- Conversations are stored under project data (`ccProjectData`); `persistLogs()` keeps up to 10 logs and last 40 messages per log, with a project-data byte ceiling. Drafts are not currently a separate persistence object.
+- Chat history selection updates activeLog and renders messages. A separate per-project/per-conversation draft design must account for new-chat slots, quota and project switching.
+- Provider send lifecycle has a `busy` guard, `sendBtn` disabled state, activity begin, and response continuation handled by `claude-app-response.js`. Avoid duplicate busy/send states or disrupting automatic continuation.
 
-Priorities:
+Do not blindly replace the composer or introduce storage keys before design and tests.
 1. Composer drafts: safe save/restore; draft isolation across project/conversation; new-conversation draft; quota/storage failures and submit handling.
 2. Keyboard behavior: documented send/newline policy with desktop shortcut and mobile-safe behavior.
 3. Responsive composer: multiline resizing, cursor/scroll preservation, input limit feedback, controls and model/effort selector.
