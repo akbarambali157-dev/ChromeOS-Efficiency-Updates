@@ -499,3 +499,42 @@ body.cc ::-webkit-scrollbar-track{background:transparent}
 @media(prefers-reduced-motion:reduce){
   body.cc *,body.cc *::before,body.cc *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* Theme-aware Phase 1 integration: the mini-app follows the launcher theme
+   instead of maintaining an unrelated hard-coded palette. */
+body.cc{
+  --cc-surface-0:rgba(var(--bg-rgb,13,17,23),1);
+  --cc-surface-1:rgba(var(--panel-rgb,15,21,28),1);
+  --cc-surface-2:rgba(var(--panel-hi-rgb,22,29,38),.72);
+  --cc-surface-3:rgba(var(--panel-hi-rgb,27,36,48),1);
+  --cc-border:rgba(var(--text-rgb,230,237,245),.14);
+  --cc-border-soft:rgba(var(--text-rgb,230,237,245),.09);
+  --cc-text:var(--text,#e3edf7);
+  --cc-text-muted:var(--muted,#91a3b7);
+  --cc-text-dim:var(--muted,#718398);
+  --cc-accent:rgb(var(--accent-rgb,127,209,185));
+  --cc-accent-strong:rgb(var(--accent2-rgb,162,231,210));
+  background:var(--cc-surface-0);
+}
+/* Light-theme borders need dark ink so they remain visible without overpowering. */
+:root[data-theme="dayblue"] body.cc,
+:root[data-theme="daygold"] body.cc,
+:root[data-theme="dayamber"] body.cc,
+:root[data-theme="dayviolet"] body.cc{
+  --cc-border:rgba(16,35,58,.18);
+  --cc-border-soft:rgba(16,35,58,.11);
+  --cc-text-dim:rgba(16,35,58,.58);
+}
+body.cc .side,body.cc .panel,body.cc .chatrow,body.cc .panelhead,
+body.cc .tabs,body.cc .act,body.cc .grip,body.cc .workspace-card,
+body.cc .project-box,body.cc .project-dashboard-head,body.cc .project-stat,
+body.cc .chatrow textarea,body.cc .mini,body.cc .ghost,body.cc .tab,
+body.cc .logsel,body.cc .chat-effort-row select,body.cc input,body.cc select{
+  border-color:var(--cc-border-soft);
+}
+body.cc .empty,body.cc .chat-effort-row label,body.cc .ptitle,
+body.cc .sidehead,body.cc .chat-effort-status{color:var(--cc-text-muted)}
+body.cc .filerow,body.cc .msg,body.cc .editor{color:var(--cc-text)}
+body.cc .chatrow textarea::placeholder,body.cc .editor::placeholder{color:var(--cc-text-dim)}
+body.cc .primary{color:var(--cc-surface-0)}
+body.cc .actbtn:focus-visible,body.cc .grip:focus-visible{outline-color:var(--cc-accent)}
