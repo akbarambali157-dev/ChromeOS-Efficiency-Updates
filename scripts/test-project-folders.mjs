@@ -16,6 +16,7 @@ assert.equal(api.limits.maxFileBytes,1024*1024);
 assert.equal(api.limits.maxFiles,300);
 assert.equal(api.limits.maxDepth,8);
 assert.equal(api.limits.maxResults,120);
+assert.equal(api.limits.maxSearchBytes,12*1024*1024);
 assert.equal(typeof api.proposeWrite,'function');
 assert.equal(typeof api.applyProposal,'function');
 assert.equal(typeof api.search,'function');
@@ -28,4 +29,35 @@ assert.match(source,/indexedDB\.open/);
 assert.doesNotMatch(source,/chrome\.storage/);
 assert.doesNotMatch(source,/removeEntry\s*\(/);
 assert.doesNotMatch(source,/fetch\s*\(/);
-console.log('Project folder path, privacy and bounded-operation tests passed.');
+
+// Run the actual search function against deterministic mock file reads.
+const files=Array.from({length:15},(_,i)=>({path:'src/f'+i+'.txt'}));
+let reads=0;
+box.window.CCProjectFolders={list:async()=>files,read:async(_id,path)=>{reads++;return {content:'needle',size:900000};}};
+const capped=await api.search('demo','needle',{});
+assert.equal(capped.matches.length,13,'the 12 MiB scan budget should allow 13 × 900 KB');
+assert.equal(capped.bytesRead,11700000);
+assert.equal(capped.skippedFiles,1,'the next file is reported as skipped when it would exceed the budget');
+assert.equal(capped.truncated,true,'budget-limited searches must be clearly marked incomplete');
+assert.equal(reads,14,'search should stop after the first file that exceeds the budget');
+
+// Stop reading after the result cap.
+reads=0;
+box.window.CCProjectFolders={list:async()=>files,read:async(_id,path)=>{reads++;return {content:'needle',size:10};}};
+const resultLimited=await api.search('demo','needle',{maxResults:2});
+assert.equal(resultLimited.matches.length,2);
+assert.equal(reads,2);
+assert.equal(resultLimited.truncated,true);
+assert.equal(resultLimited.bytesRead,20);
+
+// Unreadable files are skipped but the search is marked partial.
+reads=0;
+box.window.CCProjectFolders={list:async()=>[{path:'a.txt'},{path:'b.txt'}],read:async(_id,path)=>{reads++;if(path==='a.txt'){const e=new Error('too large');e.code='FILE_TOO_LARGE';throw e;}return {content:'needle',size:10};}};
+const skipped=await api.search('demo','needle',{});
+assert.equal(skipped.matches.length,1);
+assert.equal(skipped.skippedFiles,1);
+assert.equal(skipped.truncated,true);
+assert.equal(skipped.bytesRead,10);
+
+assert.rejects(()=>api.search('demo','',{maxResults:3}),/Enter a search term/);
+console.log('Project folder path, privacy, safety limits and bounded-search regression tests passed.');
