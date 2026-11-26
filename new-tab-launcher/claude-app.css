@@ -538,3 +538,27 @@ body.cc .filerow,body.cc .msg,body.cc .editor{color:var(--cc-text)}
 body.cc .chatrow textarea::placeholder,body.cc .editor::placeholder{color:var(--cc-text-dim)}
 body.cc .primary{color:var(--cc-surface-0)}
 body.cc .actbtn:focus-visible,body.cc .grip:focus-visible{outline-color:var(--cc-accent)}
+
+:root[data-theme="dayblue"] body.cc,
+:root[data-theme="daygold"] body.cc,
+:root[data-theme="dayamber"] body.cc,
+:root[data-theme="dayviolet"] body.cc{color-scheme:light}
+body.cc .workspace-input,body.cc .project-head select,body.cc .project-task-form input,
+body.cc .logsel,body.cc .chat-effort-row select,body.cc .v45 input,body.cc .v45 select,
+body.cc .v45 textarea,body.cc .context-item,body.cc .context-summary .project-stat,
+body.cc .v45-card,body.cc .v45-scene,body.cc .v45-character,body.cc .v45-logitem,
+body.cc .v45-plan div,body.cc .file-edit-dialog,body.cc .file-edit-heading,
+body.cc .context-dialog-head,body.cc .context-dialog-foot,body.cc .file-edit-diff{
+  background-color:var(--cc-surface-1);
+  color:var(--cc-text);
+}
+body.cc .workspace-input:focus,body.cc .chatrow textarea:focus,
+body.cc .v45 input:focus,body.cc .v45 select:focus,body.cc .v45 textarea:focus{
+  border-color:var(--cc-accent);
+}
+body.cc .v45-nav button.on{background:var(--cc-surface-3);border-color:var(--cc-accent);color:var(--cc-text)}
+body.cc .v45-plan strong,body.cc .v45-status,body.cc .context-status{color:var(--cc-accent)}
+body.cc .workspace-card a{color:var(--cc-accent)}
+body.cc .code-diff-line.add{background:rgba(30,130,85,.18);color:var(--cc-text)}
+body.cc .code-diff-line.del{background:rgba(180,65,65,.18);color:var(--cc-text)}
+body.cc .code-diff-line.context{color:var(--cc-text-muted)}
