@@ -6,9 +6,9 @@
 **Implementation PR:** #29 — https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, not merged).
 
 ## Master feature tally (31 checklist items)
-- **Completed (implementation): 1 / 31** — Foundation and design system.
-- **In progress: 0 / 31** — Phase 1 implementation pass is complete; awaiting CI/runtime verification.
-- **Not started: 30 / 31.**
+- **Completed (implementation): 3 / 31** — Foundation/design system, chat experience, and composer (Phase 2/3 pass).
+- **In progress: 0 / 31** — Phase 2/3 implementation pass is complete; awaiting CI/runtime verification.
+- **Not started: 28 / 31.**
 - **Browser visual QA rule:** do not begin screenshot/browser visual review until at least 5 master-list features have implementation work completed. At that threshold, do browser visual QA before proceeding further.
 
 ## Phase 1 — Foundation & visual system (implementation done)
@@ -35,7 +35,16 @@
 - **Browser/device QA not performed.** Per user direction, defer browser visual QA until at least 5 master checklist features have implementation work completed.
 - Vercel preview deployment was previously blocked by daily deployment quota; that does not represent an app test result.
 
-## Next task — Phase 2: Chat & composer (audit groundwork completed)
+## Phase 2/3 — Chat experience and Composer (implementation pass complete; verification pending)
+- Implemented conversation-scoped drafts keyed by project + conversation; drafts restore when project/conversation changes.
+- Debounced local persistence and status labels (saving/saved/restored/error) added.
+- Sending now checks for provider credentials before clearing the composer, preventing draft loss on missing-key errors.
+- Conversation deletion removes its draft; draft storage remains separate from conversation logs.
+- Keyboard hint clarified; composer status, responsive layout, autosizing and character counter styling polished.
+- Added static contract assertions for draft storage, restoration, save debounce, missing-key guard, deletion cleanup, status UI and composer styling. The existing validation workflow runs this test.
+- **Runtime validation not performed:** no local checkout/browser execution is available through this workflow. Static contracts are added, but their run is unconfirmed.
+
+## Next task — Phase 4: Ida activity experience (then Phase 5 coding/file workspace)
 The current source has now been inspected for composer/send flow and conversation persistence. Important baseline observations:
 - Input limit is 20,000 characters; the counter updates on input and flags at 90%.
 - Textarea autosizing is capped at 180px.
