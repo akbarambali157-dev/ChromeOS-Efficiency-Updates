@@ -605,3 +605,21 @@ body.cc .draft-status{color:var(--cc-text-dim);font-size:10px}
 body.cc #chatCharCount{margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
 body.cc #chatIn{min-height:46px;max-height:180px;resize:none;overflow-y:auto;line-height:1.55}
 @media(max-width:640px){body.cc .chat-compose-meta{gap:4px 7px}body.cc .draft-status{font-size:9px}body.cc #chatCharCount{margin-left:0}}
+
+/* Phase 4 — Ida activity centerpiece and expanded truthful status. */
+body.cc .activity-indicator{position:relative;gap:8px;max-width:56%;transition:border-color .18s ease,background .18s ease}
+body.cc .activity-indicator.continuing{border-color:var(--cc-accent,#7fd1b9)}
+body.cc .activity-indicator.agent-active{border-color:var(--cc-accent,#7fd1b9)}
+body.cc .ida-orb{width:19px;height:19px;flex:0 0 19px;position:relative;display:inline-block;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d5fff3 0 13%,#7fd1b9 20%,#3a8e78 42%,#142b2a 72%);box-shadow:0 0 9px rgba(127,209,185,.36),inset 0 0 5px rgba(255,255,255,.24)}
+body.cc .ida-orb i{position:absolute;inset:-3px;border:1px solid rgba(127,209,185,.42);border-radius:50%;animation:ida-orbit 3.8s linear infinite}
+body.cc .ida-orb b{position:absolute;inset:6px;border:1px solid rgba(229,255,247,.65);border-radius:50%;animation:ida-breathe 1.8s ease-in-out infinite}
+body.cc .activity-expand{font-size:10px;padding:2px 6px;flex:0 0 auto}
+body.cc .activity-details{display:flex;flex-wrap:wrap;gap:8px;padding:6px 10px;background:var(--cc-surface-1,#111922);border-bottom:1px solid var(--cc-border,#243344);font-size:10px}
+body.cc .activity-details[hidden]{display:none}
+body.cc .activity-details>div{min-width:0;flex:1 1 120px;display:flex;flex-direction:column;gap:2px}
+body.cc .activity-details small{color:var(--cc-text-dim,#73859a);text-transform:uppercase;letter-spacing:.06em}
+body.cc .activity-details span{color:var(--cc-text,#c7e9df);overflow-wrap:anywhere}
+@keyframes ida-orbit{to{transform:rotate(360deg)}}
+@keyframes ida-breathe{50%{opacity:.35;transform:scale(.75)}}
+@media(max-width:640px){body.cc .activity-indicator{max-width:65%;gap:5px}body.cc .activity-expand{padding:2px 4px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){body.cc .ida-orb i,body.cc .ida-orb b{animation:none}}
