@@ -14,7 +14,7 @@ assert.match(css,/\.chatrow textarea[^\{]*\{/,'composer visual foundation missin
 assert.match(css,/\.workspace-card[^\{]*\{/,'workspace card polish missing');
 assert.match(css,/\.v45-nav button\.on/,'tool workspace selected state missing');
 assert.match(css,/\.workspace-input:focus/,'workspace field focus treatment missing');
-assert.match(css,/data-theme="dayblue" body\.cc/,'theme-aware light palette integration missing');
+assert.match(css,/root\[data-theme="dayblue"\] body\.cc/,'theme-aware light palette integration missing');
 assert.match(css,/color-scheme:light/,'light theme browser-control mode missing');
 assert.match(css,/--bg-rgb/,'launcher background palette integration missing');
 assert.match(css,/--accent-rgb/,'launcher accent palette integration missing');
