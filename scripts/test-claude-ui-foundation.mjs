@@ -44,7 +44,7 @@ console.log('Phase 2/3 chat-composer contracts passed.');
 assert.match(activity,/function toggleDetails\(\)/,'Ida expanded details toggle missing');
 assert.match(activity,/visibilitychange/,'activity interval suspends while tab is hidden');
 assert.match(activity,/function fmt\(sec\)/,'elapsed time formatting missing');
-assert.match(activity,/CCActivity\.toggleDetails/,'activity detail toggle API missing');
+assert.match(activity,/toggleDetails:toggleDetails/,'activity detail toggle API missing');
 assert.match(html,/class="ida-orb"/,'Ida centerpiece visual missing');
 assert.match(html,/id="activityDetails"/,'expanded activity panel missing');
 assert.match(html,/aria-expanded/,'accessible activity expansion state missing');
