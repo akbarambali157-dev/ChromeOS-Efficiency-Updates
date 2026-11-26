@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const css=fs.readFileSync('new-tab-launcher/claude-app.css','utf8');
+const app=fs.readFileSync('new-tab-launcher/claude-app.js','utf8');
 const html=fs.readFileSync('new-tab-launcher/claude-app.html','utf8');
 
 const tokens=['--cc-surface-0:','--cc-surface-1:','--cc-surface-2:','--cc-surface-3:','--cc-border:','--cc-border-soft:','--cc-text:','--cc-text-muted:','--cc-text-dim:','--cc-accent:','--cc-accent-strong:','--cc-radius-sm:','--cc-radius-md:','--cc-radius-lg:','--cc-space-1:','--cc-space-2:','--cc-space-3:','--cc-space-4:'];
@@ -23,3 +24,17 @@ assert.match(css,/::-webkit-scrollbar-thumb/,'scrollbar affordance missing');
 const panes=['paneProject','paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation','paneSet','paneDiagnostics'];
 for(const id of panes) assert.ok(html.includes('id="'+id+'"'),'workspace navigation pane missing: '+id);
 console.log('Claude UI Phase 1 foundation contracts passed ('+tokens.length+' design tokens, '+panes.length+' navigation panes).');
+
+// Phase 2/3 chat and composer contracts.
+assert.match(html,/id="chatDraftStatus"/,'draft status UI missing');
+assert.match(html,/Enter adds a line · Ctrl\/Cmd\+Enter sends/,'keyboard hint missing');
+assert.match(app,/ccChatDrafts/,'local draft persistence missing');
+assert.match(app,/function currentDraftKey\(\)/,'project/conversation-scoped draft key missing');
+assert.match(app,/function restoreDraft\(\)/,'draft restore routine missing');
+assert.match(app,/function scheduleDraftSave\(\)/,'debounced draft saving missing');
+assert.match(app,/Draft save unavailable/,'draft storage error feedback missing');
+assert.match(app,/Add the selected provider key in Settings before sending\./,'send preserves composer when key missing');
+assert.match(app,/delete draftStore\[activeProjectId\+'::'\+activeLog\.id\]/,'conversation deletion clears its draft');
+assert.match(css,/\.draft-status/,'composer draft state styling missing');
+assert.match(css,/max-height:180px/,'composer sizing cap missing');
+console.log('Phase 2/3 chat-composer contracts passed.');
