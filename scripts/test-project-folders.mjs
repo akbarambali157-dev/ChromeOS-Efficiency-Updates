@@ -16,6 +16,7 @@ assert.equal(api.limits.maxFileBytes,1024*1024);
 assert.equal(api.limits.maxFiles,300);
 assert.equal(api.limits.maxDepth,8);
 assert.equal(api.limits.maxResults,120);
+assert.equal(api.limits.maxSearchBytes,12*1024*1024);
 assert.equal(typeof api.proposeWrite,'function');
 assert.equal(typeof api.applyProposal,'function');
 assert.equal(typeof api.search,'function');

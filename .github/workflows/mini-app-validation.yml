@@ -51,6 +51,8 @@ jobs:
         run: node scripts/test-parallel-search.mjs
       - name: Test project folder safety and path boundaries
         run: node scripts/test-project-folders.mjs
+      - name: Test project-folder search byte-budget regressions
+        run: node scripts/test-project-search.mjs
       - name: Test Creative Library validation and privacy contracts
         run: node scripts/test-creative-library.mjs
       - name: Test Recreation Lab structure and privacy contracts

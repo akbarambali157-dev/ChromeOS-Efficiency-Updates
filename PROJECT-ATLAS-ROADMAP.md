@@ -1,7 +1,7 @@
 # Project Atlas — Modernization & Release Roadmap
 
-**Status:** Stage A source pass complete. Stage B implementation, CI, and user-reported Chromebook manual QA are complete for this checkpoint. Stage C remains the next planned stage; not a promise that every later item is already implemented.
-**Current baseline recorded in README:** 5.7.0.
+**Status:** Stages A–B complete. Stage C reliability patch implemented on project-atlas-stage-c-reliability; automated CI checkpoint pending. Stage D remains next.
+**Current baseline recorded in README:** 5.7.1 (Stage C patch candidate).
 **Guiding goal:** A lightweight personal AI work environment that remains usable on constrained Chromebook hardware while offering integrated projects, research, creative work, teams and utility tools.
 
 ## Operating principles
@@ -52,7 +52,7 @@ Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-S
 
 **Exit gate:** diagnostic UI is useful, safe, low-overhead, and accurately distinguishes a test pass, warning, failure, and unavailable check. The source/CI tests must be green and the manual Chromebook checklist completed. Do not make it silently run intrusive tests. See `STAGE-B-DIAGNOSTICS-IMPLEMENTATION.md` and `PROJECT-ATLAS-STAGE-B-MANUAL-QA.md`.
 
-### Stage C — Reliability & regression fixes (patch series)
+### Stage C — Reliability & regression fixes (targeted patch series)
 - Fix high/critical defects found in audit and surfaced by Diagnostics.
 - Strengthen initialization order, null-safe DOM access, message contracts, event delegation, selector integrity, navigation, storage migration/recovery and error propagation.
 - Make async operations cancellable where possible and prevent duplicate/in-flight work.
@@ -60,7 +60,7 @@ Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-S
 - Validate all 40 mini-apps against the app contract, not merely catalogue registration.
 - Add no unrelated features.
 
-**Exit gate:** regression suite passes, critical journeys work, no known release-blocking defects remain, and device QA checklist is ready.
+**Checkpoint:** one confirmed bounded-search reliability defect is fixed with regression coverage; CI and final merge validation pending. This does not certify all critical journeys or resolve every Stage C item.
 
 ### Stage D — Full UI audit and competitive redesign (dedicated major workstream)
 - Perform a screen-by-screen visual and interaction audit of the entire extension, including launcher, AI workspace, Teams, projects/files, research, creative tools, all mini-apps, settings, integrations, themes, tab/session tools, and all loading/empty/error/confirmation states.
