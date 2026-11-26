@@ -3,7 +3,7 @@
 **Active branch:** `claude-ui-overhaul-phase1-foundation`
 **Base:** `main`
 **Current stage:** Phase 1 — Foundation & visual system
-**Last completed work:** Foundation token/style pass committed; CI test contract added.
+**Last completed work:** Foundation token/style pass committed; CI test contract added; implementation PR #29 opened.
 
 ## Approved master-plan feature tally (31 checklist entries)
 
@@ -35,6 +35,11 @@ This is intentionally conservative: Phase 1 foundation is underway, but the comp
 - `49122d62fe443a6ec090beb73ecd6af3ece2cb83` — CSS foundation.
 - `52764cec0536b48abaf94ad45f70ead81d38e26a` — foundation test.
 - `90dbc1ad5a20e61e4148c1c087850a3f394ac935` — CI workflow hook.
+
+## PR and CI status
+- Implementation PR: #29 (open, not merged): https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29
+- PR #29 is reviewable and currently reported mergeable; no PR workflow run was returned by the workflow-runs query, so CI is not confirmed.
+- Vercel preview was blocked by its daily deployment quota (`api-deployments-free-per-day`). This is an external preview limitation, not an application test result.
 
 ## Verification status
 - Reviewed current CSS, shell markup, and main chat/workspace JS to ground the changes.
