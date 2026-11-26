@@ -1,7 +1,7 @@
 # Project Atlas — Modernization & Release Roadmap
 
-**Status:** Stages A–C accepted/closed. Stage D UI redesign is in progress; home/sidebar/onboarding batch is staged in 5.8.0, with visual verification pending.
-**Current baseline recorded in README:** 5.8.0 (Stage D.1 UI refresh candidate; device verification pending).
+**Status:** Stages A–C accepted/closed. Stage D UI redesign is in progress; home/sidebar/onboarding batch is in 5.8.0 and in-tab mini-app overhaul is in 5.8.1, with visual verification pending.
+**Current baseline recorded in README:** 5.8.1 (Stage D.2 in-tab mini-app overhaul; device verification pending).
 **Guiding goal:** A lightweight personal AI work environment that remains usable on constrained Chromebook hardware while offering integrated projects, research, creative work, teams and utility tools.
 
 ## Operating principles
