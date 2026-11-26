@@ -70,7 +70,15 @@
     return lines.join('\n').slice(0,100000);
   }
 
-  var api={check:check,validateIds:validateIds,validateLocalLinks:validateLocalLinks,redact:redact,summarize:summarize,buildReport:buildReport};
+
+  function validatePageContract(html,requiredIds){
+    var source=String(html||''),ids=[].slice.call(source.matchAll(/\\bid=["']([^"']+)["']/g)).map(function(m){return m[1];});
+    var seen=Object.create(null),duplicates=[];
+    ids.forEach(function(id){if(seen[id])duplicates.push(id);else seen[id]=1;});
+    var required=Array.isArray(requiredIds)?requiredIds:[],missing=required.filter(function(id){return ids.indexOf(id)<0;});
+    return {idCount:Object.keys(seen).length,duplicates:duplicates,missing:missing,ok:duplicates.length===0&&missing.length===0};
+  }
+  var api={validatePageContract:validatePageContract,check:check,validateIds:validateIds,validateLocalLinks:validateLocalLinks,redact:redact,summarize:summarize,buildReport:buildReport};
   root.AtlasDiagnosticsCore=api;
   if(typeof module!=='undefined'&&module.exports) module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
