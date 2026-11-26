@@ -160,3 +160,30 @@ Review the launcher's page boundaries and controller ownership: newtab/home, set
 - AI Workspace UI contains many sections and controls within a shared workspace shell. The later visual audit must assess information hierarchy, density and navigation at device widths.
 
 **Tests not executed:** Node test scripts/CI could not be run through the GitHub connector source-read environment. Findings above are static source inspection only.
+
+## Audit batch 4 — File safety, sessions, memory and theme lifecycle
+
+### Confirmed safe/efficiency patterns
+- The Files page asks the user to choose a directory and stores the directory handle in IndexedDB; reconnect flow explicitly requests permission again.
+- The scanner protects likely project/extension directories and refuses a root containing a manifest or Git directory. It bounds traversal to 4,000 files and depth, skips the review folder, and hashes exact-duplicate candidates only when files are ≤16 MB.
+- Cleanup suggestions are staged into a `_Review` folder via verified copy. The code checks source size/modification timestamp before copying, compares copied output byte-for-byte, and deliberately preserves originals. The UI explicitly asks for confirmation and reports copy failures.
+- Session saving uses a bounded number of sessions/tabs, validates web URLs, and only closes tabs after session persistence succeeds. Restored background tabs are discarded where Chrome permits.
+- Usage JSONL import is streamed, bounded by file count/aggregate bytes/line and record limits, and aggregates metadata rather than importing entire conversation content.
+- The Memory page uses a bounded worker pool (four concurrent tab probes), samples supported page heap metrics only, and clearly explains that per-tab JavaScript heap estimates are not full process memory. The page is user-opened and its refresh cadence is visibility-aware.
+- Wallpaper selection and rotation occur on new-tab startup; the theme source documents that rotation has no recurring timer. Wallpaper animations are paused while the page is hidden. Reduced-motion preference is considered.
+- Background auto-suspend is configured only while enabled and uses a single named alarm. The sweep excludes active, audible, pinned and discarded tabs and consults the shared never-suspend policy.
+
+### Risks / areas requiring validation
+- The memory monitor probes all eligible non-discarded web tabs using four concurrent workers. It is bounded in concurrency but not in total tab count; a very large tab collection could make a manual/visible refresh slow. Test with many tabs and consider a maximum sample count or incremental/abortable scan with a truthful partial-result indicator.
+- The memory monitor refreshes every 30 seconds while visible and on visibility return. Verify that hidden page transitions, extension-page discard/reopen and script errors don't create duplicate timers or overlap; `busy` prevents overlapping refresh calls.
+- The Files scanner can still traverse a large tree up to its file/depth caps, and duplicate detection reads candidate files up to 16 MiB into buffers for SHA-256. Measure scan duration/peak memory on target hardware and ensure cancellation/progress is adequate. It is user-triggered and copy-only, which reduces data-loss risk.
+- Weather geocoding and forecast fetches require network. Review caching, retry behavior and error messaging; no runtime weather integration test was executed.
+- The wallpaper engine contains many visual modes, some with animated layers. Existing hidden-page and reduced-motion handling is positive, but actual idle CPU, multiple-tab animation behavior and transition glitches need measurement.
+
+### Noted interaction/coverage limits
+- The Files page's scan and copy flows have safety protections, but manual picker/permission prompts, filesystem edge cases, quota/errors, permission revocation and large-folder UX are not tested here.
+- Session restore is bounded, but real restore/discard behavior and partial tab-creation failure require browser testing.
+- Memory estimates are intentionally incomplete when a page does not expose the heap API; verify unsupported states are displayed clearly.
+- Theme/wallpaper settings, custom photos, collections, auto-theme, backup restore and accessibility controls have not yet been tested end-to-end.
+
+**No source application code changed in this batch. No runtime or device test performed.**
