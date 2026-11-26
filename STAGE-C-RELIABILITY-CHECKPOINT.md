@@ -3,6 +3,7 @@
 **Build:** 5.7.1
 **Branch:** project-atlas-stage-c-reliability
 **Scope:** targeted reliability defect fix; no unrelated feature work.
+**Status:** PR #24 merged to main at commit 4ea8b14771528d4ba24b6df0213e1f98037bbaef.
 
 ## Confirmed defect fixed
 
@@ -24,4 +25,4 @@ The regression test runs the actual search function in a Node VM with a determin
 
 ## Limitations
 
-This is source-level and automated regression coverage. The browser File System Access API, real IndexedDB persistence, permission revocation/reconnect, and Chromebook interaction remain manual QA. CI results must be reviewed before merging.
+This is source-level and automated regression coverage. The browser File System Access API, real IndexedDB persistence, permission revocation/reconnect, and Chromebook interaction remain manual QA. PR CI run 45842547499 passed (including the new search regression test and the existing full validation suite). Post-merge main CI is pending at documentation update time.
