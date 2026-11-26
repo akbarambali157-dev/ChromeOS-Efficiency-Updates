@@ -60,7 +60,7 @@ Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-S
 - Validate all 40 mini-apps against the app contract, not merely catalogue registration.
 - Add no unrelated features.
 
-**Exit checkpoint:** Source-level Stage C implementation and CI are complete in 5.7.2. The merged fixes cover bounded project-folder search, project-note page-exit persistence, debounce flush lifecycle, and idempotent/wait-for-controller workspace initialization. PR #25 CI passed. Chromebook validation of note persistence and critical workspace journeys is still required; see `STAGE-C-RELIABILITY-CHECKPOINT.md`. The user accepted Stage C as clear; no further device defects were reported. The next workstream is Stage D UI redesign.
+**Exit checkpoint:** Source-level Stage C implementation and CI are complete in 5.7.2. The merged fixes cover bounded project-folder search, project-note page-exit persistence, debounce flush lifecycle, and idempotent/wait-for-controller workspace initialization. PR #25 CI passed. Chromebook validation of note persistence and critical workspace journeys is still required; see `STAGE-C-RELIABILITY-CHECKPOINT.md`. The user accepted Stage C as clear; no further device defects were reported. Stage D UI redesign is now in progress.
 
 ### Stage D — Full UI audit and competitive redesign (in progress)
 - Perform a screen-by-screen visual and interaction audit of the entire extension, including launcher, AI workspace, Teams, projects/files, research, creative tools, all mini-apps, settings, integrations, themes, tab/session tools, and all loading/empty/error/confirmation states.
