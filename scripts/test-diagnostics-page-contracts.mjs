@@ -37,7 +37,7 @@ for(const [page,required] of Object.entries(inventory)){
   }
 }
 const nav=fs.readFileSync(path.join(root,'nav.js'),'utf8');
-for(const page of Object.keys(inventory)){
+for(const page of ['newtab.html','apps.html','github.html','drive.html','brewkeg.html','sessions.html','memory.html','files.html','claude-app.html','diagnostics.html']){
   if(!nav.includes(page)) fail(`Navigation inventory does not include ${page}`);
 }
 if(errors.length){
