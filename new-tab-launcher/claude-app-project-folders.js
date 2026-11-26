@@ -102,14 +102,14 @@
     var parts=validatePath(path);
     return getHandle(projectId).then(function(root){return requirePermission(root,false).then(function(){return getFile(root,path,false).then(readHandle).then(function(file){return {path:parts.join('/'),content:file.content,size:file.size,lastModified:file.lastModified};});});});
   }
-  function search(projectId,query,options){
+  function searchCore(listFiles,readFile,projectId,query,options){
     query=String(query||'').trim();if(!query||query.length>200)fail('Enter a search term of 1–200 characters.','INVALID_QUERY');
     options=options||{};var max=Math.min(MAX_RESULTS,Math.max(1,Number(options.maxResults)||40)),needle=query.toLowerCase(),bytesRead=0,truncated=false,skippedFiles=0;
-    return list(projectId).then(function(items){var matches=[];
+    return listFiles(projectId).then(function(items){var matches=[];
       return items.reduce(function(p,item){return p.then(function(){
         if(matches.length>=max){truncated=true;return;}
         if(bytesRead>=MAX_SEARCH_BYTES){truncated=true;return;}
-        return read(projectId,item.path).then(function(file){
+        return readFile(projectId,item.path).then(function(file){
           var size=Math.max(0,Number(file.size)||new TextEncoder().encode(String(file.content||'')).length);
           if(bytesRead+size>MAX_SEARCH_BYTES){truncated=true;skippedFiles++;return;}
           bytesRead+=size;
@@ -123,6 +123,7 @@
       });},Promise.resolve()).then(function(){return {query:query,matches:matches,truncated:truncated,bytesRead:bytesRead,skippedFiles:skippedFiles};});
     });
   }
+  function search(projectId,query,options){return searchCore(list,read,projectId,query,options);}
   function proposeWrite(projectId,path,content){
     var parts=validatePath(path);content=String(content===undefined?'':content);
     if(new TextEncoder().encode(content).length>MAX_FILE_BYTES)fail('Proposed file exceeds the 1 MiB limit.','FILE_TOO_LARGE');
@@ -196,5 +197,5 @@
     refreshUi();
   }
   function refresh(){return refreshUi();}
-  g.CCProjectFolders={init:init,refresh:refresh,connect:connect,createProjectFolder:createProjectFolder,reconnect:reconnect,status:status,disconnect:disconnect,list:list,read:read,search:search,proposeWrite:proposeWrite,applyProposal:applyProposal,validatePath:validatePath,limits:{maxFileBytes:MAX_FILE_BYTES,maxFiles:MAX_FILES,maxDepth:MAX_DEPTH,maxResults:MAX_RESULTS,maxSearchBytes:MAX_SEARCH_BYTES}};
+  g.CCProjectFolders={init:init,refresh:refresh,connect:connect,createProjectFolder:createProjectFolder,reconnect:reconnect,status:status,disconnect:disconnect,list:list,read:read,search:search,proposeWrite:proposeWrite,applyProposal:applyProposal,validatePath:validatePath,searchCore:searchCore,limits:{maxFileBytes:MAX_FILE_BYTES,maxFiles:MAX_FILES,maxDepth:MAX_DEPTH,maxResults:MAX_RESULTS,maxSearchBytes:MAX_SEARCH_BYTES}};
 })(window);
