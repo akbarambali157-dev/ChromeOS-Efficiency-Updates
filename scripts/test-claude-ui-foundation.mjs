@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const css=fs.readFileSync('new-tab-launcher/claude-app.css','utf8');
+const html=fs.readFileSync('new-tab-launcher/claude-app.html','utf8');
+assert.match(css,/--cc-surface-0:/,'foundation surface token missing');
+assert.match(css,/--cc-accent:/,'foundation accent token missing');
+assert.match(css,/--cc-border:/,'foundation border token missing');
+assert.match(css,/body\.cc :focus-visible/,'visible keyboard focus treatment missing');
+assert.match(css,/\.actbtn\.on[^\{]*\{/,'active navigation state treatment missing');
+assert.match(css,/\.filerow\.on[^\{]*\{/,'active file state treatment missing');
+assert.match(css,/\.chatrow textarea[^\{]*\{/,'composer visual foundation missing');
+assert.match(css,/\.workspace-card[^\{]*\{/,'workspace card polish missing');
+assert.match(css,/@media\(max-width:820px\)/,'tablet responsive overrides missing');
+assert.match(css,/@media\(max-width:640px\)/,'mobile responsive overrides missing');
+assert.match(css,/@media\(prefers-reduced-motion:reduce\)/,'reduced-motion override missing');
+assert.match(css,/::-webkit-scrollbar-thumb/,'scrollbar affordance missing');
+for(const id of ['paneProject','paneFiles','paneChat','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation','paneSet','paneDiagnostics'])assert.match(html,new RegExp('id="'+id+'"'),'navigation control missing: '+id);
+console.log('Claude UI Phase 1 foundation contracts passed.');
