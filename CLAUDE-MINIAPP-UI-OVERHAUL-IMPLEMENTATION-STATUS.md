@@ -2,14 +2,14 @@
 
 **Active branch:** `claude-ui-overhaul-phase1-foundation`
 **Base:** `main`
-**Current stage:** Phase 1 foundation implementation complete; Phase 2 audit/implementation is next.
+**Current stage:** Phases 1–5 implementation pass complete; awaiting user visual feedback before proceeding.
 **Implementation PR:** #29 — https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, not merged).
 
 ## Master feature tally (31 checklist items)
-- **Completed (implementation): 5 / 31** — Foundation/design system, chat experience, composer, Ida activity experience, and coding/file workspace (Phase 4/5 implementation pass).
-- **In progress: 0 / 31** — Phase 2/3 implementation pass is complete; awaiting CI/runtime verification.
+- **Completed (implementation): 5 / 31** — Foundation/design system, chat experience, composer, Ida activity experience, and coding/file workspace.
+- **In progress: 0 / 31** — Feature implementations are complete; visual QA remains blocked by browser availability.
 - **Not started: 26 / 31.**
-- **Browser visual QA rule:** do not begin screenshot/browser visual review until at least 5 master-list features have implementation work completed. At that threshold, do browser visual QA before proceeding further.
+- **Visual QA checkpoint reached:** 5 features implemented. Attempted desktop QA in a Vercel sandbox; no browser binary available (Chromium wrapper requires Snap, which could not be installed in this environment). Do not proceed with feature 6 until user feedback or browser screenshots/visual QA are available.
 
 ## Phase 1 — Foundation & visual system (implementation done)
 - Created mini-app-scoped design tokens for surface levels, border levels, text hierarchy, accent/danger colors, radii, and spacing.
@@ -61,32 +61,18 @@
 - **Runtime verification is pending:** tests have been authored/wired, but CI run is not yet confirmed and browser visuals have not been inspected.
 
 
-## Next task — Browser visual QA checkpoint (5 features implemented)
-The current source has now been inspected for composer/send flow and conversation persistence. Important baseline observations:
-- Input limit is 20,000 characters; the counter updates on input and flags at 90%.
-- Textarea autosizing is capped at 180px.
-- Current send shortcut is Ctrl/Cmd+Enter; regular Enter inserts a newline.
-- Submit clears the composer immediately, then calls send. If send exits early (e.g. provider key missing) or fails, user text may be lost from the composer even though the log may record a message/status.
-- Conversations are stored under project data (`ccProjectData`); `persistLogs()` keeps up to 10 logs and last 40 messages per log, with a project-data byte ceiling. Drafts are not currently a separate persistence object.
-- Chat history selection updates activeLog and renders messages. A separate per-project/per-conversation draft design must account for new-chat slots, quota and project switching.
-- Provider send lifecycle has a `busy` guard, `sendBtn` disabled state, activity begin, and response continuation handled by `claude-app-response.js`. Avoid duplicate busy/send states or disrupting automatic continuation.
+## Phase 4/5 verification and visual QA checkpoint
+- All launcher JavaScript files passed `node --check` in a remote sandbox clone.
+- Full validation suite from the workflow was run locally in the remote sandbox: diagnostics core/page, AI response, model effort, project tools, parallel search, project folders/search, workspace reliability, Creative Library, Recreation Lab, Stage D.1, UI-overhaul foundation+Phase 2/3/4/5 contracts, inline mini-app shell, and `validate-miniapps.mjs` — **all passed** after correcting two contract-test mismatches and one missing filter listener found during testing.
+- Browser visual QA attempted at the 5-feature threshold. The desktop sandbox had no browser installed; the Chromium package wrapper requires Snap. Browser installation was blocked, so no app screenshots or responsive visual inspection could be captured. Do not claim visual QA passed.
+- Vercel preview lookup for this exact branch commit returned no deployment. The previously available preview was for an older commit and is not evidence for these changes.
+- PR remains open and unmerged. Do not merge without explicit authorization.
 
-Do not blindly replace the composer or introduce storage keys before design and tests.
-1. Composer drafts: safe save/restore; draft isolation across project/conversation; new-conversation draft; quota/storage failures and submit handling.
-2. Keyboard behavior: documented send/newline policy with desktop shortcut and mobile-safe behavior.
-3. Responsive composer: multiline resizing, cursor/scroll preservation, input limit feedback, controls and model/effort selector.
-4. Context and attachment status: only show accurate statuses for existing supported attachment/context pathways.
-5. Message presentation and actions: readability and supported copy/retry/continue/revise affordances without corrupting message history.
-6. Add targeted tests and run them through CI where possible; update progress and feature tally.
-
-## Visual QA checkpoint
-After at least 5 master-list features have implementation work completed, stop coding and perform browser visual QA at desktop, mobile, and the Chromebook target dimensions if the environment supports it. If browser tooling/device emulation is unavailable, document that limitation and request user screenshots rather than claiming visual inspection. Fix identified issues before resuming feature work.
 
 ## Next-session resume instructions
-1. Re-read `CLAUDE-MINIAPP-UI-OVERHAUL-PLAN.md` and this checkpoint.
-2. Verify PR #29 and current branch/head state; inspect its CI status.
-3. Review the Phase 1 CSS diff for test issues and contrast/theme regressions.
-4. Continue Phase 2 chat/composer audit from the priorities above.
-5. Do not repeat Phase 1 foundation work unless a test or QA issue identifies a specific fix.
-6. Keep changes reviewable, add tests, update this file, and do not merge to `main` without explicit user authorization.
+1. Await user feedback on Phases 1–5 and/or browser screenshots to perform the visual QA checkpoint.
+2. Once visual QA is possible, inspect desktop, mobile, and Chromebook-sized layouts, including chat/composer, Ida details, and the virtual file tree.
+3. Fix QA findings and re-run the full validation suite before starting feature 6.
+4. Continue with the approved master plan only after feedback/QA.
+5. Keep changes reviewable and do not merge to `main` without explicit user authorization.
 
