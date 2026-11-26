@@ -1,0 +1,6 @@
+#!/usr/bin/env node
+'use strict';
+import fs from 'node:fs';
+const h=fs.readFileSync('new-tab-launcher/apps.html','utf8'),j=fs.readFileSync('new-tab-launcher/apps.js','utf8'),c=fs.readFileSync('new-tab-launcher/apps.css','utf8'),w=fs.readFileSync('new-tab-launcher/app-workspace.js','utf8');
+const checks=[['modal shell markup',h.includes('id="miniAppOverlay"')&&h.includes('id="miniappOverlayFrame"')],['same-tab launch',j.includes('openMiniApp(a)')&&!j.includes("location.href='app-workspace.html?id='+encodeURIComponent(a.id)")],['window controls',j.includes('miniappOverlayClose')&&j.includes('miniappOverlayMin')&&j.includes('miniappOverlayMax')],['animated responsive shell',c.includes('.miniapp-window')&&c.includes('@media(max-width:720px)')],['sandbox retained',h.includes('sandbox="allow-scripts allow-forms allow-downloads allow-popups"')],['data flush close bridge',w.includes("channel:'my-launcher-miniapp-shell'")&&w.includes("pendingDestination==='apps.html'")],['escape and backdrop close',j.includes("e.key==='Escape'")&&j.includes('miniapp-overlay-backdrop')],['reduced motion',c.includes('prefers-reduced-motion:reduce')]];
+let errors=0;for(const [name,ok] of checks){console.log((ok?'PASS':'FAIL')+' '+name);if(!ok)errors++;}if(errors)process.exitCode=1;
