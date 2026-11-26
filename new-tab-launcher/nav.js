@@ -15,7 +15,8 @@
     sessions: '<path d="M12 3.2 3.4 7.6 12 12l8.6-4.4z"/><path d="M3.4 12.4 12 16.8l8.6-4.4"/><path d="M3.4 16.8 12 21.2l8.6-4.4"/>',
     memory: '<rect x="7" y="7" width="10" height="10" rx="2.2"/><path d="M10 3.2v3.8M14 3.2v3.8M10 17v3.8M14 17v3.8M3.2 10h3.8M3.2 14h3.8M17 10h3.8M17 14h3.8"/>',
     files: '<path d="M3.2 7.4a2 2 0 0 1 2-2h3.6l2 2.2h8a2 2 0 0 1 2 2v8.6a2 2 0 0 1-2 2H5.2a2 2 0 0 1-2-2z"/>',
-    claude: '<path d="M12 3.4v17.2M3.4 12h17.2M6 6l12 12M18 6 6 18"/>'
+    claude: '<path d="M12 3.4v17.2M3.4 12h17.2M6 6l12 12M18 6 6 18"/>',
+    diagnostics: '<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 12h5M8 15h8"/>'
   };
 
   var APPS = [
@@ -27,7 +28,8 @@
     { id: 'sessions', href: 'sessions.html',   label: 'Sessions', icon: I.sessions },
     { id: 'memory',   href: 'memory.html',     label: 'Memory',   icon: I.memory },
     { id: 'files',    href: 'files.html',      label: 'Files',    icon: I.files },
-    { id: 'claude',   href: 'claude-app.html', label: 'Claude',   icon: I.claude }
+    { id: 'claude',   href: 'claude-app.html', label: 'Claude',   icon: I.claude },
+    { id: 'diagnostics', href: 'diagnostics.html', label: 'Diagnostics', icon: I.diagnostics }
   ];
 
   var nav = document.querySelector('nav.nav');
@@ -37,6 +39,8 @@
   APPS.forEach(function (app) {
     var a = document.createElement('a');
     a.href = app.href;
+    a.title = app.label;
+    a.setAttribute('aria-label', app.label);
     if (app.id === here) a.className = 'on';
     a.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" ' +
       'stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + app.icon + '</svg>' +

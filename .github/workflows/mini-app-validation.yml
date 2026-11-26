@@ -37,6 +37,10 @@ jobs:
           while IFS= read -r -d '' file; do
             node --check "$file"
           done < <(find new-tab-launcher -type f -name '*.js' -print0)
+      - name: Test Project Atlas diagnostics core
+        run: node scripts/test-diagnostics-core.mjs
+      - name: Test Project Atlas page and selector contracts
+        run: node scripts/test-diagnostics-page-contracts.mjs
       - name: Test shared AI response normalization and continuation
         run: node scripts/test-ai-response.mjs
       - name: Test provider-specific model effort capabilities

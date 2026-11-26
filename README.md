@@ -129,6 +129,20 @@ The toolbar popup has a **"Cloudflare check not passing?"** diagnostic that
 shows your Chrome version, tells you whether dark mode is still on for the site,
 and links to Cloudflare's own compatibility checker.
 
+
+## Modernization plan and release testing
+
+The project is moving toward a staged modernization process: complete audit first, then a dedicated Diagnostics & Performance QA build, reliability/regression fixes, unified UX, project/workspace foundations, AI Team workflow improvements, research and creative integration, performance work, and a later design phase for secure mobile approvals. Major milestones are delivered as test checkpoints; user-device testing is expected before the next milestone is treated as validated.
+
+- [Project Atlas roadmap](PROJECT-ATLAS-ROADMAP.md) — staged major/minor/patch releases, priorities, release gates, deferred ideas and project-wide audit scope.
+- [Diagnostics & testing system specification](TESTING-SYSTEM-SPEC.md) — proposed whole-project health checks, performance measurement, app/selector wiring verification, storage checks, background activity visibility, safe test modes and report privacy.
+- [UI redesign specification](UI-REDESIGN-SPEC.md) — screen-by-screen visual audit, competitive benchmarking, shared design system, UX journeys, responsive design, staged implementation and validation.
+- [Audit Phase A progress](AUDIT-PHASE-A-PROGRESS.md) — initial source-level observations, verified foundations, suspected risks and remaining audit scope (in progress).
+- [Audit Phase A completion report](AUDIT-PHASE-A-COMPLETED.md) — source inventory, CI evidence, prioritized findings, limitations and next-stage recommendations.
+- [Stage B diagnostics implementation](STAGE-B-DIAGNOSTICS-IMPLEMENTATION.md) — current testing foundation checkpoint, checks, CI results and remaining work.\n- [Stage B manual Chromebook QA checklist](PROJECT-ATLAS-STAGE-B-MANUAL-QA.md) — device/browser verification, performance readings and privacy review.
+
+These documents are planning specifications. Their proposed diagnostics, integrations and future milestones are **not implemented just because they appear here**. Release readiness will report automated checks, manual/device checks, unavailable measurements and known issues separately.
+
 ## Project layout
 
 ```
