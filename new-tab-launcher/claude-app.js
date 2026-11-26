@@ -121,6 +121,7 @@
     files=Array.isArray(data.files)?data.files.filter(function(f){return f&&typeof f.id==='string'&&typeof f.name==='string'&&typeof f.content==='string';}).slice(0,MAX_FILES):[];
     logs=Array.isArray(data.logs)?data.logs.slice(0,MAX_LOGS):[];
     activeFile=files[0]||null;activeLog=logs[0]||null;
+    if(typeof restoreDraft==='function')restoreDraft();
     renderProjects();renderFiles();loadEditor();renderLogs();renderChat();
     $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
     chrome.storage.local.set({ccActiveProject:id});
