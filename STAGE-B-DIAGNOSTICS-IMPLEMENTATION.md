@@ -84,3 +84,7 @@ This checkpoint is not a complete extension QA system:
 7. Verify the diagnostics page itself on Chromebook and correct any UI/API issues found.
 
 No merge to `main` or release was performed. The draft PR is the review/test checkpoint.
+
+## Verification update — final core/test checkpoint
+
+The latest completed CI run after restoring the complete diagnostics core and adding the hardened test cases is [Run #214](https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/actions/runs/45838958539), **success**. All workflow steps passed, including diagnostics-core tests and the existing suite. The test suite now covers prototype-like IDs and quoted JSON-style secret fields in addition to prior cases. The draft PR remains unmerged; this success validates syntax and unit/contract checks only, not the page in a browser.
