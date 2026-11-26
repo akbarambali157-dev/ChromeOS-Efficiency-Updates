@@ -598,3 +598,10 @@ body.cc .v45-actions button,body.cc .v45-scene button,body.cc .v45-character but
 body.cc button:disabled,body.cc input:disabled,body.cc textarea:disabled,body.cc select:disabled{opacity:.58}
 body.cc .workspace-card,body.cc .context-item,body.cc .v45-logitem,
 body.cc .v45-summary,body.cc .project-task,body.cc .project-note{overflow-wrap:anywhere}
+
+/* Phase 2 — composer clarity, draft status and compact responsive controls. */
+body.cc .chat-compose-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px}
+body.cc .draft-status{color:var(--cc-text-dim);font-size:10px}
+body.cc #chatCharCount{margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+body.cc #chatIn{min-height:46px;max-height:180px;resize:none;overflow-y:auto;line-height:1.55}
+@media(max-width:640px){body.cc .chat-compose-meta{gap:4px 7px}body.cc .draft-status{font-size:9px}body.cc #chatCharCount{margin-left:0}}
