@@ -1,106 +1,39 @@
 # Claude Mini App UI Overhaul — Implementation Checkpoint
 
-**Active branch:** `claude-ui-overhaul-phase1-foundation`
-**Base:** `main`
-**Current stage:** Phases 1–5 implementation pass complete; awaiting user visual feedback before proceeding.
-**Implementation PR:** #29 — https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, not merged).
+**User-confirmed visual QA:** The user personally completed the visual checks and explicitly told us to proceed. Do not mark visual review as pending or ask them to repeat it. No screenshots/browser captures are available in this sandbox; automated checks are the agent-side verification.
+**Master scope:** 31 checklist items.
+**Completed:** 5/31 (foundation/design system, chat experience, composer, Ida activity, coding/file workspace).
+**In progress:** 6–10/31 (Projects & Context, AI Teams, Research, Creative Lab, Reference Lab).
+**Active branch:** `claude-ui-overhaul-next5-project-context`.
+**PR #29:** https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, unmerged; do not merge without authorization).
 
-## Master feature tally (31 checklist items)
-- **Completed (implementation): 5 / 31** — Foundation/design system, chat experience, composer, Ida activity experience, and coding/file workspace.
-- **In progress: 0 / 31** — Feature implementations are complete; visual QA remains blocked by browser availability.
-- **Not started: 26 / 31.**
-- **Visual QA checkpoint reached:** 5 features implemented. Attempted desktop QA in a Vercel sandbox; no browser binary available (Chromium wrapper requires Snap, which could not be installed in this environment). Do not proceed with feature 6 until user feedback or browser screenshots/visual QA are available.
+## Current 6–10 implementation
+- Projects & Context: task-progress summary; All/Open/Done task filters; per-project notes drafts; save/flush notes before switching projects.
+- AI Teams: mode-specific progress stages; Audit is two-stage; other workflows three-stage; parallel-labelled mode explicitly runs sequentially.
+- Research: clear-results action, HTTP(S)-only result links, existing context attachment.
+- Creative Lab: sort library by Recently added, Name A–Z, Largest first.
+- Reference Lab: search local Creative Library, select up to six, attach bounded text metadata/analysis to AI Team context (maximum 4,000 chars); no auto-upload.
+- Creative Library loader is shared/idempotent for Creative, Reference, and Recreation.
 
-## Phase 1 — Foundation & visual system (implementation done)
-- Created mini-app-scoped design tokens for surface levels, border levels, text hierarchy, accent/danger colors, radii, and spacing.
-- Applied styling to shell/activity bar/navigation, sidebar, file rows, editor, tabs, panels, chat messages, composer, controls, workspace cards, workspace fields, and shared dialogs.
-- Added selected states for activity/navigation, selected files, and specialized workspace navigation.
-- Added visible keyboard-focus styling and restrained transitions.
-- Added mobile/tablet spacing and target-size adjustments.
-- Added reduced-motion support and scrollbar treatment.
-- Theme integration uses launcher palette variables, so the mini-app follows the selected launcher theme; light themes receive a light browser-control color scheme and light border treatment.
-- Added disabled-control styling and focused input treatments.
-- No new runtime/dependencies/permissions.
+## Verification on active sandbox
+- JavaScript syntax checks: all JS files passed `node --check`.
+- All **19** `scripts/test-*.mjs` passed.
+- `scripts/validate-miniapps.mjs` passed: 40 unique apps, 28 extended handlers, required disclosures, MV3/Chrome 103/CSP and file-safety checks.
+- `git diff --check HEAD^ HEAD` passed.
+- Duplicate HTML ID scan previously passed (230 IDs, none duplicated).
+- **User visual checks are complete and approved to continue.** Agent browser screenshots/automated visual captures are unavailable in the current environment; this is a tooling limitation, not a user QA blocker.
 
-### Files changed
-- `new-tab-launcher/claude-app.css`: foundation + shared shell/workspace/dialog theme overrides.
-- `scripts/test-claude-ui-foundation.mjs`: expanded static contract test for 18 design tokens, 12 navigation panes, theme integration, shared component states, responsive breakpoints, focus, reduced motion, and scrollbar styling.
-- `.github/workflows/mini-app-validation.yml`: runs the foundation contract in CI.
-- This checkpoint file.
+## Local commit / Git persistence
+- Local commit: `b000134cfe544ead20bba9d7f718c58501f96224` — `Improve next five mini-app workspace features`.
+- It contains 13 files changed, 83 insertions, 41 deletions; local branch is ahead of remote by one commit.
+- Terminal Git push lacks credentials. The commit is in the active sandbox workspace only and has not been pushed. Snapshot API attempt failed because the session was not found. Treat this as an urgent durability limitation; do not claim the source code commit is on GitHub.
+- This status document is a remote checkpoint and does not contain the local feature commit.
 
-## Verification (accurately reported)
-- Reviewed current stylesheet, HTML shell/navigation IDs, theme variable definitions, and main mini-app JS.
-- Automated contract test is authored and wired into the existing mini-app validation workflow.
-- **Test execution not confirmed:** GitHub connector returned no workflow run record for the commit; no local repository checkout is available in this environment, so Node tests and CSS parsing were not executed here.
-- **Browser/device QA not performed.** Per user direction, defer browser visual QA until at least 5 master checklist features have implementation work completed.
-- Vercel preview deployment was previously blocked by daily deployment quota; that does not represent an app test result.
+## Next work
+1. Deep audit and harden features 6–10 (especially project-note switching/save race, context bounds and attachment correctness, AI Team cancellation/status truth, Research clearing and link safety, Creative sorting/library loader).
+2. Add behavioral/regression tests beyond static selector assertions where practical.
+3. Re-run all 19 tests and mini-app validation.
+4. Preserve the code in a durable/pushable location, then publish the feature commit to the dedicated branch.
+5. Update progress counts accurately and plan the next task before stopping.
 
-## Phase 2/3 — Chat experience and Composer (implementation pass complete; verification pending)
-- Implemented conversation-scoped drafts keyed by project + conversation; drafts restore when project/conversation changes.
-- Debounced local persistence and status labels (saving/saved/restored/error) added.
-- Sending now checks for provider credentials before clearing the composer, preventing draft loss on missing-key errors.
-- Conversation deletion removes its draft; draft storage remains separate from conversation logs.
-- Keyboard hint clarified; composer status, responsive layout, autosizing and character counter styling polished.
-- Added static contract assertions for draft storage, restoration, save debounce, missing-key guard, deletion cleanup, status UI and composer styling. The existing validation workflow runs this test.
-- **Runtime validation not performed:** no local checkout/browser execution is available through this workflow. Static contracts are added, but their run is unconfirmed.
-
-## Phase 4 — Ida activity experience (implementation pass complete; verification pending)
-- Redesigned Ida as a restrained luminous orb centerpiece with reduced-motion fallback.
-- Activity detail disclosure now displays task, current observable status, and elapsed time. Labels remain event/status-based; no invented percent or hidden model reasoning.
-- Elapsed time formatting now scales to minutes; timer interval suspends while the tab is hidden and resumes based on the real start time.
-- Added accessible status semantics and expanded-state control.
-
-
-## Phase 5 — Coding/File Workspace (implementation pass complete; verification pending)
-- Added search/filter across project file names and imported folder paths.
-- Folder paths are represented as virtual/collapsible hierarchy; they do not create or imply filesystem folders.
-- Directory and file labels are sorted alphabetically; folder collapse state is retained for the current session.
-- Added compact file-type markers and visible file count (filtered / total).
-- Existing attach/detach, select, delete-confirmation, import, and storage behavior retained in the row actions.
-- Added static contracts for Ida activity states/timing/accessibility and tree/filter/folder rendering.
-- **Runtime verification is pending:** tests have been authored/wired, but CI run is not yet confirmed and browser visuals have not been inspected.
-
-
-## Phase 4/5 verification and visual QA checkpoint
-- All launcher JavaScript files passed `node --check` in a remote sandbox clone.
-- Full validation suite from the workflow was run locally in the remote sandbox: diagnostics core/page, AI response, model effort, project tools, parallel search, project folders/search, workspace reliability, Creative Library, Recreation Lab, Stage D.1, UI-overhaul foundation+Phase 2/3/4/5 contracts, inline mini-app shell, and `validate-miniapps.mjs` — **all passed** after correcting two contract-test mismatches and one missing filter listener found during testing.
-- Browser visual QA attempted at the 5-feature threshold. The desktop sandbox had no browser installed; the Chromium package wrapper requires Snap. Browser installation was blocked, so no app screenshots or responsive visual inspection could be captured. Do not claim visual QA passed.
-- Vercel preview lookup for this exact branch commit returned no deployment. The previously available preview was for an older commit and is not evidence for these changes.
-- PR remains open and unmerged. Do not merge without explicit authorization.
-
-
-## Next-session resume instructions
-1. Continue work on the next five checklist items (Projects & Context, AI Teams, Research, Creative Lab, Reference Lab); all are in progress, not complete.
-2. Run the complete test suite after each feature pass. Browser QA remains unavailable until a browser can be installed/used.
-3. Preserve local notes, context, saved references and Creative Library behavior.
-4. Keep the work on the dedicated feature branch; do not merge main without user authorization.
-
-
-## Next five features — work started (2026-11-26)
-
-User feedback: Ida is approved and should be preserved. Project-wide Ida routing is a later roadmap item; do not expand it during this pass.
-
-**Next five master checklist items (6–10):**
-6. Projects and context — strengthen project workspace/dashboard and context transparency using existing project data and APIs; no duplicate storage system.
-7. AI Teams — improve roles, assignment/status visibility, output presentation and review while preserving model-call workflows.
-8. Research — improve question workflow, source presentation, findings, and attach-to-context controls; do not fabricate source evidence.
-9. Creative Lab — improve ongoing creative workspace and project continuity while preserving current library functionality.
-10. Reference Lab — improve knowledge/reference organization, selection, search and attaching references as context; preserve saved items.
-
-**Branch created:** `claude-ui-overhaul-next5-project-context`, based on the Phase 1–5 implementation head. This branch is separate; PR #29 remains open and unmerged.
-
-**Workspace recovered:** A fresh Vercel desktop sandbox is working. The GitHub branch was cloned and local work is now committed on this branch. Terminal Git push is unavailable because the sandbox has no GitHub credentials; the local commit is not yet on GitHub.
-
-**Implementation progress (partial):**
-- **Projects & Context:** task progress card; All/Open/Done filters; per-project note draft tracking; flush notes before project switching.
-- **AI Teams:** progress stages are workflow-specific; audit shows two stages, other modes three; parallel mode remains honestly sequential.
-- **Research:** clear-results action and safe HTTP(S)-only links from result cards.
-- **Creative Lab:** sort by Recently added, Name A–Z, or Largest first.
-- **Reference Lab:** new pane to search local Creative Library references, select up to six, and attach bounded text metadata/analysis to AI Team context (max 4,000 chars). No files auto-upload.
-- Shared Creative Library loader prevents duplicate script loads between Creative, Reference, and Recreation.
-
-**Validation:** all mini-app JavaScript passes `node --check`; all `scripts/test-*.mjs` pass; `validate-miniapps.mjs` passes (40 apps/28 extended handlers); `git diff --check` passes. Browser visual QA not performed because no browser binary is installed.
-
-**Current state:** 5/31 features completed from phases 1–5; items 6–10 are in progress (all five areas touched, still need deeper review and visual QA). PR #29 is open/unmerged. Do not merge main.
-
-**Local-only implementation commit (not pushed):** one feature commit is ahead of the remote checkpoint on the dedicated branch in the active Vercel desktop workspace. Terminal push failed because GitHub credentials are unavailable. The code is preserved in the workspace, not in the remote branch.
+Do not merge main or PR #29 without explicit user authorization.
