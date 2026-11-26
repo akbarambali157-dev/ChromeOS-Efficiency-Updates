@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 5.7.2** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; Stage C Chromebook checkpoint pending)
+**Version 5.8.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; Stage C Chromebook checkpoint pending)
 
 ---
 
@@ -21,6 +21,11 @@ optional background auto-suspend alarm exists only when that feature is enabled.
 **Stage C reliability patches (5.7.1–5.7.2)** — project-folder search now enforces its previously inactive 12 MiB scan budget and reports incomplete searches when files are skipped or a limit is reached. Project notes are flushed on workspace exit, the debounce timer is cancelled during flush, and workspace startup is guarded against duplicate or premature initialization. Regression tests cover search limits, skipped files, workspace selector contracts, initialization and note-saving lifecycle.
 
 **Recreation Lab (5.7.0)** — a lazy-loaded experiment workbench built on the Creative Library. Choose up to five local references and a reusable style profile, define comparison criteria, and ask the configured text model for a structured experiment plan with alternatives, workflow and trade-offs. Every AI run requires explicit confirmation. Only the brief, style guidance and reference metadata (names, types, descriptions, tags and saved text analysis) are sent; original images, videos, PDFs and file contents are not uploaded. Save experiments locally, reload them later, and record results, comparison notes and per-criterion 1–5 scores side by side. This is structured creative planning, not model training or automatic visual replication.
+
+## Stage D.1 UI refresh (5.8.0)
+
+The home dashboard uses a wider, calmer responsive layout, with the settings area collapsed by default. Navigation can collapse/expand smoothly on desktop and opens as a drawer on smaller screens. Installed bundled mini-apps appear in the sidebar as direct shortcuts. A first-run quick tour highlights the sidebar, installed mini-apps, search, shortcuts/workspaces, notes/tasks and settings; the floating Guide control replays it. Tour steps use a short fade-to-dark transition and honor reduced-motion preferences. Device and screenshot validation remains pending.
+
 
 ## Install
 
