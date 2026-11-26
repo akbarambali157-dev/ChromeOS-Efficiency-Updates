@@ -36,16 +36,11 @@ The home dashboard uses a wider, calmer responsive layout, with the settings are
 
 ## What's in it
 
-**Navigation** — a left sidebar with an icon and label for every page: Home,
-GitHub, Drive, Brewkeg, Sessions, Memory, Files and the AI Development Workspace. It collapses to
-icons alone under 820px wide.
+**Navigation** — a collapsible animated sidebar with a direct link to every primary page, plus installed mini-apps beneath the main navigation. On small screens it becomes a slide-out drawer with a backdrop; collapsed navigation remains icon-first.
 
 **Workspaces** — save up to eight separate shortcut collections (for example, Study, Personal and Research) and switch between them without losing the others.
 
-**Home page** — clock, weather, a command bar, and exactly four shortcut tiles
-in a 2×2 grid. Everything else lives behind *All shortcuts*, a rail that is
-built only the first time you open it. Below that: quick note, a persistent task list, sessions,
-recently closed tabs, and settings.
+**Home page** — clock, weather, command bar, and four primary shortcut tiles. The wider dashboard separates tools, sessions, notes and tasks into more comfortable panels; settings are collapsed behind *Settings & personalization*. The Guide offers a first-run tour and can be replayed.
 
 **Command bar** — click the search box or press `/`. Search shortcuts, open tabs, bookmarks and history, or type `gh prs`,
 `drive new sheet`, a tab name, or a shortcut name.
