@@ -37,7 +37,7 @@ Each cycle follows: **audit → scope/spec → implementation → automated chec
 
 **Source audit exit gate: met.** Repository inventory, module boundaries, CI evidence, prioritized findings and explicit limitations are recorded in `AUDIT-PHASE-A-COMPLETED.md`. Runtime/browser visual inspection, Chromebook measurements, and full interaction coverage remain deferred to Stage B/D because they require a browser/device test environment. No app code was changed during this source audit.
 
-### Stage B — QA/Diagnostics instrumentation build (dedicated test version)
+### Stage B — QA/Diagnostics instrumentation build (implementation underway; first slice delivered)
 Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-SPEC.md`) and a baseline capture mode:
 - system/extension health overview and test run history
 - module/app inventory and missing/duplicate registration checks
