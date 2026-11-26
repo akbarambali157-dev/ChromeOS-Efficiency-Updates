@@ -1,6 +1,6 @@
 # Project Atlas Stage B — Diagnostics Implementation Checkpoint
 
-**Status:** Source/CI foundation expanded; Stage B is **not yet device-validated**.  
+**Status:** Source/CI foundation is green; manual QA is user-reported complete. Stage B is ready for closeout at this checkpoint, with exact device/process details noted as limitations.  
 **Branch:** `project-atlas-stage-b-diagnostics`  
 **Pull request:** [#23 — Project Atlas Stage B](https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/23) (draft; not merged)  
 **Stage B CI verification:** [Run #45840015402 — successful](https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/actions/runs/45840015402), after the new page/selector contracts, diagnostics helper tests, and documentation changes were included.
@@ -53,6 +53,13 @@
 3. Complete the manual checklist and report sanitized findings.
 4. Reproduce and fix any diagnostics-page bugs, then repeat CI and device checks.
 5. Only after this evidence exists, close Stage B and move to Stage C. No merge to `main` or production release has occurred.
+
+## User-reported Chromebook checkpoint (26 November 2026)
+- User reports completing the manual QA checklist and testing with Chrome Task Manager open.
+- Observed memory was described as steady around **70k**; units and process scope are not confirmed. User also mentioned roughly **40k** associated with Notes and related features; exact attribution is unclear.
+- Home-screen launch time was hand-timed at approximately **2.4–2.6 seconds**; reaction-time accuracy is limited.
+- No failure or rising-memory issue was reported in this feedback. These are accepted as user observations, not independently reproduced measurements.
+- Updated [manual QA checklist](PROJECT-ATLAS-STAGE-B-MANUAL-QA.md) records the results and limitations.
 
 ## User checkpoint
 - [Manual QA checklist](PROJECT-ATLAS-STAGE-B-MANUAL-QA.md)
