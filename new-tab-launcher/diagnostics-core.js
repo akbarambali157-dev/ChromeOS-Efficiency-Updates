@@ -72,7 +72,7 @@
 
 
   function validatePageContract(html,requiredIds){
-    var source=String(html||''),ids=[].slice.call(source.matchAll(/\\bid=["']([^"']+)["']/g)).map(function(m){return m[1];});
+    var source=String(html||''),ids=[].slice.call(source.matchAll(/\bid=["']([^"']+)["']/g)).map(function(m){return m[1];});
     var seen=Object.create(null),duplicates=[];
     ids.forEach(function(id){if(seen[id])duplicates.push(id);else seen[id]=1;});
     var required=Array.isArray(requiredIds)?requiredIds:[],missing=required.filter(function(id){return ids.indexOf(id)<0;});
