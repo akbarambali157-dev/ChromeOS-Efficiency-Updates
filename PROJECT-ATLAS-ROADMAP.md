@@ -209,3 +209,14 @@ This document is the living plan. Each phase should be converted to small action
 - [x] Source-contract regression test wired into CI.
 - [ ] Chromebook/browser/touch visual validation, screenshot review and bug fixes.
 - [ ] Continue redesigning the AI workspace, common controls and mini-app surfaces in follow-on batches.
+
+
+### Stage D.1 — Home, navigation and onboarding (5.8.0 candidate)
+- [x] Responsive, roomier dashboard layout with less density and clearer panel separation.
+- [x] Settings collapsed by default behind personalization disclosure.
+- [x] Animated desktop sidebar collapse/expand and touch drawer.
+- [x] Installed bundled mini-apps listed as direct sidebar launch links.
+- [x] First-run tour, replayable Guide control, action-linked steps, blackout/fade transitions and reduced-motion support.
+- [x] Source-contract regression test wired into CI.
+- [ ] Chromebook/browser/touch visual validation, screenshot review and bug fixes.
+- [ ] Continue redesigning the AI workspace, common controls and mini-app surfaces in follow-on batches.
