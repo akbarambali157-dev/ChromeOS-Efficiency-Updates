@@ -59,5 +59,5 @@ assert.equal(skipped.skippedFiles,1);
 assert.equal(skipped.truncated,true);
 assert.equal(skipped.bytesRead,10);
 
-assert.rejects(()=>api.search('demo','',{maxResults:3}),/Enter a search term/);
+assert.throws(()=>api.search('demo','',{maxResults:3}),/Enter a search term/);
 console.log('Project folder path, privacy, safety limits and bounded-search regression tests passed.');
