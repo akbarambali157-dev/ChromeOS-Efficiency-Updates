@@ -1,5 +1,6 @@
-const assert=require('node:assert/strict');
-const D=require('../new-tab-launcher/diagnostics-core.js');
+import assert from 'node:assert/strict';
+import '../new-tab-launcher/diagnostics-core.js';
+const D=globalThis.AtlasDiagnosticsCore;
 assert.equal(D.check('x','pass','ok').status,'pass');
 assert.equal(D.check('x','invalid','detail').status,'not-run');
 assert.deepEqual(D.validateIds(['a','b','a','c','b']),{count:3,duplicates:['a','b']});
