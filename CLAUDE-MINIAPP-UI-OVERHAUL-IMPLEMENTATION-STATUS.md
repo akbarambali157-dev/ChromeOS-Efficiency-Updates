@@ -76,3 +76,19 @@
 4. Continue with the approved master plan only after feedback/QA.
 5. Keep changes reviewable and do not merge to `main` without explicit user authorization.
 
+
+
+## Next five features — work started (2026-11-26)
+
+User feedback: Ida is approved and should be preserved. Project-wide Ida routing is a later roadmap item; do not expand it during this pass.
+
+**Next five master checklist items (6–10):**
+6. Projects and context — strengthen project workspace/dashboard and context transparency using existing project data and APIs; no duplicate storage system.
+7. AI Teams — improve roles, assignment/status visibility, output presentation and review while preserving model-call workflows.
+8. Research — improve question workflow, source presentation, findings, and attach-to-context controls; do not fabricate source evidence.
+9. Creative Lab — improve ongoing creative workspace and project continuity while preserving current library functionality.
+10. Reference Lab — improve knowledge/reference organization, selection, search and attaching references as context; preserve saved items.
+
+**Branch created:** `claude-ui-overhaul-next5-project-context`, based on the Phase 1–5 implementation head. This branch is separate; PR #29 remains open and unmerged.
+
+**Implementation blocker:** Remote Vercel sandbox creation failed twice with API bad_request errors (v4 and v3). Without a working checkout/edit/test workspace, no functional code has been modified yet. Do not mark features 6–10 complete. Next action is to provision an alternative workspace or repair sandbox provisioning, then implement the five items incrementally with validation after each and browser QA when possible.
