@@ -27,6 +27,11 @@ optional background auto-suspend alarm exists only when that feature is enabled.
 The home dashboard uses a wider, calmer responsive layout, with the settings area collapsed by default. Navigation can collapse/expand smoothly on desktop and opens as a drawer on smaller screens. Installed bundled mini-apps appear in the sidebar as direct shortcuts. A first-run quick tour highlights the sidebar, installed mini-apps, search, shortcuts/workspaces, notes/tasks and settings; the floating Guide control replays it. Tour steps use a short fade-to-dark transition and honor reduced-motion preferences. Device and screenshot validation remains pending.
 
 
+## Stage D.1 UI refresh (5.8.0)
+
+The home dashboard is now being rebalanced into a wider responsive layout with calmer panels and less clutter. Settings are collapsed by default. Navigation supports animated desktop collapse/expand and a touch drawer on smaller screens. Installed bundled mini-apps appear in the sidebar as direct shortcuts. A first-run quick tour introduces the home, sidebar, mini-apps, search, shortcuts/workspaces, notes/tasks and settings; the floating Guide button replays it. Step changes briefly fade toward black and honor reduced-motion preferences. Device and screenshot validation remains pending.
+
+
 ## Install
 
 1. Open `chrome://extensions`
