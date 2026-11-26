@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "My Launcher",
-  "version": "5.8.0",
-  "description": "Lightweight Chromebook launcher with animated navigation, installed mini-app shortcuts, guided onboarding and calmer home layout.",
+  "version": "5.8.1",
+  "description": "Lightweight Chromebook launcher with an in-tab mini-app workspace, shared mini-app UI polish, animated navigation, installed mini-app shortcuts and guided onboarding.",
   "minimum_chrome_version": "103",
   "permissions": [
     "storage",

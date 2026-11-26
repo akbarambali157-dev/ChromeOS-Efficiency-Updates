@@ -25,5 +25,5 @@ assert.match(tour,/launcher-guide/,'tour should be replayable');
 assert.match(tour,/target\.focus\(\)/,'guided steps should focus actionable targets');
 assert.match(tour,/e\.isTrusted/,'programmatic focus should not auto-advance the tour');
 assert.match(nav,/sidebar-open/,'mobile sidebar drawer state should be implemented');
-assert.equal(manifest.version,'5.8.0');
+assert.equal(manifest.version,'5.8.1');
 console.log('Stage D.1 UI contracts passed.');
