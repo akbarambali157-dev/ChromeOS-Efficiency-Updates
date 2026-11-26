@@ -5,10 +5,10 @@ apps:'<rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6
 home:'<path d="M3 10.6 12 3.2l9 7.4"/><path d="M5.6 9.4V21h12.8V9.4"/><path d="M9.8 21v-6h4.4v6"/>',
 github:'<circle cx="6.5" cy="6" r="2.4"/><circle cx="6.5" cy="18" r="2.4"/><circle cx="17.5" cy="8" r="2.4"/><path d="M6.5 8.4v7.2"/><path d="M17.5 10.4c0 3.2-3.4 3.6-6.6 3.6H9"/>',
 drive:'<path d="M9.4 3.4h5.2l6.2 10.8-2.6 4.5H5.8l-2.6-4.5z"/><path d="M9.4 3.4 5.8 18.7"/><path d="M14.6 3.4 18.2 18.7"/>',
-brewkeg:'<rect x="5" y="6" width="13" height="13" rx="2"/><path d="M18 9h2a2 2 0 0 1 0 4h-2"',
+brewkeg:'<rect x="5" y="6" width="13" height="13" rx="2"/><path d="M18 9h2a2 2 0 0 1 0 4h-2"/>,
 sessions:'<path d="M12 3.2 3.4 7.6 12 12l8.6-4.4z"/><path d="M3.4 12.4 12 16.8l8.6-4.4"/><path d="M3.4 16.8 12 21.2l8.6-4.4"/>',
 memory:'<rect x="7" y="7" width="10" height="10" rx="2.2"/><path d="M10 3.2v3.8M14 3.2v3.8M10 17v3.8M14 17v3.8M3.2 10h3.8M3.2 14h3.8M17 10h3.8M17 14h3.8"/>',
-files:'<path d="M4 5h6l2 2h8v12H4z"',
+files:'<path d="M4 5h6l2 2h8v12H4z"/>,
 claude:'<path d="M12 3.4v17.2M3.4 12h17.2M6 6l12 12M18 6 6 18"/>',
 diagnostics:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 12h5M8 15h8"/>'
 };
