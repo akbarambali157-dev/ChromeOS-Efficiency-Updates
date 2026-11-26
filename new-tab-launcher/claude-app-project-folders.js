@@ -104,14 +104,14 @@
   }
   function searchCore(listFiles,readFile,projectId,query,options){
     query=String(query||'').trim();if(!query||query.length>200)fail('Enter a search term of 1–200 characters.','INVALID_QUERY');
-    options=options||{};var max=Math.min(MAX_RESULTS,Math.max(1,Number(options.maxResults)||40)),needle=query.toLowerCase(),bytesRead=0,truncated=false,skippedFiles=0;
+    options=options||{};var max=Math.min(MAX_RESULTS,Math.max(1,Number(options.maxResults)||40)),needle=query.toLowerCase(),bytesRead=0,truncated=false,skippedFiles=0,budgetExceeded=false;
     return listFiles(projectId).then(function(items){var matches=[];
       return items.reduce(function(p,item){return p.then(function(){
         if(matches.length>=max){truncated=true;return;}
-        if(bytesRead>=MAX_SEARCH_BYTES){truncated=true;return;}
+        if(budgetExceeded||bytesRead>=MAX_SEARCH_BYTES){truncated=true;return;}
         return readFile(projectId,item.path).then(function(file){
           var size=Math.max(0,Number(file.size)||new TextEncoder().encode(String(file.content||'')).length);
-          if(bytesRead+size>MAX_SEARCH_BYTES){truncated=true;skippedFiles++;return;}
+          if(bytesRead+size>MAX_SEARCH_BYTES){truncated=true;skippedFiles++;budgetExceeded=true;return;}
           bytesRead+=size;
           var lines=String(file.content||'').split(/\r?\n/);
           for(var i=0;i<lines.length&&matches.length<max;i++)if(lines[i].toLowerCase().indexOf(needle)!==-1)matches.push({path:item.path,line:i+1,excerpt:lines[i].slice(0,240)});
