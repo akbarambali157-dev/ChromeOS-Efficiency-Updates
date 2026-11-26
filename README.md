@@ -139,7 +139,7 @@ The project is moving toward a staged modernization process: complete audit firs
 - [UI redesign specification](UI-REDESIGN-SPEC.md) — screen-by-screen visual audit, competitive benchmarking, shared design system, UX journeys, responsive design, staged implementation and validation.
 - [Audit Phase A progress](AUDIT-PHASE-A-PROGRESS.md) — initial source-level observations, verified foundations, suspected risks and remaining audit scope (in progress).
 - [Audit Phase A completion report](AUDIT-PHASE-A-COMPLETED.md) — source inventory, CI evidence, prioritized findings, limitations and next-stage recommendations.
-- [Stage B diagnostics implementation](STAGE-B-DIAGNOSTICS-IMPLEMENTATION.md) — current testing foundation checkpoint, checks, CI results and remaining work.
+- [Stage B diagnostics implementation](STAGE-B-DIAGNOSTICS-IMPLEMENTATION.md) — current testing foundation checkpoint, checks, CI results and remaining work.\n- [Stage B manual Chromebook QA checklist](PROJECT-ATLAS-STAGE-B-MANUAL-QA.md) — device/browser verification, performance readings and privacy review.
 
 These documents are planning specifications. Their proposed diagnostics, integrations and future milestones are **not implemented just because they appear here**. Release readiness will report automated checks, manual/device checks, unavailable measurements and known issues separately.
 
