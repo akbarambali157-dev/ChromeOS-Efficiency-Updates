@@ -61,5 +61,7 @@ jobs:
         run: node scripts/test-recreation-lab.mjs
       - name: Test Stage D.1 UI contracts
         run: node scripts/test-stage-d-ui.mjs
+      - name: Test in-tab mini-app shell
+        run: node scripts/test-inline-miniapps.mjs
       - name: Validate mini-app contracts
         run: node scripts/validate-miniapps.mjs
