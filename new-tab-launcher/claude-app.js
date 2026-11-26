@@ -690,6 +690,7 @@
   $('filePicker').addEventListener('change', function(){importLocalFiles('filePicker');});
   $('folderPicker').addEventListener('change', function(){importLocalFiles('folderPicker');});
   $('newFile').addEventListener('click', newFile);
+  if($('fileTreeSearch'))$('fileTreeSearch').addEventListener('input',renderFiles);
   $('newLog').addEventListener('click', newLog);
   $('delLog').addEventListener('click', function () {
     if (!activeLog) return;
