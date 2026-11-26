@@ -4,7 +4,7 @@ const D=globalThis.AtlasDiagnosticsCore;
 assert.equal(D.check('x','pass','ok').status,'pass');
 assert.equal(D.check('x','invalid','detail').status,'not-run');
 assert.deepEqual(D.validateIds(['a','b','a','c','b']),{count:3,duplicates:['a','b']});
-assert.deepEqual(D.validateIds(['__proto__','constructor','toString']),{count:3,duplicates:[]});
+assert.deepEqual(D.validateIds(['__proto__','constructor','toString']),{count:3,duplicates:[]});\nassert.deepEqual(D.validatePageContract('<main id=\\"main\\"><button id=\\"run\\"></button></main>', ['main','run']),{idCount:2,duplicates:[],missing:[],ok:true});\nassert.deepEqual(D.validatePageContract('<div id=\\"x\\"></div><div id=\\"x\\"></div>', ['x','missing']),{idCount:1,duplicates:['x'],missing:['missing'],ok:false});
 assert.deepEqual(D.validateLocalLinks(['newtab.html','https://site','mailto:test','#section','javascript:alert(1)','missing.html'],p=>p!=='missing.html'),['missing.html']);
 const sum=D.summarize([D.check('1','pass'),D.check('2','warn'),D.check('3','fail'),D.check('4','skip'),D.check('5','unsupported')]);
 assert.equal(sum.fail,1);assert.equal(sum.unsupported,1);
