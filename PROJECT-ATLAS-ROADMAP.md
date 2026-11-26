@@ -27,7 +27,7 @@ Each cycle follows: **audit → scope/spec → implementation → automated chec
 
 ## Planned milestones (sequencing, not fixed version numbers)
 
-### Stage A — Deep audit and inventory (before next feature milestone)
+### Stage A — Deep audit and inventory (source pass complete; runtime/visual evidence deferred)
 - Inspect the complete repository and relevant Git history, not only README or selected files.
 - Inventory extension pages, mini-apps, scripts, modules, shared APIs, storage keys/databases, listeners, timers, alarms, permissions, network destinations, and lazy-load boundaries.
 - Classify each capability as: implemented and verified; implemented but unverified; partial; UI-only/mock; broken/duplicate; obsolete; or planned.
@@ -35,7 +35,7 @@ Each cycle follows: **audit → scope/spec → implementation → automated chec
 - Reproduce and retest known reported issues (selector/touch problems, null target errors, missing store references, non-working navigation/icons, reviewer empty output, research HTTP 400, Video Studio exceptions, provider/model switching, text-input limits, file/project persistence). These are **historical reports to investigate**, not assumed current bugs.
 - Produce a prioritized defect ledger and integration map with evidence and proposed fixes.
 
-**Exit gate:** no next feature is selected until high-impact gaps are understood and the audit's limits are stated.
+**Source audit exit gate: met.** Repository inventory, module boundaries, CI evidence, prioritized findings and explicit limitations are recorded in `AUDIT-PHASE-A-COMPLETED.md`. Runtime/browser visual inspection, Chromebook measurements, and full interaction coverage remain deferred to Stage B/D because they require a browser/device test environment. No app code was changed during this source audit.
 
 ### Stage B — QA/Diagnostics instrumentation build (dedicated test version)
 Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-SPEC.md`) and a baseline capture mode:
