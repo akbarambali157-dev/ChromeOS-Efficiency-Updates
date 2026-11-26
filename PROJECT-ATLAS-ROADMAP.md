@@ -62,13 +62,26 @@ Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-S
 
 **Exit gate:** regression suite passes, critical journeys work, no known release-blocking defects remain, and device QA checklist is ready.
 
-### Stage D — Core UX & navigation integration
-- Reassess the complete experience: launcher/home, navigation, app discovery, search/command bar, workspaces, settings, touch ergonomics, keyboard accessibility, small-screen layout, empty/loading/error/success states.
+### Stage D — Full UI audit and competitive redesign (dedicated major workstream)
+- Perform a screen-by-screen visual and interaction audit of the entire extension, including launcher, AI workspace, Teams, projects/files, research, creative tools, all mini-apps, settings, integrations, themes, tab/session tools, and all loading/empty/error/confirmation states.
+- Research competitor/reference products and document which UX patterns are worth adapting; do not copy branding or proprietary design.
+- Produce a UI inventory, screenshot/reference matrix, UX journey map, and prioritized redesign backlog before implementation.
+- Establish a shared design system (typography, spacing, semantic colors, surfaces, iconography, components, states, responsive breakpoints, motion and reduced-motion).
+- Redesign navigation, hierarchy, discoverability, touch controls, selectors, dialogs, loading/errors and common interaction patterns.
+- Implement in coherent batches, starting with global shell/shared components, then AI workspace, project foundation, AI Teams, research, creative tools, mini-apps and remaining settings/system surfaces.
+- Validate at Chromebook 1366×768 and smaller/mobile viewport where available; avoid overflow, clipped menus, tiny touch targets and regressions.
+- Preserve existing capability, deep links, registration contracts and user data; don't equate a visual makeover with functional correctness.
+
+**Exit gate:** inventory accounted for, reference findings documented, shared design system applied to high-priority surfaces, critical journeys regression-tested, responsive/accessibility basics reviewed, and manual user-device test checkpoint completed. See `UI-REDESIGN-SPEC.md`.
+
+
+### Stage D.1 — Core UX & navigation integration
+- Reassess launcher/home, navigation, app discovery, search/command bar, workspaces, settings, touch ergonomics, keyboard accessibility, small-screen layout and state handling.
 - Reduce fragmented surfaces and make cross-module paths obvious.
-- Design a consistent interaction pattern for selectors, dialogs, confirmations, back/close, status, and feedback.
+- Design consistent selectors, dialogs, confirmations, back/close, status and feedback.
 - Simplify without removing useful capability; preserve user data and migration paths.
 
-**Exit gate:** usability review and manual touch/device pass; no visual redesign that breaks existing affordances.
+**Exit gate:** usability review and manual touch/device pass; no redesign that breaks existing affordances.
 
 ### Stage E — Project/workspace foundation
 - Treat projects as coherent workspaces with clearly visible context, files, notes, tasks, conversations, generated outputs, and activity history.
