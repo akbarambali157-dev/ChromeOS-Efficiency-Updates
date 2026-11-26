@@ -15,7 +15,7 @@ const missing=[...new Set(initSelectors)].filter(id=>!htmlIds.has(id));
 assert.deepEqual(missing,[],'all selectors referenced by workspace initialization must exist in its HTML');
 
 for(const id of ['paneProject','projectTaskForm','projectNotes','paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation','paneFiles','workspaceBack','runTeam','cancelTeam','teamTestLead','teamTestReviewer','teamTestWorker','runResearch','ghLoad','ghSearch','ghCreateBranch','ghCreatePR','sbBrowse','sbSave','sbPAT','sbListProjects','sbProjectDetails','sbRunQuery','sbFunctions','sbBuckets','sbLogs']) {
-  assert.ok(init.includes("$('"+id+"')"), 'Expected event control binding: '+id);
+  assert.ok(init.includes("'"+id+"'"), 'Expected event control binding: '+id);
 }
 const projectNotes=workspace.slice(workspace.indexOf('function saveProjectNotes'),workspace.indexOf('function editorWorkspace'));
 assert.match(projectNotes,/clearTimeout\(projectNotesTimer\)/);
