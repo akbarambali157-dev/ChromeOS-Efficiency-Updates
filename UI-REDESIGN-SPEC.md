@@ -1,12 +1,14 @@
 # Project-wide UI/UX Audit & Redesign Specification
 
-**Status:** Planned workstream. The UI audit/redesign has not yet been performed or implemented.
+**Status:** In progress. Stage D.1 home/sidebar/onboarding implementation is staged in 5.8.0; device visual verification pending.
 **Sequence:** Begin after the current full-project audit and initial diagnostics/testing foundation. Treat the visual redesign as a project-wide effort, not a Claude Mini App-only makeover.
 
 ## Objective
 Raise the interface quality to a contemporary, cohesive, competitive standard while preserving the project's distinctive lightweight Chromebook foundation, existing capability, data and interaction affordances. Aim for a polished, understandable product—not a visual clone of another tool and not decoration at the expense of clarity.
 
 ## Phase 1 — Visual and interaction inventory (before design)
+
+**D.1 source inventory checkpoint:** the home page used a narrow 760px wrapper, a permanently expanded sidebar, four primary shortcuts, many stacked dashboard sections and inline-expanded settings. Browser screenshots/device inspection were unavailable for this source pass; the user identified home as cramped.
 Inspect every surface and record:
 - Main launcher/new-tab/home and primary navigation
 - AI assistant and Claude Mini App / development workspace
@@ -63,6 +65,8 @@ Map major user journeys before rearranging:
 Simplify navigation and make key actions discoverable. Keep advanced controls accessible without crowding the primary workflow. Standardize back/close, dialog, selection, confirmation and status behavior. Avoid breaking existing deep links, app registrations or persisted user data.
 
 ## Phase 5 — Redesign implementation order
+
+**Implementation checkpoint:** home/sidebar/tutorial batch is staged first. This does not complete the project-wide redesign.
 Recommended sequence:
 1. Shared foundations/tokens and layout primitives.
 2. Launcher/home/navigation and global shell.
