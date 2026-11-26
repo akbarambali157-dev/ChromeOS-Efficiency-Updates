@@ -6,9 +6,9 @@
 **Implementation PR:** #29 — https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, not merged).
 
 ## Master feature tally (31 checklist items)
-- **Completed (implementation): 3 / 31** — Foundation/design system, chat experience, and composer (Phase 2/3 pass).
+- **Completed (implementation): 5 / 31** — Foundation/design system, chat experience, composer, Ida activity experience, and coding/file workspace (Phase 4/5 implementation pass).
 - **In progress: 0 / 31** — Phase 2/3 implementation pass is complete; awaiting CI/runtime verification.
-- **Not started: 28 / 31.**
+- **Not started: 26 / 31.**
 - **Browser visual QA rule:** do not begin screenshot/browser visual review until at least 5 master-list features have implementation work completed. At that threshold, do browser visual QA before proceeding further.
 
 ## Phase 1 — Foundation & visual system (implementation done)
@@ -44,7 +44,24 @@
 - Added static contract assertions for draft storage, restoration, save debounce, missing-key guard, deletion cleanup, status UI and composer styling. The existing validation workflow runs this test.
 - **Runtime validation not performed:** no local checkout/browser execution is available through this workflow. Static contracts are added, but their run is unconfirmed.
 
-## Next task — Phase 4: Ida activity experience (then Phase 5 coding/file workspace)
+## Phase 4 — Ida activity experience (implementation pass complete; verification pending)
+- Redesigned Ida as a restrained luminous orb centerpiece with reduced-motion fallback.
+- Activity detail disclosure now displays task, current observable status, and elapsed time. Labels remain event/status-based; no invented percent or hidden model reasoning.
+- Elapsed time formatting now scales to minutes; timer interval suspends while the tab is hidden and resumes based on the real start time.
+- Added accessible status semantics and expanded-state control.
+
+
+## Phase 5 — Coding/File Workspace (implementation pass complete; verification pending)
+- Added search/filter across project file names and imported folder paths.
+- Folder paths are represented as virtual/collapsible hierarchy; they do not create or imply filesystem folders.
+- Directory and file labels are sorted alphabetically; folder collapse state is retained for the current session.
+- Added compact file-type markers and visible file count (filtered / total).
+- Existing attach/detach, select, delete-confirmation, import, and storage behavior retained in the row actions.
+- Added static contracts for Ida activity states/timing/accessibility and tree/filter/folder rendering.
+- **Runtime verification is pending:** tests have been authored/wired, but CI run is not yet confirmed and browser visuals have not been inspected.
+
+
+## Next task — Browser visual QA checkpoint (5 features implemented)
 The current source has now been inspected for composer/send flow and conversation persistence. Important baseline observations:
 - Input limit is 20,000 characters; the counter updates on input and flags at 90%.
 - Textarea autosizing is capped at 180px.
