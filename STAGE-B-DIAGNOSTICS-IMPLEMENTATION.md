@@ -3,7 +3,7 @@
 **Status:** Source/CI foundation expanded; Stage B is **not yet device-validated**.  
 **Branch:** `project-atlas-stage-b-diagnostics`  
 **Pull request:** [#23 — Project Atlas Stage B](https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/23) (draft; not merged)  
-**Last confirmed baseline CI:** [Run #214 — successful](https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/actions/runs/45838958539). New contract-test changes are awaiting a clean CI run.
+**Stage B CI verification:** [Run #45840015402 — successful](https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/actions/runs/45840015402), after the new page/selector contracts, diagnostics helper tests, and documentation changes were included.
 
 ## Work completed
 
@@ -28,7 +28,7 @@
 - Added `scripts/test-diagnostics-page-contracts.mjs`: source-level inventory of 12 extension pages, required key selector IDs, duplicate static-ID scan, local referenced-asset existence and sidebar inventory consistency.
 - Added the new page/selector contract test to GitHub Actions.
 - Added `PROJECT-ATLAS-STAGE-B-MANUAL-QA.md`, covering install/navigation, dashboard, safe smoke flows, worker behavior, manual performance capture and privacy review.
-- These changes are still being validated by CI. Earlier test attempts failed due test-harness issues introduced while adding the new helper; those failures were investigated and corrected, not ignored. The latest run must be green before this checkpoint is considered source/CI-complete.
+- Earlier test attempts failed due test-harness issues introduced while adding the new helper (escaped line breaks, then an iterator-to-array bug); both were investigated and corrected. The final reported CI run is green.
 
 ## What is verified vs. what is not
 
