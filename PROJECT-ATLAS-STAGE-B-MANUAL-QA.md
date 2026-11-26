@@ -3,83 +3,60 @@
 **Build:** Stage B Diagnostics & Testing Foundation  
 **Branch:** `project-atlas-stage-b-diagnostics`  
 **Purpose:** User/device checks that cannot be honestly verified by source-only or CI tests.  
-**Status:** Prepared; awaiting manual browser/device execution.
+**Status:** User reports completing the manual checklist on the Chromebook; details below are user-observed, not independently measured by the development agent.
 
 ## Record before testing
-- Date/time:
-- Device:
-- Chrome/ChromeOS version:
-- Extension build/version:
-- Viewport/resolution:
-- Tester notes:
+- Date: 26 November 2026 (reported in this conversation)
+- Device: Chromebook (exact model/browser build not re-confirmed in this QA note)
+- Tester: User
+- Viewport/resolution: not recorded
+- Extension build/version: Stage B branch / QA build (exact installed commit not confirmed)
+
+## User-reported verification
+- [x] User reports completing the manual test steps previously provided.
+- [x] Task Manager was open while testing.
+- [x] Memory readings were described as steady around “70k”; units and Chrome process scope were not confirmed.
+- [x] User described approximately “40k” associated with Notes and related launcher features; attribution and units remain unconfirmed.
+- [x] Home-screen load timing was hand-timed at approximately 2.4–2.6 seconds; stopwatch precision is limited by human start/stop reaction.
+- [x] User did not report a memory increase over the observed usage in this message.
 
 ## 1. Install / launch / navigation
-- [ ] Load extension from this branch (Developer mode → Load unpacked).
-- [ ] Open new-tab launcher; page loads without obvious errors or missing styling.
-- [ ] Sidebar buttons are usable with mouse and touch; labels/targets are correct.
-- [ ] Diagnostics entry opens the diagnostics page and active navigation state is correct.
-- [ ] Home, mini-apps, GitHub, Drive, Brewkeg, Sessions, Memory, Files and Claude pages open.
-- [ ] Popup opens and its controls respond.
-- [ ] Workspace iframe opens, minimizes/maximizes, and closes cleanly.
+- [x] User reports completing the checklist section.
+- [ ] No separate item-by-item evidence recorded.
 
 ## 2. Diagnostics dashboard
-- [ ] Dashboard renders on a narrow screen and at 1366×768 without horizontal overflow.
-- [ ] Run button disables while checks run and re-enables after completion.
-- [ ] Checks finish and summary totals match the displayed check statuses.
-- [ ] Pass/warn/fail/skipped/not-run states are distinct in text (not color-only).
-- [ ] A deliberately unavailable check is labeled unavailable/skipped, not passed.
-- [ ] Runtime error capture is bounded and report generation remains usable after an error.
-- [ ] Copy report works, or gives a usable fallback message.
-- [ ] Save report downloads a text file with the expected filename.
-- [ ] Report is reviewed before sharing; verify no credentials or sensitive content.
-- [ ] Repeat scan works and does not create duplicate cards or persistent background work.
+- [x] User reports completing the checklist section.
+- [ ] No separate item-by-item evidence recorded.
 
-## 3. Core extension smoke flows (non-destructive)
-- [ ] Search box accepts text, suggestions/submit behave.
-- [ ] Workspace selector opens, selects, saves and reports status.
-- [ ] Mini-app catalogue filters/searches and opens an app.
-- [ ] Session list can be viewed; avoid destructive restore/close actions.
-- [ ] Files page opens; do not move/copy user files during this checklist.
-- [ ] Memory page refreshes and displays supported metrics without claiming extension-only RAM.
-- [ ] Claude workspace pane selectors are tappable and switching panes works.
-- [ ] Selector controls are large enough to tap reliably.
+## 3. Core extension smoke flows
+- [x] User reports completing the checklist section.
+- [ ] No separate item-by-item evidence recorded.
 
 ## 4. Background worker / extension APIs
-- [ ] Diagnostics safe ping returns success.
-- [ ] Worker remains responsive after opening/closing several extension pages.
-- [ ] No persistent polling/work begins merely by opening Diagnostics.
-- [ ] Browser console has no new uncaught errors or promise rejections.
+- [x] User reports completing the checklist section.
+- [ ] No separate item-by-item evidence recorded.
 
 ## 5. Performance capture (manual; device-wide metrics)
-Capture readings with Chrome Task Manager (Shift+Esc) or another supported browser surface. Do not attribute total browser/device RAM to the extension.
-- [ ] Cold new-tab launch latency: ______
-- [ ] Warm launch latency (3 samples): ______ / ______ / ______
-- [ ] Diagnostics scan duration: ______
-- [ ] Idle memory reading (browser/device scope): ______
-- [ ] During typical launcher interactions memory reading: ______
-- [ ] Responsiveness notes (lag, stutter, freezes): ______
-- [ ] After opening/closing 5 apps, note any sustained growth: ______
-- [ ] Wait 60 seconds with Diagnostics idle; confirm no obvious recurring activity: ______
+- [x] Task Manager was open during testing.
+- [x] Memory reading reported stable at approximately 70k.
+- [ ] Units/process scope not confirmed; do not interpret as an extension-only figure.
+- [x] Home screen load time estimated at 2.4–2.6 seconds.
+- [ ] Repeatable timed samples not captured in this note.
+- [ ] Long-session/idle results not separately recorded.
 
 ## 6. Privacy / safe behavior
-- [ ] Quick scan makes no network requests beyond local extension-resource checks.
-- [ ] Provider/API credentials are not read, sent, displayed or tested.
-- [ ] Storage usage is an estimate; no saved storage values were inspected or modified.
-- [ ] Report redaction is treated as defense-in-depth and manually reviewed.
-- [ ] Report does not contain page content, prompts, files, browsing URLs or secrets.
+- [x] User reports completing the checklist.
+- [ ] No separate privacy-report inspection evidence captured in this note.
 
 ## Result
-- [ ] Pass
-- [ ] Pass with warnings
-- [ ] Blocked
-- [ ] Fail — requires fix
+- [x] User-reported manual QA completion; no failure reported in this message.
+- [ ] Independent reproduction/evidence capture unavailable.
 
-**Issues / evidence:**  
-(Record only sanitized error messages, affected control/page, and reproduction steps. Do not paste keys, user content, or private URLs.)
+## Limitations
+- User-reported observations are accepted for the checkpoint, but the developer agent cannot independently see the device, Task Manager units, console, or screenshots.
+- The memory figures remain unconfirmed as KB/MB and cannot be attributed to one specific extension process.
+- The hand-timed startup estimate is approximate.
+- Browser/touch/keyboard/iframe interactions and 40 mini-app end-to-end flows are not individually documented here.
 
-## Known limitations at this checkpoint
-- CI/source contracts do not simulate touch, keyboard focus, modal interaction, iframe behavior, or actual app workflows.
-- The Diagnostics page itself has not been run on the target Chromebook by the development agent.
-- Live provider checks and credential validation are intentionally excluded.
-- Memory/CPU figures are device-wide or unavailable; they are not extension-attributed.
-- Not all mini-apps have end-to-end coverage. Use the existing mini-app QA checklist as a separate pass.
+## Suggested next performance baseline
+For a later optimization stage, capture 3 cold and 3 warm new-tab timings, then compare medians. If convenient, confirm Task Manager's memory units and process label; avoid repeatedly timing with a stopwatch if it adds friction.
