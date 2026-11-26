@@ -21,7 +21,7 @@
     if(panel)panel.hidden=!detailOpen;
     if(toggle){toggle.hidden=false;toggle.setAttribute('aria-expanded',detailOpen?'true':'false');toggle.textContent=detailOpen?'Hide details':'Details';}
   }
-  var expandButton=$('activityExpand');if(expandButton)expandButton.addEventListener('click',toggleDetails);
+  document.addEventListener('DOMContentLoaded',function(){var expandButton=$('activityExpand');if(expandButton)expandButton.addEventListener('click',toggleDetails);});
   function startTimer(){if(timer||!active||document.hidden)return;timer=setInterval(render,1000);}
   function stopTimer(){if(timer){clearInterval(timer);timer=null;}}
   function begin(title,detail){end();active=true;continuing=false;started=Date.now();base=title||'Thinking';task=detail||'';agentName='';detailOpen=false;render();startTimer();}
