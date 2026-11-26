@@ -22,7 +22,6 @@ var APPS=[
 var nav=document.querySelector('nav.nav');if(!nav||nav.children.length)return;
 var here=document.body.getAttribute('data-app')||'',reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches,mobile=window.matchMedia&&window.matchMedia('(max-width: 820px)').matches,storage=window.chrome&&chrome.storage&&chrome.storage.local,collapsed=mobile;
 function setCollapsed(v,save){collapsed=!!v;document.body.classList.toggle('sidebar-collapsed',collapsed);document.body.classList.toggle('sidebar-expanded',!collapsed);toggle.setAttribute('aria-expanded',String(!collapsed));toggle.title=collapsed?'Expand navigation':'Collapse navigation';toggle.setAttribute('aria-label',toggle.title);if(save&&storage)storage.set({launcherSidebarCollapsed:collapsed});}
-}
 var brand=document.createElement('div');brand.className='nav-brand';var brandText=document.createElement('span');brandText.className='nav-brand-text';brandText.textContent='My Launcher';
 var toggle=document.createElement('button');toggle.type='button';toggle.className='nav-toggle';toggle.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';toggle.setAttribute('aria-expanded','true');toggle.setAttribute('aria-label','Collapse navigation');toggle.title='Collapse navigation';brand.appendChild(brandText);brand.appendChild(toggle);nav.appendChild(brand);
 var core=document.createElement('div');core.className='nav-primary';
