@@ -76,3 +76,62 @@ These test files were located and some source contents inspected. **Tests have n
 Review the launcher's page boundaries and controller ownership: newtab/home, settings, customization/theme, memory, sessions, navigation, popup, app launcher and background service worker. Then proceed through AI Workspace modules, projects/files, AI Teams, research, creative tools, Video Studio, and mini-app runtime/registry in separate evidence-based batches.
 
 **No application source code has been changed in this audit pass.** This report records findings and directs the next inspection; it is not a release or device validation.
+
+## Audit batch 2 — Launcher, runtime and CI findings (2026-11-26)
+
+### Additional source inspected
+- CI workflow `.github/workflows/mini-app-validation.yml`
+- New-tab HTML (full main structure), launcher and navigation controllers
+- Settings/backup controller, customization controller, theme/wallpaper controller
+- Background service-worker sections for dark mode, request relays, tab tracking and auto-suspend
+- Mini-app iframe shell and host workspace message bridge
+- App marketplace controller and local registry
+- Shared assistant core, assistant UI controller, command bar, popup, home-tools
+- AI workspace main controller, workspaces/Teams/research/GitHub/Supabase orchestration, Video Studio, project folders
+- Existing validator's full tail and regression test inventory
+
+### Evidence-based notes
+- The CI workflow runs JavaScript syntax checks, focused Node tests for response handling, model effort, project tools/folders, Parallel Search, Creative Library and Recreation Lab, plus the mini-app contract validator. This is a valuable foundation, but it is still primarily source-contract/unit testing—not real browser end-to-end testing.
+- The mini-app validator cross-checks 40 app IDs across local registry, remote catalogue, install map and runtime registry; checks app metadata/network disclosures, MV3/Chrome 103 baseline, sandbox CSP, some unsafe API patterns, copy-only Files behavior, workspace control presence and numerous AI workspace contracts.
+- The extension's home page uses a classic-script load sequence. The documented script order and global shared APIs are architecture-sensitive and need automated load-order/dependency checks before any reorganizing.
+- Home-page memory monitoring is visibility-aware and polls at 15-second intervals only while the page is visible (initial delayed sync); clock updates at 60-second cadence and refreshes on visibility return. These are documented/visible patterns, not evidence of every timer in every module being lifecycle-safe.
+- `defer.js` postpones weather and command-bar scripts until idle (with a fallback), showing the existing Chromebook-first lazy-loading direction.
+- Mini-apps run inside a sandboxed iframe with a restrictive CSP and a message bridge; the host validates source window, channel, nonce and app ID. This is an important boundary to preserve and test more thoroughly.
+- The UI source shows the home page as a single long page with many sections, including shortcut/workspace management, tools, sessions, recently closed tabs, notes, tasks, theme/wallpaper collections, custom colours, layout controls, accessibility, website dark-mode settings, memory and backup/import controls. This is a **confirmed structural complexity** and a strong redesign target; it is not yet a visual quality verdict.
+- The extension's responsive CSS includes a compact sidebar behavior, touch-specific control sizing, motion disable/reduced-motion paths and multiple themes. Presence in source does not establish that each screen is usable at every viewport.
+- The extension has a centralized app registry, install records and a constrained local mini-app data broker; the broker's lifecycle, edge cases, quota handling and per-app behavior still require deeper review.
+
+### Risks and potential audit targets
+| ID | Concern | Evidence | Classification | Next action |
+|---|---|---|---|
+| A-01 | Broad website access | Manifest `host_permissions: <all_urls>` and website dark-mode injection | Reviewable permission risk, not automatically a defect | Trace each feature; assess optional host permissions/user activation alternatives |
+| A-02 | Main home/settings information overload | Large combined home page and many settings sections | Confirmed structural complexity | Inventory settings groups and propose progressive disclosure/navigation |
+| A-03 | Static CI cannot confirm runtime UI | CI uses `node --check` and Node tests/validator; no browser automation in inspected workflow | Confirmed testing coverage limitation | Design project-wide diagnostics and browser smoke test strategy |
+| A-04 | App contract testing gaps | Validator checks registrations and many contracts but not full app interactions | Coverage limitation | Map each app to interaction/state tests; identify missing coverage |
+| A-05 | Runtime script-order coupling | Plain classic scripts with global shared dependencies | Architecture risk | Generate dependency/load-order map and verify contracts |
+| A-06 | Activity visibility incomplete until inventoried | Service worker, timer/alarm and module async activity exist | Audit pending | Inventory owner, lifecycle, interval, wake trigger, cancellation and cleanup |
+| A-07 | UI responsive quality unverified | CSS has breakpoints/touch styles; actual screenshots not available | Untested | Browser/device test matrix and visual inventory |
+| A-08 | Metrics are estimates in catalogue | Apps show RAM/CPU estimate fields and labels, README caveats | Needs accuracy review | Check how estimates are derived; make uncertainty/disclaimer consistent |
+| A-09 | Diagnostics completeness | Existing diagnostics module is workspace-specific | Confirmed scope limitation from architecture/file inventory | Compare it with new project-wide diagnostics spec; don't duplicate |
+
+### CI coverage that is already useful
+- Syntax validation for JavaScript under `new-tab-launcher/`.
+- Response extraction, truncation, partial response, continuation and malformed-response tests.
+- Model-specific effort selection/forwarding.
+- Parallel search normalizer: empty, malformed, wrong shape, HTTP and valid results.
+- Project folder boundaries, stale proposal/path safety.
+- Creative Library and Recreation Lab validation/privacy checks.
+- Mini-app catalogue and runtime-contract validation.
+
+### CI coverage that is still missing or not evidenced in inspected workflow
+- Browser-driven interaction tests for primary page flows.
+- Screenshot/visual regression tests.
+- Keyboard and touch behavior automation.
+- Whole-project DOM selector integrity across all pages.
+- Full test coverage for all mini-app functionality (contract checks are not equivalent).
+- Background service-worker timer/alarm lifecycle and duplicate listener tests.
+- Storage quota, migration, corruption and backup/restore end-to-end tests.
+- Real provider/API integration tests (must use safe mocks/fixtures in CI; credential tests manual).
+- Long-session/resource leak tests and device CPU/memory measurements.
+
+**Audit continues. No application code changed, no runtime tests executed, and no release is being claimed.**
