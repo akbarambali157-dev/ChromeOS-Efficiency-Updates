@@ -796,6 +796,7 @@ dialog[open]{animation:pop .22s ease-out}
 }
 
 /* Stage D.1 visual refinements */
+.wrap{max-width:1200px;padding:36px 24px 40px}
 :root{--ui-motion:240ms;--ui-ease:cubic-bezier(.22,.7,.25,1)}
 body.has-nav{padding-left:232px;transition:padding-left var(--ui-motion) var(--ui-ease)}body.sidebar-collapsed.has-nav{padding-left:72px}
 .nav{width:232px;padding:18px 12px;gap:5px;transition:width var(--ui-motion) var(--ui-ease),padding var(--ui-motion) var(--ui-ease);background:rgba(var(--panel-rgb),.94);backdrop-filter:blur(12px)}body.sidebar-collapsed .nav{width:72px;padding:16px 10px}
