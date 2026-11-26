@@ -135,3 +135,28 @@ Review the launcher's page boundaries and controller ownership: newtab/home, set
 - Long-session/resource leak tests and device CPU/memory measurements.
 
 **Audit continues. No application code changed, no runtime tests executed, and no release is being claimed.**
+
+## Audit batch 3 — AI workspace, Teams and mini-app boundary review
+
+### Further verified foundations
+- AI workspace has distinct project dashboard, editor/chat, AI Team, research, GitHub, Supabase, Video Studio, Creative Library, Recreation Lab, settings and diagnostics surfaces.
+- Provider abstraction and shared response parser modules exist. Existing tests cover response extraction, truncation and continuation, provider/model effort handling, and Parallel Search response normalization.
+- AI Team mode labels are explicit: debate, three **sequential** agents, and two independent audits. The implementation deliberately enforces a one-agent-at-a-time concurrency limit. This is not a mislabeled parallel execution defect in the UI; the label is accurate. Review the user-facing explanation and efficiency trade-offs later.
+- The mini-app host iframe uses a sandbox without `allow-same-origin`, plus a restrictive CSP (`connect-src 'none'`) in the app frame. The message bridge validates source window, channel, nonce and app ID. These security boundaries must remain intact.
+- Extended mini-app runtime is built from DOM helpers and handler branches; in the inspected source no `innerHTML`, recurring timer, or object-URL pattern was found by the limited pattern scan. This is not a proof of absence across all app paths.
+- Mini-app registry/catalogue both contain 40 apps across 9 categories; network disclosures show only Research Library and QR Studio with declared external endpoints in the catalogue inspected.
+- The AI Workspace's Diagnostics is a separate script loaded by that page. It captures JavaScript errors/unhandled promise rejections and checks a set of required IDs, navigation controls, APIs and module initialization. It is **workspace-only**, not the whole extension; it does not currently prove provider connectivity, team workflow success, mini-app interactions, performance, or other pages.
+
+### Confirmed diagnostics weakness
+- The Provider module check repeats `!!window.CCProviders` as the final fallback (`!!window.CCProviders || !!window.CCProvidersModule || !!window.CCProviders`). This is redundant and should be corrected in the eventual diagnostics reliability patch. Severity appears low; it weakens the check's clarity rather than causing a product feature failure.
+- The workspace diagnostic result list currently reduces checks to pass/fail. The broader QA system should use distinct statuses such as not-run, unsupported, skipped and warning so unavailable checks do not create misleading results.
+- Error collection currently holds captured page errors in an in-memory array for the duration of that page. Assess boundedness and redaction before adapting it into any project-wide observer.
+
+### Integration/design risks to examine in later batches
+- Main AI workspace is a large controller with many responsibilities; the workspaces module also owns multiple integrations. Assess whether state ownership and module boundaries are sufficiently clear and whether they create maintenance risks, but do not refactor purely by file size.
+- Project folder tools, stale-proposal checks, reviewed writes and undo safety are present in source and tests; inspect the full tool lifecycle and failure paths before declaring it reliable.
+- Research query planning, provider retry behavior, citation/source preservation, Supabase read-only limits and GitHub review binding need end-to-end inspection.
+- Video Studio includes writer/reviewer/editor orchestration, editable storyboard/character data, canvas preview and WebM export; investigate UI lifecycle, storage limits, media cleanup, cancellation and error recovery.
+- AI Workspace UI contains many sections and controls within a shared workspace shell. The later visual audit must assess information hierarchy, density and navigation at device widths.
+
+**Tests not executed:** Node test scripts/CI could not be run through the GitHub connector source-read environment. Findings above are static source inspection only.
