@@ -18,7 +18,7 @@ assert.match(css,/@media\(max-width:820px\)/,'responsive sidebar behavior missin
 assert.match(css,/prefers-reduced-motion:reduce/,'reduced-motion behavior missing');
 assert.match(tour,/launcherTourComplete/,'tour completion should persist');
 assert.match(tour,/tour-dark-transition/,'tour should use crossfade transitions');
-assert.doesNotMatch(tour,/if\(!tour\|\|animating\)return/,'step content must render while the blackout transition is active');
+assert.match(tour,/function render\(\)\{if\(!tour\)return;/,'step content should render while the blackout transition is active');
 assert.match(tour,/launcher-guide/,'tour should be replayable');
 assert.match(tour,/target\.focus\(\)/,'guided steps should focus actionable targets');
 assert.match(tour,/e\.isTrusted/,'programmatic focus should not auto-advance the tour');
