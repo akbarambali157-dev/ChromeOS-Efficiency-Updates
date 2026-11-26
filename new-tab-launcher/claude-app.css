@@ -562,3 +562,39 @@ body.cc .workspace-card a{color:var(--cc-accent)}
 body.cc .code-diff-line.add{background:rgba(30,130,85,.18);color:var(--cc-text)}
 body.cc .code-diff-line.del{background:rgba(180,65,65,.18);color:var(--cc-text)}
 body.cc .code-diff-line.context{color:var(--cc-text-muted)}
+
+/* Theme-complete shared chrome and dialogs. The existing HTML structure is retained. */
+body.cc .workspace-head,body.cc .context-dialog-head,body.cc .context-dialog-foot,
+body.cc .panelhead,body.cc .tabs,body.cc .sidehead,body.cc .v45-card,
+body.cc .diag-dialog,body.cc .code-review-grid,body.cc .file-edit-dialog,
+body.cc #dlgContext,body.cc #dlgCodeReview,body.cc #dlgFileEdits,
+body.cc #dlgProject,body.cc #dlgSet,body.cc #dlgPush,body.cc #dlgDiagnostics{
+  border-color:var(--cc-border);
+}
+body.cc .workspace-panel,body.cc .workspace-input,body.cc .project-head select,
+body.cc .project-task-form input,body.cc .chat-effort-row select,
+body.cc .v45-nav button,body.cc .v45-file,body.cc .logsel,
+body.cc .context-item,body.cc .context-summary .project-stat,
+body.cc .project-task,body.cc .project-note,body.cc .project-stat,
+body.cc .v45-logitem,body.cc .v45-plan div,body.cc .v45-scene,
+body.cc .v45-character,body.cc .v45-summary,body.cc .file-edit-heading{
+  border-color:var(--cc-border-soft);
+}
+body.cc .workspace-panel,body.cc .workspace-input,body.cc .project-head select,
+body.cc .project-task-form input,body.cc .chat-effort-row select,
+body.cc .v45-nav button,body.cc .v45-file,body.cc .logsel,
+body.cc .context-item,body.cc .context-summary .project-stat,
+body.cc .project-task,body.cc .project-note,body.cc .project-stat,
+body.cc .v45-logitem,body.cc .v45-plan div,body.cc .v45-scene,
+body.cc .v45-character,body.cc .v45-summary,body.cc .file-edit-heading{
+  background-color:var(--cc-surface-2);
+}
+body.cc .actbtn.home{margin-top:auto}
+body.cc button:not(.actbtn),body.cc .mini,body.cc .ghost,body.cc .primary,
+body.cc .project-task button,body.cc .workspace-panel button,
+body.cc .v45-actions button,body.cc .v45-scene button,body.cc .v45-character button{
+  border-radius:var(--cc-radius-sm);
+}
+body.cc button:disabled,body.cc input:disabled,body.cc textarea:disabled,body.cc select:disabled{opacity:.58}
+body.cc .workspace-card,body.cc .context-item,body.cc .v45-logitem,
+body.cc .v45-summary,body.cc .project-task,body.cc .project-note{overflow-wrap:anywhere}
