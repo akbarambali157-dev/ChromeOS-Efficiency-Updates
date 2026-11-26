@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 const css=fs.readFileSync('new-tab-launcher/claude-app.css','utf8');
 const app=fs.readFileSync('new-tab-launcher/claude-app.js','utf8');
+const activity=fs.readFileSync('new-tab-launcher/claude-app-activity.js','utf8');
 const html=fs.readFileSync('new-tab-launcher/claude-app.html','utf8');
 
 const tokens=['--cc-surface-0:','--cc-surface-1:','--cc-surface-2:','--cc-surface-3:','--cc-border:','--cc-border-soft:','--cc-text:','--cc-text-muted:','--cc-text-dim:','--cc-accent:','--cc-accent-strong:','--cc-radius-sm:','--cc-radius-md:','--cc-radius-lg:','--cc-space-1:','--cc-space-2:','--cc-space-3:','--cc-space-4:'];
@@ -38,3 +39,23 @@ assert.match(app,/delete draftStore\[activeProjectId\+'::'\+activeLog\.id\]/,'co
 assert.match(css,/\.draft-status/,'composer draft state styling missing');
 assert.match(css,/max-height:180px/,'composer sizing cap missing');
 console.log('Phase 2/3 chat-composer contracts passed.');
+
+/* Phase 4 Ida + Phase 5 file tree contracts. */
+assert.match(activity,/function toggleDetails\(\)/,'Ida expanded details toggle missing');
+assert.match(activity,/visibilitychange/,'activity interval suspends while tab is hidden');
+assert.match(activity,/function fmt\(sec\)/,'elapsed time formatting missing');
+assert.match(activity,/CCActivity\.toggleDetails/,'activity detail toggle API missing');
+assert.match(html,/class="ida-orb"/,'Ida centerpiece visual missing');
+assert.match(html,/id="activityDetails"/,'expanded activity panel missing');
+assert.match(html,/aria-expanded/,'accessible activity expansion state missing');
+assert.match(html,/id="fileTreeSearch"/,'file tree search control missing');
+assert.match(app,/var collapsedFileDirs/,'virtual directory collapse state missing');
+assert.match(app,/function renderNode\(node,depth,path\)/,'recursive virtual folder rendering missing');
+assert.match(app,/function fileRow\(item,depth\)/,'file tree row renderer missing');
+assert.match(app,/localeCompare/,'file tree sorting missing');
+assert.match(app,/addEventListener\('input',renderFiles\)/,'search filtering listener missing');
+assert.match(css,/\.file-folder/,'virtual folder styling missing');
+assert.match(css,/\.file-glyph/,'file type marker styling missing');
+assert.match(css,/\.ida-orb/,'Ida orb styling missing');
+assert.match(css,/\.activity-details/,'activity details panel styling missing');
+console.log('Phase 4/5 Ida and file tree contracts passed.');
