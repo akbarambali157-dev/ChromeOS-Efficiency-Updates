@@ -1,28 +1,57 @@
-# Project Atlas — Stage C Reliability & Regression Checkpoint
+# Project Atlas — Stage C Reliability & Regression Closeout
 
-**Build:** 5.7.1
-**Branch:** project-atlas-stage-c-reliability
-**Scope:** targeted reliability defect fix; no unrelated feature work.
-**Status:** PR #24 merged to main at commit 4ea8b14771528d4ba24b6df0213e1f98037bbaef.
+**Release candidate:** 5.7.2
+**Branch:** project-atlas-stage-c-completion
+**Scope:** reliability and regression work only; no unrelated feature expansion.
 
-## Confirmed defect fixed
+## Stage C result
 
-The project-folder search declared a 12 MiB scan budget (MAX_SEARCH_BYTES) but never incremented its bytesRead counter. As a result, the intended byte limit was effectively inactive: searches could scan the entire supported-file list (up to the existing file-count limits) and the response did not expose byte-budget or skipped-file details.
+Stage C's source-level implementation and automated regression scope is complete. The changes include the previously merged project-folder search fix (5.7.1) and the new project-notes lifecycle/startup reliability fix (5.7.2).
 
-## Change
+## Confirmed defects and fixes
 
-- Enforce the 12 MiB scan budget using each read file's reported size, with encoded content length as fallback when size is absent/zero.
-- Stop scanning immediately when the next file would exceed the budget rather than process it; do not continue probing later files after the budget is exhausted.
-- Mark result sets as partial (truncated=true) when the result cap is reached, the byte cap is reached, or a supported file is skipped because it is oversized, binary, or unsupported.
-- Report bytesRead and skippedFiles alongside query/matches/truncated so downstream tools can communicate the scope of a search.
-- Preserve sequential file reads, existing path validation, the 1 MiB per-file limit, explicit project-folder access, and no-network/no-delete behavior.
-- Add deterministic regression tests for byte-budget enforcement, result-count limiting, skipped files, partial-result status, and invalid query rejection.
-- Add the regression test to CI.
+### 1. Project-folder search scan budget (5.7.1; PR #24 merged)
+- The search function declared a 12 MiB byte budget but did not increment the byte counter, making the budget ineffective.
+- The 12 MiB cap is now enforced, searches stop immediately once the budget would be exceeded, and results disclose bytes scanned, skipped files, and incomplete-result state.
+- Regression coverage includes byte cap, result cap, skipped/oversized files, fallback size, and invalid queries.
 
-## Validation
+### 2. Project notes could lose the final debounced edit on exit (5.7.2)
+- Notes were saved after a 500 ms debounce and flushed when switching projects, but not when the workspace/page was exiting.
+- A pagehide handler now flushes the project note state.
+- Explicit flush cancels and clears the pending debounce timer so it doesn't schedule an unnecessary second write.
+- This is a source-level fix; the browser's storage callback timing on actual exit still requires Chromebook confirmation.
 
-The regression test runs the actual search function in a Node VM with a deterministic mock folder boundary. It verifies that 13 files × 900,000 bytes (11,700,000 bytes) are scanned, a 14th file that would exceed the 12 MiB budget is not processed, and partial-result status is set. It also verifies the result-count cap stops further reads and that unreadable/oversized files are reflected as partial results.
+### 3. Workspace startup lifecycle hardening (5.7.2)
+- Workspace initialization now ignores duplicate calls.
+- Initialization waits for the main app controller; if it isn't ready, a clear status is set and listener setup is not partially performed.
+- Regression checks confirm that every selector referenced by workspace initialization exists in the HTML and cover the idempotence/lifecycle wiring.
 
-## Limitations
+## Automated validation
 
-This is source-level and automated regression coverage. The browser File System Access API, real IndexedDB persistence, permission revocation/reconnect, and Chromebook interaction remain manual QA. PR CI run 45842547499 passed (including the new search regression test and the existing full validation suite). Post-merge main CI is pending at documentation update time.
+PR #25 CI run **45868067157** completed successfully.
+
+Checks passed:
+- JavaScript syntax validation
+- Diagnostics core and page/selector contracts
+- AI response normalization, truncation and continuation
+- Provider effort routing
+- Project tool adapter
+- Parallel Search parsing/error cases
+- Project folder path/privacy safety
+- Project folder search limits
+- New workspace initialization and notes lifecycle regression
+- Creative Library privacy and structure
+- Recreation Lab contracts
+- 40-mini-app catalogue/runtime contract validation
+
+The workspace reliability test initially failed because its assertion incorrectly expected navigation controls to have individual selector expressions even though they are bound as a grouped array. The test was corrected and the full CI workflow passed on the corrected commit.
+
+## Limitations / required Chromebook checkpoint
+
+- Automated CI is source-level and mock-based; it does not replace a browser run.
+- The new page-exit notes flush must be verified on ChromeOS 103: edit notes, immediately reload/close the workspace, reopen the project and confirm the last text persists.
+- Verify project-folder search reports a partial result when a folder is sufficiently large or files are skipped.
+- Verify AI workspace opens, switches between dashboard/editor, switches projects, and opens AI Team, Research, GitHub, Supabase, Video Studio, Creative Library and Recreation Lab.
+- The source review did not prove every mini-app's complete runtime journey; contract validation checks registry/runtime consistency, not full interactions.
+
+**Stage C is closed at the code and CI checkpoint.** User-device validation is outstanding and should be completed before beginning Stage D UI redesign.
