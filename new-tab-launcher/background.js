@@ -236,6 +236,7 @@ function relaySupabaseManagement(msg, sendResponse) {
 }
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   if (!msg || !sender || sender.id !== chrome.runtime.id) return;
+  if (msg.type === 'atlasDiagnosticsPing') { sendResponse({ ok: true, serviceWorker: 'alive' }); return; }
   if (msg.type === 'darkSync') { applyDark(); return; }
   if (msg.type === 'reregister') { applyDark(); configureAutoSuspend(); return; }
   if (msg.type === 'autoSuspendConfigChanged') { configureAutoSuspend(); return; }
