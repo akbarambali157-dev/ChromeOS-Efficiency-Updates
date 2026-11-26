@@ -59,5 +59,7 @@ jobs:
         run: node scripts/test-creative-library.mjs
       - name: Test Recreation Lab structure and privacy contracts
         run: node scripts/test-recreation-lab.mjs
+      - name: Test Stage D.1 UI contracts
+        run: node scripts/test-stage-d-ui.mjs
       - name: Validate mini-app contracts
         run: node scripts/validate-miniapps.mjs

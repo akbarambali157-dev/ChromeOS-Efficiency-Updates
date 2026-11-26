@@ -9,7 +9,7 @@ further updates**. Every decision here is made for that machine: dashboard pages
 stop their own polling when hidden, off-screen animation is avoided, and the
 optional background auto-suspend alarm exists only when that feature is enabled.
 
-**Version 5.7.2** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; Stage C Chromebook checkpoint pending)
+**Version 5.8.0** · Manifest V3 · minimum Chrome 103 · 40 bundled mini-apps (automated validation passed in PR CI; Stage C user checkpoint accepted; Stage D.1 device QA pending)
 
 ---
 
@@ -22,6 +22,11 @@ optional background auto-suspend alarm exists only when that feature is enabled.
 
 **Recreation Lab (5.7.0)** — a lazy-loaded experiment workbench built on the Creative Library. Choose up to five local references and a reusable style profile, define comparison criteria, and ask the configured text model for a structured experiment plan with alternatives, workflow and trade-offs. Every AI run requires explicit confirmation. Only the brief, style guidance and reference metadata (names, types, descriptions, tags and saved text analysis) are sent; original images, videos, PDFs and file contents are not uploaded. Save experiments locally, reload them later, and record results, comparison notes and per-criterion 1–5 scores side by side. This is structured creative planning, not model training or automatic visual replication.
 
+## Stage D.1 UI refresh (5.8.0)
+
+The home dashboard uses a wider, calmer responsive layout, with the settings area collapsed by default. Navigation can collapse/expand smoothly on desktop and opens as a drawer on smaller screens. Installed bundled mini-apps appear in the sidebar as direct shortcuts. A first-run quick tour highlights the sidebar, installed mini-apps, search, shortcuts/workspaces, notes/tasks and settings; the floating Guide control replays it. Tour steps use a short fade-to-dark transition and honor reduced-motion preferences. Device and screenshot validation remains pending.
+
+
 ## Install
 
 1. Open `chrome://extensions`
@@ -31,16 +36,11 @@ optional background auto-suspend alarm exists only when that feature is enabled.
 
 ## What's in it
 
-**Navigation** — a left sidebar with an icon and label for every page: Home,
-GitHub, Drive, Brewkeg, Sessions, Memory, Files and the AI Development Workspace. It collapses to
-icons alone under 820px wide.
+**Navigation** — a collapsible animated sidebar with a direct link to every primary page, plus installed mini-apps beneath the main navigation. On small screens it becomes a slide-out drawer with a backdrop; collapsed navigation remains icon-first.
 
 **Workspaces** — save up to eight separate shortcut collections (for example, Study, Personal and Research) and switch between them without losing the others.
 
-**Home page** — clock, weather, a command bar, and exactly four shortcut tiles
-in a 2×2 grid. Everything else lives behind *All shortcuts*, a rail that is
-built only the first time you open it. Below that: quick note, a persistent task list, sessions,
-recently closed tabs, and settings.
+**Home page** — clock, weather, command bar, and four primary shortcut tiles. The wider dashboard separates tools, sessions, notes and tasks into more comfortable panels; settings are collapsed behind *Settings & personalization*. The Guide offers a first-run tour and can be replayed.
 
 **Command bar** — click the search box or press `/`. Search shortcuts, open tabs, bookmarks and history, or type `gh prs`,
 `drive new sheet`, a tab name, or a shortcut name.
