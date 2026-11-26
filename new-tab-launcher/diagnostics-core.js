@@ -1,7 +1,7 @@
 (function(root){
 'use strict';
 function check(name,status,detail){var ok=['pass','warn','fail','skip','unsupported','not-run'];if(ok.indexOf(status)<0)status='not-run';return{name:String(name||'Unnamed check'),status:status,detail:String(detail||'')};}
-function validateIds(ids){var seen={},dupes=[];(Array.isArray(ids)?ids:[]).forEach(function(id){if(!id)return;if(seen[id])dupes.push(id);else seen[id]=1;});return{count:Object.keys(seen).length,duplicates:dupes};}
+function validateIds(ids){var seen=Object.create(null),dupes=[];(Array.isArray(ids)?ids:[]).forEach(function(id){if(!id)return;if(seen[id])dupes.push(id);else seen[id]=1;});return{count:Object.keys(seen).length,duplicates:dupes};}
 function validateLocalLinks(links,exists){var bad=[];(Array.isArray(links)?links:[]).forEach(function(href){if(typeof href!=='string'||!href.trim()||/^(https?:|mailto:|tel:|#|javascript:)/i.test(href))return;var p=href.split(/[?#]/)[0];if(p&&typeof exists==='function'&&!exists(p))bad.push(href);});return bad;}
 function redact(value){var s=String(value==null?'':value).slice(0,1200);s=s.replace(/(bearer\s+)[A-Za-z0-9._~+\/-]+=*/ig,'$1[REDACTED]');s=s.replace(/((?:api[_-]?key|access[_-]?token|refresh[_-]?token|secret|password|authorization)\s*[:=]\s*)[^\s,;]+/ig,'$1[REDACTED]');s=s.replace(/([?&](?:key|token|secret|password|auth)=)[^&\s]+/ig,'$1[REDACTED]');s=s.replace(/https?:\/\/[^\s)]+/ig,function(url){try{var u=new URL(url);return u.origin+u.pathname;}catch(e){return'[URL REDACTED]';}});return s;}
 function summarize(checks){var s={pass:0,warn:0,fail:0,skip:0,unsupported:0,'not-run':0};(Array.isArray(checks)?checks:[]).forEach(function(x){if(x&&Object.prototype.hasOwnProperty.call(s,x.status))s[x.status]++;});return s;}
