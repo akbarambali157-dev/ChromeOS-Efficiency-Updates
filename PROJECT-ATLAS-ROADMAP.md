@@ -1,6 +1,6 @@
 # Project Atlas — Modernization & Release Roadmap
 
-**Status:** Proposed, staged roadmap. Not a promise that every item is already implemented.
+**Status:** Proposed, staged roadmap. Stage A source pass is complete; Stage B implementation remains a user/device QA checkpoint. Not a promise that every item is already implemented.
 **Current baseline recorded in README:** 5.7.0.
 **Guiding goal:** A lightweight personal AI work environment that remains usable on constrained Chromebook hardware while offering integrated projects, research, creative work, teams and utility tools.
 
@@ -37,7 +37,7 @@ Each cycle follows: **audit → scope/spec → implementation → automated chec
 
 **Source audit exit gate: met.** Repository inventory, module boundaries, CI evidence, prioritized findings and explicit limitations are recorded in `AUDIT-PHASE-A-COMPLETED.md`. Runtime/browser visual inspection, Chromebook measurements, and full interaction coverage remain deferred to Stage B/D because they require a browser/device test environment. No app code was changed during this source audit.
 
-### Stage B — QA/Diagnostics instrumentation build (implementation underway; first slice delivered)
+### Stage B — QA/Diagnostics instrumentation build (source/CI foundation expanded; device gate pending)
 Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-SPEC.md`) and a baseline capture mode:
 - system/extension health overview and test run history
 - module/app inventory and missing/duplicate registration checks
@@ -50,7 +50,7 @@ Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-S
 - diagnostic report export with secrets and user content redacted
 - manual QA checklist and one-click lightweight smoke suite
 
-**Exit gate:** diagnostic UI is useful, safe, low-overhead, and accurately distinguishes a test pass, warning, failure, and unavailable check. Do not make it silently run intrusive tests.
+**Exit gate:** diagnostic UI is useful, safe, low-overhead, and accurately distinguishes a test pass, warning, failure, and unavailable check. The source/CI tests must be green and the manual Chromebook checklist completed. Do not make it silently run intrusive tests. See `STAGE-B-DIAGNOSTICS-IMPLEMENTATION.md` and `PROJECT-ATLAS-STAGE-B-MANUAL-QA.md`.
 
 ### Stage C — Reliability & regression fixes (patch series)
 - Fix high/critical defects found in audit and surfaced by Diagnostics.
