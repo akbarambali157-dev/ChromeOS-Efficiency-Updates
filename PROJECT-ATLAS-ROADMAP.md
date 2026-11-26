@@ -1,7 +1,7 @@
 # Project Atlas — Modernization & Release Roadmap
 
-**Status:** Stages A–B complete. Stage C patch 5.7.1 merged to main after green PR CI; broader Stage C work remains ongoing. Stage D remains next major workstream.
-**Current baseline recorded in README:** 5.7.1 (Stage C patch candidate).
+**Status:** Stages A–B complete. Stage C reliability implementation and CI complete in 5.7.2; Chromebook exit validation pending. Stage D is next major workstream, but remains paused for the user-device checkpoint.
+**Current baseline recorded in README:** 5.7.2 (Stage C reliability patch candidate).
 **Guiding goal:** A lightweight personal AI work environment that remains usable on constrained Chromebook hardware while offering integrated projects, research, creative work, teams and utility tools.
 
 ## Operating principles
@@ -60,7 +60,7 @@ Build a project-wide Diagnostics & Performance Center (spec in `TESTING-SYSTEM-S
 - Validate all 40 mini-apps against the app contract, not merely catalogue registration.
 - Add no unrelated features.
 
-**Checkpoint:** one confirmed bounded-search reliability defect is fixed with regression coverage and merged in 5.7.1. CI is green on the PR; main post-merge validation pending. This does not certify all critical journeys or resolve every Stage C item.
+**Exit checkpoint:** Source-level Stage C implementation and CI are complete in 5.7.2. The merged fixes cover bounded project-folder search, project-note page-exit persistence, debounce flush lifecycle, and idempotent/wait-for-controller workspace initialization. PR #25 CI passed. Chromebook validation of note persistence and critical workspace journeys is still required; see `STAGE-C-RELIABILITY-CHECKPOINT.md`. Stage D stays paused until the user reports this checkpoint.
 
 ### Stage D — Full UI audit and competitive redesign (dedicated major workstream)
 - Perform a screen-by-screen visual and interaction audit of the entire extension, including launcher, AI workspace, Teams, projects/files, research, creative tools, all mini-apps, settings, integrations, themes, tab/session tools, and all loading/empty/error/confirmation states.

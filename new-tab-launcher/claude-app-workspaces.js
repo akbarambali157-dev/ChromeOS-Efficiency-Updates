@@ -2,7 +2,7 @@
    read-only Supabase REST browsing and lightweight storyboard rendering. */
 (function (g) {
   'use strict';
-  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false, creativeLoadPromise = null, recreationLoadPromise = null;
+  var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false, creativeLoadPromise = null, recreationLoadPromise = null, initialized = false;
   var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '', projectNotesTimer = null;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
@@ -118,7 +118,8 @@
     app.updateProjectMeta({tasks:tasks},function(ok){if(ok){$('projectTaskInput').value='';refreshProject();}else status('projectNotesStatus','Could not save task.',true);});
   }
   function saveProjectNotes() {
-    if(!app||!app.updateProjectMeta)return;
+    if(projectNotesTimer){clearTimeout(projectNotesTimer);projectNotesTimer=null;}
+    if(!app||!app.updateProjectMeta||!$('projectNotes'))return;
     status('projectNotesStatus','Saving notes…');
     app.updateProjectMeta({notes:$('projectNotes').value},function(ok){status('projectNotesStatus',ok?'Notes saved locally.':'Could not save notes.',!ok);});
   }
@@ -314,7 +315,9 @@
   function exportVideo(){status('videoStatus','Use the Version 4.5 Export tab.');}
   function cancelVideoExport(){}
   function init() {
+    if(initialized)return;
     app=g.CCApp||null;
+    if(!app){status('projectNotesStatus','Workspace initialization is waiting for the app controller.',true);return;}
     $('paneProject').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('projectTaskForm').addEventListener('submit',addProjectTask);
     $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
@@ -332,6 +335,8 @@
     if($('sbClear'))$('sbClear').addEventListener('click',function(){if(!confirm('Clear saved Supabase URL and keys from this extension?'))return;chrome.storage.local.remove(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT'],function(){$('sbUrl').value='';$('sbKey').value='';$('sbPAT').value='';$('sbOutput').textContent='';status('sbStatus','Supabase connection cleared.');status('sbMgmtStatus','');});});
     chrome.storage.local.get(['ccSupabaseUrl','ccSupabaseKey','ccSupabasePAT','ccVideoProjects'],function(d){$('sbUrl').value=d.ccSupabaseUrl||'';$('sbKey').value=d.ccSupabaseKey||'';$('sbPAT').value=d.ccSupabasePAT||'';var end=Date.now(),start=end-3600000;$('sbLogStart').value=localDateTime(start);$('sbLogEnd').value=localDateTime(end);refreshProjects();});
     if(g.CCVideoStudio&&g.CCVideoStudio.init)g.CCVideoStudio.init();
+    initialized=true;
+    g.addEventListener('pagehide',saveProjectNotes);
   }
   g.CCWorkspaces=Object.freeze({init:init,setApp:function(value){app=value||null;},setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject,flushProjectNotes:saveProjectNotes});
 })(window);

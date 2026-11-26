@@ -53,6 +53,8 @@ jobs:
         run: node scripts/test-project-folders.mjs
       - name: Test project-folder search byte-budget regressions
         run: node scripts/test-project-search.mjs
+      - name: Test workspace startup and note-save reliability
+        run: node scripts/test-workspace-reliability.mjs
       - name: Test Creative Library validation and privacy contracts
         run: node scripts/test-creative-library.mjs
       - name: Test Recreation Lab structure and privacy contracts
