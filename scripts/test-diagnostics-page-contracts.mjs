@@ -23,7 +23,7 @@ for(const [page,required] of Object.entries(inventory)){
   const full=path.join(root,page);
   assert.ok(fs.existsSync(full),`Inventory page missing: ${page}`);
   const html=fs.readFileSync(full,'utf8');
-  const ids=[...html.matchAll(/\\bid=["']([^"']+)["']/g)].map(m=>m[1]);
+  const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(m=>m[1]);
   const duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i);
   if(duplicates.length) fail(`${page}: duplicate static IDs: ${[...new Set(duplicates)].join(', ')}`);
   for(const id of required) if(!ids.includes(id)) fail(`${page}: required contract ID "${id}" missing`);
