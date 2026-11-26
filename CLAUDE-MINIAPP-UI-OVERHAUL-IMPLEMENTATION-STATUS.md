@@ -70,12 +70,10 @@
 
 
 ## Next-session resume instructions
-1. Await user feedback on Phases 1–5 and/or browser screenshots to perform the visual QA checkpoint.
-2. Once visual QA is possible, inspect desktop, mobile, and Chromebook-sized layouts, including chat/composer, Ida details, and the virtual file tree.
-3. Fix QA findings and re-run the full validation suite before starting feature 6.
-4. Continue with the approved master plan only after feedback/QA.
-5. Keep changes reviewable and do not merge to `main` without explicit user authorization.
-
+1. Continue work on the next five checklist items (Projects & Context, AI Teams, Research, Creative Lab, Reference Lab); all are in progress, not complete.
+2. Run the complete test suite after each feature pass. Browser QA remains unavailable until a browser can be installed/used.
+3. Preserve local notes, context, saved references and Creative Library behavior.
+4. Keep the work on the dedicated feature branch; do not merge main without user authorization.
 
 
 ## Next five features — work started (2026-11-26)
@@ -91,4 +89,16 @@ User feedback: Ida is approved and should be preserved. Project-wide Ida routing
 
 **Branch created:** `claude-ui-overhaul-next5-project-context`, based on the Phase 1–5 implementation head. This branch is separate; PR #29 remains open and unmerged.
 
-**Implementation blocker:** Remote Vercel sandbox creation failed twice with API bad_request errors (v4 and v3). Without a working checkout/edit/test workspace, no functional code has been modified yet. Do not mark features 6–10 complete. Next action is to provision an alternative workspace or repair sandbox provisioning, then implement the five items incrementally with validation after each and browser QA when possible.
+**Workspace recovered:** A fresh Vercel desktop sandbox is working. The GitHub branch was cloned and local work is now committed on this branch. Terminal Git push is unavailable because the sandbox has no GitHub credentials; the local commit is not yet on GitHub.
+
+**Implementation progress (partial):**
+- **Projects & Context:** task progress card; All/Open/Done filters; per-project note draft tracking; flush notes before project switching.
+- **AI Teams:** progress stages are workflow-specific; audit shows two stages, other modes three; parallel mode remains honestly sequential.
+- **Research:** clear-results action and safe HTTP(S)-only links from result cards.
+- **Creative Lab:** sort by Recently added, Name A–Z, or Largest first.
+- **Reference Lab:** new pane to search local Creative Library references, select up to six, and attach bounded text metadata/analysis to AI Team context (max 4,000 chars). No files auto-upload.
+- Shared Creative Library loader prevents duplicate script loads between Creative, Reference, and Recreation.
+
+**Validation:** all mini-app JavaScript passes `node --check`; all `scripts/test-*.mjs` pass; `validate-miniapps.mjs` passes (40 apps/28 extended handlers); `git diff --check` passes. Browser visual QA not performed because no browser binary is installed.
+
+**Current state:** 5/31 features completed from phases 1–5; items 6–10 are in progress (all five areas touched, still need deeper review and visual QA). PR #29 is open/unmerged. Do not merge main.
