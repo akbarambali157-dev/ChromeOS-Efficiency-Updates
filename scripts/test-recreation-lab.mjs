@@ -40,7 +40,7 @@ assert.match(workspace,/function loadRecreationLab/);
 assert.match(workspace,/if\(name==='recreation'\)loadRecreationLab\(\)/);
 assert.match(html,/id="paneRecreation"/);
 assert.match(html,/id="recreationWorkspace"/);
-assert.equal(manifest.version,'5.7.2');
+assert.equal(manifest.version,'5.8.0');
 assert.equal(manifest.minimum_chrome_version,'103');
 assert.doesNotMatch(source,/FileReader|createImageBitmap|URL\.createObjectURL/);
 console.log('Recreation Lab structure, bounded selections and privacy-contract tests passed.');
