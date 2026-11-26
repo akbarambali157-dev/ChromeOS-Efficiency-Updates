@@ -264,6 +264,7 @@
     if (logs.length > MAX_LOGS) logs = logs.slice(0, MAX_LOGS);
     activeLog = l;
     persistLogs();
+    restoreDraft();
     renderLogs();
     renderChat();
     $('chatIn').focus();
@@ -713,14 +714,18 @@
     if (!activeLog) return;
     if (!confirm('Delete this conversation?')) return;
     logs = logs.filter(function (l) { return l.id !== activeLog.id; });
+    delete draftStore[activeProjectId+'::'+activeLog.id];
     activeLog = logs[0] || null;
     persistLogs();
+    chrome.storage.local.set({ccChatDrafts:draftStore});
+    restoreDraft();
     renderLogs();
     renderChat();
   });
   $('logSel').addEventListener('change', function () {
     var id = $('logSel').value;
     activeLog = logs.filter(function (l) { return l.id === id; })[0] || null;
+    restoreDraft();
     renderChat();
   });
 
@@ -776,12 +781,37 @@
   }
   $('chatIn').addEventListener('input',updateChatInputCount);
   $('chatIn').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();$('chatForm').requestSubmit();}});
+  var draftTimer=null, draftKey='', draftStore={};
+  function currentDraftKey(){return activeProjectId+'::'+(activeLog?activeLog.id:'__new__');}
+  function restoreDraft(){
+    var key=currentDraftKey();draftKey=key;
+    $('chatIn').value=(draftStore[key]||'');updateChatInputCount();
+    $('chatDraftStatus').textContent=draftStore[key]?'Draft restored':'Drafts save automatically';
+  }
+  function saveDraftNow(){
+    var key=currentDraftKey(),value=$('chatIn').value;
+    draftStore[key]=value;
+    chrome.storage.local.set({ccChatDrafts:draftStore},function(){
+      $('chatDraftStatus').textContent=chrome.runtime.lastError?'Draft save unavailable':'Draft saved';
+    });
+  }
+  function scheduleDraftSave(){
+    if(draftTimer)clearTimeout(draftTimer);
+    $('chatDraftStatus').textContent='Saving draft…';
+    draftTimer=setTimeout(function(){draftTimer=null;saveDraftNow();},400);
+  }
+  chrome.storage.local.get('ccChatDrafts',function(d){draftStore=d.ccChatDrafts&&typeof d.ccChatDrafts==='object'?d.ccChatDrafts:{};restoreDraft();});
+  $('chatIn').addEventListener('input',function(){scheduleDraftSave();});
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
     if (!t) return;
     if(t.length>MAX_INPUT_CHARS){cstat('Message is over the 20,000 character limit.',true);return;}
+    if (!(provider === 'brewkeg' ? ccKey : provider === 'openai' ? openAIKey : anthropicKey)) { cstat('Add the selected provider key in Settings before sending.',true); return; }
     $('chatIn').value = '';updateChatInputCount();
+    draftStore[currentDraftKey()]='';
+    if(draftTimer){clearTimeout(draftTimer);draftTimer=null;}
+    saveDraftNow();
     send(t);
   });
   updateChatInputCount();
