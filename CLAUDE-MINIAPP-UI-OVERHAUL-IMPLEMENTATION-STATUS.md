@@ -2,75 +2,58 @@
 
 **Active branch:** `claude-ui-overhaul-phase1-foundation`
 **Base:** `main`
-**Current stage:** Phase 1 — Foundation & visual system
-**Last completed work:** Foundation token/style pass committed; CI test contract added; implementation PR #29 opened.
+**Current stage:** Phase 1 foundation implementation complete; Phase 2 audit/implementation is next.
+**Implementation PR:** #29 — https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, not merged).
 
-## Approved master-plan feature tally (31 checklist entries)
+## Master feature tally (31 checklist items)
+- **Completed (implementation): 1 / 31** — Foundation and design system.
+- **In progress: 0 / 31** — Phase 1 implementation pass is complete; awaiting CI/runtime verification.
+- **Not started: 30 / 31.**
+- **Browser visual QA rule:** do not begin screenshot/browser visual review until at least 5 master-list features have implementation work completed. At that threshold, do browser visual QA before proceeding further.
 
-- **Fully completed:** 0 / 31
-- **In progress:** 1 / 31 — Foundation and design system
-- **Not started:** 30 / 31
-
-This is intentionally conservative: Phase 1 foundation is underway, but the complete design system (including theme/settings coverage, component consistency, responsive review and acceptance) is not yet finished, so it is not counted as completed.
-
-## Work completed this session
-
-### Foundation pass
-- Added a Claude-app scoped design-token layer for graphite surfaces, borders, text levels, accent/danger colors, radii and spacing.
-- Applied the foundation to key shared areas: activity bar/navigation, sidebar/file rows, editor, chat panel/messages/composer, primary/secondary controls, workspace cards.
-- Improved active states for navigation and selected file rows.
-- Added global visible keyboard-focus styling within the mini-app.
-- Added small, restrained control transitions.
-- Added mobile/tablet target-size and spacing adjustments.
-- Added reduced-motion overrides.
-- Added scrollbar styling.
-- Kept it CSS-only: no new dependencies, runtime, framework, permission or API.
+## Phase 1 — Foundation & visual system (implementation done)
+- Created mini-app-scoped design tokens for surface levels, border levels, text hierarchy, accent/danger colors, radii, and spacing.
+- Applied styling to shell/activity bar/navigation, sidebar, file rows, editor, tabs, panels, chat messages, composer, controls, workspace cards, workspace fields, and shared dialogs.
+- Added selected states for activity/navigation, selected files, and specialized workspace navigation.
+- Added visible keyboard-focus styling and restrained transitions.
+- Added mobile/tablet spacing and target-size adjustments.
+- Added reduced-motion support and scrollbar treatment.
+- Theme integration uses launcher palette variables, so the mini-app follows the selected launcher theme; light themes receive a light browser-control color scheme and light border treatment.
+- Added disabled-control styling and focused input treatments.
+- No new runtime/dependencies/permissions.
 
 ### Files changed
-- `new-tab-launcher/claude-app.css` — appended the scoped Phase 1 foundation layer.
-- `scripts/test-claude-ui-foundation.mjs` — new static UI-contract test.
-- `.github/workflows/mini-app-validation.yml` — new CI step to run the foundation test.
+- `new-tab-launcher/claude-app.css`: foundation + shared shell/workspace/dialog theme overrides.
+- `scripts/test-claude-ui-foundation.mjs`: expanded static contract test for 18 design tokens, 12 navigation panes, theme integration, shared component states, responsive breakpoints, focus, reduced motion, and scrollbar styling.
+- `.github/workflows/mini-app-validation.yml`: runs the foundation contract in CI.
+- This checkpoint file.
 
-### Commit sequence on this branch
-- `49122d62fe443a6ec090beb73ecd6af3ece2cb83` — CSS foundation.
-- `52764cec0536b48abaf94ad45f70ead81d38e26a` — foundation test.
-- `90dbc1ad5a20e61e4148c1c087850a3f394ac935` — CI workflow hook.
+## Verification (accurately reported)
+- Reviewed current stylesheet, HTML shell/navigation IDs, theme variable definitions, and main mini-app JS.
+- Automated contract test is authored and wired into the existing mini-app validation workflow.
+- **Test execution not confirmed:** GitHub connector returned no workflow run record for the commit; no local repository checkout is available in this environment, so Node tests and CSS parsing were not executed here.
+- **Browser/device QA not performed.** Per user direction, defer browser visual QA until at least 5 master checklist features have implementation work completed.
+- Vercel preview deployment was previously blocked by daily deployment quota; that does not represent an app test result.
 
-## PR and CI status
-- Implementation PR: #29 (open, not merged): https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29
-- PR #29 is reviewable and currently reported mergeable; no PR workflow run was returned by the workflow-runs query, so CI is not confirmed.
-- Vercel preview was blocked by its daily deployment quota (`api-deployments-free-per-day`). This is an external preview limitation, not an application test result.
+## Next task — Phase 2: Chat & composer
+Read the approved master plan and inspect current chat behavior before implementation. First audit the state model and event flow in `claude-app.js`, `claude-app-response.js`, and related scripts. Do not blindly replace the composer or introduce storage keys.
 
-## Verification status
-- Reviewed current CSS, shell markup, and main chat/workspace JS to ground the changes.
-- Added a contract test for token presence, active states, key controls, responsive breakpoints, reduced motion, and scrollbar styling.
-- **Not run locally:** no repository checkout/runtime is available in this session. Do not report the test as passed.
-- PR CI will provide executable verification when available.
-- No actual Chromebook/browser visual QA performed.
+Priorities:
+1. Composer drafts: safe save/restore; draft isolation across project/conversation; new-conversation draft; quota/storage failures and submit handling.
+2. Keyboard behavior: documented send/newline policy with desktop shortcut and mobile-safe behavior.
+3. Responsive composer: multiline resizing, cursor/scroll preservation, input limit feedback, controls and model/effort selector.
+4. Context and attachment status: only show accurate statuses for existing supported attachment/context pathways.
+5. Message presentation and actions: readability and supported copy/retry/continue/revise affordances without corrupting message history.
+6. Add targeted tests and run them through CI where possible; update progress and feature tally.
 
-## Next work — continue before stopping
+## Visual QA checkpoint
+After at least 5 master-list features have implementation work completed, stop coding and perform browser visual QA at desktop, mobile, and the Chromebook target dimensions if the environment supports it. If browser tooling/device emulation is unavailable, document that limitation and request user screenshots rather than claiming visual inspection. Fix identified issues before resuming feature work.
 
-### Immediate next phase: Phase 2 — Chat & composer
-Read this file and the master plan before proceeding. Then inspect current message rendering, input, send/stop lifecycle, storage model, and existing tests before editing.
+## Next-session resume instructions
+1. Re-read `CLAUDE-MINIAPP-UI-OVERHAUL-PLAN.md` and this checkpoint.
+2. Verify PR #29 and current branch/head state; inspect its CI status.
+3. Review the Phase 1 CSS diff for test issues and contrast/theme regressions.
+4. Continue Phase 2 chat/composer audit from the priorities above.
+5. Do not repeat Phase 1 foundation work unless a test or QA issue identifies a specific fix.
+6. Keep changes reviewable, add tests, update this file, and do not merge to `main` without explicit user authorization.
 
-Priority order:
-1. Composer UX and draft preservation: autosave, restore, project/conversation scoping, avoid overwriting another draft; safely handle submit and failure.
-2. Keyboard behavior: currently `Ctrl/Cmd+Enter` submits and ordinary Enter behavior is not the plan's desired configurable send/newline contract. Decide the default and make it discoverable without disrupting mobile keyboards.
-3. Composer layout: preserve multiline typing, responsive sizing, input limits, cursor/scroll behavior, effort selector and send/stop control.
-4. Attachments/context status: inspect current import/attach flow and make selected/attached/available states clear. Do not add unsupported upload promises.
-5. Message presentation/actions: improve readability, code/table handling, copy/retry/continue/revise actions only where supported; preserve existing response rendering and message storage.
-6. Create targeted tests for draft state, send/stop transitions, keyboard behavior, character limits, selectors, and preservation on errors. Run all existing validation scripts and CI.
-7. Update this checkpoint, feature tally, and the next-stage groundwork before ending the next work session.
-
-Potential architecture question to resolve in Phase 2: key composer drafts by project and conversation, with a distinct “new conversation” draft slot. Inspect actual project/log state handling first; avoid adding storage keys or clearing drafts until scoped behavior and quota handling are designed.
-
-## Safety/quality constraints
-- Do not expose model chain-of-thought; show only real activity events.
-- Do not claim UI/device QA without doing it.
-- Keep Chrome 103 compatibility and lightweight resource profile.
-- Preserve existing files, chats, project notes, model/effort settings, provider settings, GitHub review flow, file-safety boundaries and other workspace integrations.
-- Run static checks, automated tests, validation and CI where possible; list anything unverified.
-- Keep stage changes reviewable. Do not merge to `main` without the user's explicit merge authorization.
-
-## Resume instruction
-Start by rereading `CLAUDE-MINIAPP-UI-OVERHAUL-PLAN.md` (on the plan PR branch) and this checkpoint. Reconfirm the implementation branch and PR status, then continue with the Phase 2 composer audit and implementation plan above. Do not restart Phase 1 or repeat the CSS token work unless QA finds a concrete defect.
