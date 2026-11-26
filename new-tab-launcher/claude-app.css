@@ -628,7 +628,7 @@ body.cc .activity-details span{color:var(--cc-text,#c7e9df);overflow-wrap:anywhe
 body.cc .file-tree-search{padding:7px 8px 4px;display:flex;align-items:center;gap:7px}
 body.cc .file-tree-search input{min-width:0;width:100%;padding:6px 8px;border:1px solid var(--cc-border,#253241);border-radius:6px;background:var(--cc-surface-1,#111922);color:var(--cc-text,#c8d8e6);font-size:11px}
 body.cc #fileTreeCount{flex:0 0 auto;color:var(--cc-text-dim,#77899d);font-size:10px;white-space:nowrap}
-body.cc .file-folder{display:block;width:100%;border:0;background:transparent;color:var(--cc-text-muted,#8b9bb0);text-align:left;font:11px/1.4 inherit;padding-top:6px;padding-bottom:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.cc .file-folder{display:block;width:100%;border:0;background:transparent;color:var(--cc-text-muted,#8b9bb0);text-align:left;font-size:11px;line-height:1.4;font-family:inherit;padding-top:6px;padding-bottom:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.cc .file-folder:hover{background:var(--cc-surface-2,#161d26);color:var(--cc-text,#e6edf5)}
 body.cc .file-glyph{display:inline-flex;align-items:center;justify-content:center;flex:0 0 22px;min-width:22px;color:var(--cc-accent,#7fd1b9);font:9px/1 ui-monospace,monospace;opacity:.8}
 body.cc .filerow{min-width:0}
