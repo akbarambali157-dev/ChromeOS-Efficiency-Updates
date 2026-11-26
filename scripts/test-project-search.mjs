@@ -33,8 +33,9 @@ assert.doesNotMatch(source,/fetch\s*\(/);
 // Run the actual search function against deterministic mock file reads.
 const files=Array.from({length:15},(_,i)=>({path:'src/f'+i+'.txt'}));
 let reads=0;
-box.window.CCProjectFolders={list:async()=>files,read:async(_id,path)=>{reads++;return {content:'needle',size:900000};}};
-const capped=await api.search('demo','needle',{});
+const listFiles=async()=>files;
+const readFile=async(_id,path)=>{reads++;return {content:'needle',size:900000};};
+const capped=await api.searchCore(listFiles,readFile,'demo','needle',{});
 assert.equal(capped.matches.length,13,'the 12 MiB scan budget should allow 13 × 900 KB');
 assert.equal(capped.bytesRead,11700000);
 assert.equal(capped.skippedFiles,1,'the next file is reported as skipped when it would exceed the budget');
@@ -43,8 +44,8 @@ assert.equal(reads,14,'search should stop after the first file that exceeds the 
 
 // Stop reading after the result cap.
 reads=0;
-box.window.CCProjectFolders={list:async()=>files,read:async(_id,path)=>{reads++;return {content:'needle',size:10};}};
-const resultLimited=await api.search('demo','needle',{maxResults:2});
+const smallRead=async(_id,path)=>{reads++;return {content:'needle',size:10};};
+const resultLimited=await api.searchCore(listFiles,smallRead,'demo','needle',{maxResults:2});
 assert.equal(resultLimited.matches.length,2);
 assert.equal(reads,2);
 assert.equal(resultLimited.truncated,true);
@@ -52,17 +53,17 @@ assert.equal(resultLimited.bytesRead,20);
 
 // Unreadable files are skipped but the search is marked partial.
 reads=0;
-box.window.CCProjectFolders={list:async()=>[{path:'a.txt'},{path:'b.txt'}],read:async(_id,path)=>{reads++;if(path==='a.txt'){const e=new Error('too large');e.code='FILE_TOO_LARGE';throw e;}return {content:'needle',size:10};}};
-const skipped=await api.search('demo','needle',{});
+const skippedList=async()=>[{path:'a.txt'},{path:'b.txt'}];
+const skippedRead=async(_id,path)=>{reads++;if(path==='a.txt'){const e=new Error('too large');e.code='FILE_TOO_LARGE';throw e;}return {content:'needle',size:10};};
+const skipped=await api.searchCore(skippedList,skippedRead,'demo','needle',{});
 assert.equal(skipped.matches.length,1);
 assert.equal(skipped.skippedFiles,1);
 assert.equal(skipped.truncated,true);
 assert.equal(skipped.bytesRead,10);
 
 // Encoded text size is the fallback when File.size is not available.
-box.window.CCProjectFolders={list:async()=>[{path:'fallback.txt'}],read:async()=>({content:'needle'})};
-const fallback=await api.search('demo','needle',{});
+const fallback=await api.searchCore(async()=>[{path:'fallback.txt'}],async()=>({content:'needle'}),'demo','needle',{});
 assert.equal(fallback.bytesRead,6);
 
-assert.throws(()=>api.search('demo','',{maxResults:3}),/Enter a search term/);
+assert.throws(()=>api.searchCore(listFiles,smallRead,'demo','',{maxResults:3}),/Enter a search term/);
 console.log('Project folder path, privacy, safety limits and bounded-search regression tests passed.');
