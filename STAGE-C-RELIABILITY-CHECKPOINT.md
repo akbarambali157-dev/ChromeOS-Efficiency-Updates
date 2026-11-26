@@ -11,7 +11,7 @@ The project-folder search declared a 12 MiB scan budget (MAX_SEARCH_BYTES) but n
 ## Change
 
 - Enforce the 12 MiB scan budget using each read file's reported size, with encoded content length as fallback when size is absent/zero.
-- Stop scanning when the next file would exceed the budget rather than process it.
+- Stop scanning immediately when the next file would exceed the budget rather than process it; do not continue probing later files after the budget is exhausted.
 - Mark result sets as partial (truncated=true) when the result cap is reached, the byte cap is reached, or a supported file is skipped because it is oversized, binary, or unsupported.
 - Report bytesRead and skippedFiles alongside query/matches/truncated so downstream tools can communicate the scope of a search.
 - Preserve sequential file reads, existing path validation, the 1 MiB per-file limit, explicit project-folder access, and no-network/no-delete behavior.
