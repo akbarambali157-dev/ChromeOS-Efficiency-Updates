@@ -10,7 +10,7 @@ const sum=D.summarize([D.check('1','pass'),D.check('2','warn'),D.check('3','fail
 assert.equal(sum.fail,1);assert.equal(sum.unsupported,1);
 const red=D.redact('Authorization: Bearer abcdefghijk API_KEY=secret123 https://example.com/path?token=secret');
 assert.match(red,/REDACTED/);assert.doesNotMatch(red,/abcdefghijk|secret123|token=secret/);
-assert.doesNotMatch(D.redact('\\"api_key\\":\\"quoted-secret\\"'),/quoted-secret/);
+assert.doesNotMatch(D.redact('"api_key":"quoted-secret"'),/quoted-secret/);
 const report=D.buildReport({generated:'test',version:'1',page:'diagnostics'},[D.check('storage','warn','not available')],[]);
 assert.match(report, /\[WARN\] storage/);assert.match(report,/does not include saved data/);
 console.log('Project Atlas diagnostics core: all tests passed');
