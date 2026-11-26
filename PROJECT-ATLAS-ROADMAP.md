@@ -1,7 +1,7 @@
 # Project Atlas — Modernization & Release Roadmap
 
-**Status:** Stages A–B complete. Stage C reliability implementation and CI complete in 5.7.2; Chromebook exit validation pending. Stage D is next major workstream, but remains paused for the user-device checkpoint.
-**Current baseline recorded in README:** 5.7.2 (Stage C reliability patch candidate).
+**Status:** Stages A–B complete. Stages A–C source/CI complete. Stage D.1 home/sidebar/onboarding is in implementation in 5.8.0; visual device verification pending.
+**Current baseline recorded in README:** 5.8.0 (Stage D.1 UI refresh candidate; device verification pending).
 **Guiding goal:** A lightweight personal AI work environment that remains usable on constrained Chromebook hardware while offering integrated projects, research, creative work, teams and utility tools.
 
 ## Operating principles
@@ -198,3 +198,14 @@ A milestone cannot be called ready until:
 
 ## Roadmap maintenance
 This document is the living plan. Each phase should be converted to small actionable tasks with completion criteria, linked test evidence and status. Reorder only after a short rationale is recorded. Features discovered during audit are added to the appropriate phase rather than forgotten or rushed into the current release.
+
+
+### Stage D.1 — Home, navigation and onboarding (5.8.0 candidate)
+- [x] Responsive, roomier dashboard layout with less density and clearer panel separation.
+- [x] Settings collapsed by default behind personalization disclosure.
+- [x] Animated desktop sidebar collapse/expand and touch drawer.
+- [x] Installed bundled mini-apps listed as direct sidebar launch links.
+- [x] First-run tour, replayable Guide control, action-linked steps, blackout/fade transitions and reduced-motion support.
+- [x] Source-contract regression test wired into CI.
+- [ ] Chromebook/browser/touch visual validation, screenshot review and bug fixes.
+- [ ] Continue redesigning the AI workspace, common controls and mini-app surfaces in follow-on batches.
