@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const source=fs.readFileSync(new URL('../new-tab-launcher/claude-app-project-folders.js',import.meta.url),'utf8');
-const box={window:{}};
+const box={window:{},TextEncoder};
 vm.runInNewContext(source,box);
 const api=box.window.CCProjectFolders;
 assert.ok(api,'Project folder API must register');
@@ -58,6 +58,11 @@ assert.equal(skipped.matches.length,1);
 assert.equal(skipped.skippedFiles,1);
 assert.equal(skipped.truncated,true);
 assert.equal(skipped.bytesRead,10);
+
+// Encoded text size is the fallback when File.size is not available.
+box.window.CCProjectFolders={list:async()=>[{path:'fallback.txt'}],read:async()=>({content:'needle'})};
+const fallback=await api.search('demo','needle',{});
+assert.equal(fallback.bytesRead,6);
 
 assert.throws(()=>api.search('demo','',{maxResults:3}),/Enter a search term/);
 console.log('Project folder path, privacy, safety limits and bounded-search regression tests passed.');
