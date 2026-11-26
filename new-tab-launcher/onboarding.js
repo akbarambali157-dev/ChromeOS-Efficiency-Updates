@@ -19,7 +19,7 @@ function advance(){if(animating)return;if(step>=steps.length-1){finish();return;
 function finish(){if(tour){tour.remove();tour=null;}clearTarget();started=false;chrome.storage.local.set({launcherTourComplete:true});}
 function start(){if(started)return;started=true;build();step=0;render();tour.querySelector('.tour-next').focus();}
 var guide=document.createElement('button');guide.type='button';guide.className='launcher-guide';guide.textContent='Guide';guide.setAttribute('aria-label','Open quick tour');guide.addEventListener('click',function(){started=false;start();});document.body.appendChild(guide);
-document.addEventListener('click',function(e){if(!tour||animating)return;var s=steps[step];if(s.action==='sidebar'&&e.target.closest('.nav-toggle'))advance();else if(s.action==='manual'&&step===4&&e.target.closest('#layout-shortcuts'))advance();});
+document.addEventListener('click',function(e){if(!tour||animating)return;var s=steps[step];if(s.action==='sidebar'&&e.target.closest('.nav-toggle'))advance();else if(step===4&&e.target.closest('#addBtn'))advance();else if(step===6&&e.target.closest('#homeSettings summary'))advance();});
 document.addEventListener('focusin',function(e){if(!tour||animating)return;if(steps[step].action==='focus'&&e.target.closest('#q'))advance();else if(steps[step].action==='manual'&&step===5&&e.target.closest('#layout-notes'))advance();});
 document.addEventListener('change',function(e){if(!tour||animating)return;if(step===4&&e.target.closest('#workspaceSelect'))advance();});
 chrome.storage.local.get('launcherTourComplete',function(d){if(!d.launcherTourComplete)start();});
