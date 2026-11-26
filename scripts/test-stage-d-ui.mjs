@@ -8,6 +8,7 @@ const manifest=JSON.parse(fs.readFileSync('new-tab-launcher/manifest.json','utf8
 assert.match(html,/id="layout-shortcuts"/,'shortcut section should have a stable wrapper');
 assert.match(html,/<details class="home-settings"/,'settings are collapsed by default');
 assert.match(html,/onboarding\.js/,'home page must load onboarding');
+assert.match(html,/onboarding\.css/,'home page must load tour styling');
 assert.match(nav,/launcherMarketplaceInstalled/,'sidebar should discover installed apps');
 assert.match(nav,/app-workspace\.html\?id=/,'mini-app sidebar links should launch apps');
 assert.match(nav,/launcherSidebarCollapsed/,'desktop sidebar state should persist');
@@ -18,5 +19,8 @@ assert.match(css,/prefers-reduced-motion:reduce/,'reduced-motion behavior missin
 assert.match(tour,/launcherTourComplete/,'tour completion should persist');
 assert.match(tour,/tour-dark-transition/,'tour should use crossfade transitions');
 assert.match(tour,/launcher-guide/,'tour should be replayable');
+assert.match(tour,/target\.focus\(\)/,'guided steps should focus actionable targets');
+assert.match(tour,/e\.isTrusted/,'programmatic focus should not auto-advance the tour');
+assert.match(nav,/sidebar-open/,'mobile sidebar drawer state should be implemented');
 assert.equal(manifest.version,'5.8.0');
 console.log('Stage D.1 UI contracts passed.');
