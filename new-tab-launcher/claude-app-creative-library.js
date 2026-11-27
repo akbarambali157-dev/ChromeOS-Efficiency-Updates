@@ -48,6 +48,14 @@ function matchesAsset(asset,filter){
  if(filter.collectionId&&filter.collectionId!=='all'&&asset.collectionId!==filter.collectionId)return false;
  if(!q)return true;return[asset.name,asset.description,asset.analysis,(asset.tags||[]).join(' ')].join(' ').toLowerCase().indexOf(q)!==-1;
 }
+function sortAssets(list,mode){
+ var items=(Array.isArray(list)?list:[]).slice(),name=function(a){return String(a&&a.name||'').toLowerCase();},tie=function(a,b){return name(a).localeCompare(name(b))||String(a&&a.id||'').localeCompare(String(b&&b.id||''));};
+ mode=mode||'recent';
+ if(mode==='name')items.sort(function(a,b){return tie(a,b);});
+ else if(mode==='largest')items.sort(function(a,b){return(Number(b&&b.size)||0)-(Number(a&&a.size)||0)||tie(a,b);});
+ else items.sort(function(a,b){return(Number(b&&b.createdAt)||0)-(Number(a&&a.createdAt)||0)||tie(a,b);});
+ return items;
+}
 function mergeAsset(current,updates){return Object.assign({},current||{},updates||{});}
 function txRun(stores,mode,work){
  return new Promise(function(resolve,reject){
@@ -98,8 +106,10 @@ function buildUI(){
  var toolbar=el('div',undefined,'cl-toolbar'),search=document.createElement('input');search.type='search';search.className='workspace-input';search.placeholder='Search names, descriptions, tags or analysis';search.setAttribute('aria-label','Search references');
  var type=document.createElement('select');type.className='workspace-input';type.setAttribute('aria-label','Filter by type');
  [['all','All types'],['image','Images'],['video','Videos'],['text','Text'],['document','PDF documents']].forEach(function(x){var o=el('option',x[1]);o.value=x[0];type.appendChild(o);});
+ var sort=document.createElement('select');sort.className='workspace-input';sort.setAttribute('aria-label','Sort references');
+ [['recent','Recently added'],['name','Name A–Z'],['largest','Largest first']].forEach(function(x){var o=el('option',x[1]);o.value=x[0];sort.appendChild(o);});
  var collectionFilter=document.createElement('select');collectionFilter.className='workspace-input';collectionFilter.setAttribute('aria-label','Filter by collection');
- toolbar.appendChild(search);toolbar.appendChild(type);toolbar.appendChild(collectionFilter);shell.appendChild(toolbar);
+ toolbar.appendChild(search);toolbar.appendChild(type);toolbar.appendChild(sort);toolbar.appendChild(collectionFilter);shell.appendChild(toolbar);
  var grid=el('div',undefined,'cl-grid'),left=el('div',undefined,'cl-column'),right=el('div',undefined,'cl-column');
  var listPanel=el('section',undefined,'cl-panel'),listHead=el('div',undefined,'cl-panel-head');listHead.appendChild(el('h3','References'));ui.count=el('span','0 items','cl-count');listHead.appendChild(ui.count);ui.list=el('div',undefined,'cl-list');ui.more=button('Show more','mini');listPanel.appendChild(listHead);listPanel.appendChild(ui.list);listPanel.appendChild(ui.more);left.appendChild(listPanel);
  var collectionsPanel=el('section',undefined,'cl-panel');collectionsPanel.appendChild(el('h3','Collections'));var collectionRow=el('div',undefined,'cl-inline');
@@ -115,18 +125,18 @@ function buildUI(){
  actions.appendChild(ui.profileSave);actions.appendChild(ui.profileDelete);actions.appendChild(ui.profileCopy);profilePanel.appendChild(actions);right.appendChild(profilePanel);
  grid.appendChild(left);grid.appendChild(right);shell.appendChild(grid);ui.status=el('div','','cl-status');ui.status.setAttribute('role','status');ui.status.setAttribute('aria-live','polite');shell.appendChild(ui.status);root.appendChild(shell);
  importButton.addEventListener('click',function(){picker.click();});picker.addEventListener('change',function(){importFiles(picker.files);picker.value='';});
- search.addEventListener('input',function(){pageLimit=PAGE;renderList();});type.addEventListener('change',function(){pageLimit=PAGE;renderList();});collectionFilter.addEventListener('change',function(){pageLimit=PAGE;renderList();});
+ search.addEventListener('input',function(){pageLimit=PAGE;renderList();});type.addEventListener('change',function(){pageLimit=PAGE;renderList();});sort.addEventListener('change',function(){pageLimit=PAGE;renderList();});collectionFilter.addEventListener('change',function(){pageLimit=PAGE;renderList();});
  ui.more.addEventListener('click',function(){pageLimit+=PAGE;renderList();});addCollection.addEventListener('click',createCollection);
  ui.profileSelect.addEventListener('change',function(){selectedProfileId=ui.profileSelect.value;renderProfileForm();});
  ui.profileSave.addEventListener('click',saveProfile);ui.profileDelete.addEventListener('click',deleteProfile);ui.profileCopy.addEventListener('click',copyProfile);
- ui={status:ui.status,count:ui.count,list:ui.list,more:ui.more,collectionName:ui.collectionName,collectionList:ui.collectionList,detail:ui.detail,profileSelect:ui.profileSelect,profileName:ui.profileName,profileDescription:ui.profileDescription,profilePrompt:ui.profilePrompt,profileSave:ui.profileSave,profileDelete:ui.profileDelete,profileCopy:ui.profileCopy,search:search,type:type,collectionFilter:collectionFilter};
+ ui={status:ui.status,count:ui.count,list:ui.list,more:ui.more,collectionName:ui.collectionName,collectionList:ui.collectionList,detail:ui.detail,profileSelect:ui.profileSelect,profileName:ui.profileName,profileDescription:ui.profileDescription,profilePrompt:ui.profilePrompt,profileSave:ui.profileSave,profileDelete:ui.profileDelete,profileCopy:ui.profileCopy,search:search,type:type,sort:sort,collectionFilter:collectionFilter};
 }
 function renderCollectionFilter(){
  var current=ui.collectionFilter.value||'all';ui.collectionFilter.textContent='';var all=el('option','All collections');all.value='all';ui.collectionFilter.appendChild(all);
  collections.forEach(function(c){var o=el('option',c.name);o.value=c.id;ui.collectionFilter.appendChild(o);});ui.collectionFilter.value=collections.some(function(c){return c.id===current;})?current:'all';
 }
 function renderList(){
- var filter={query:ui.search.value,type:ui.type.value,collectionId:ui.collectionFilter.value},matches=assets.filter(function(a){return matchesAsset(a,filter);});
+ var filter={query:ui.search.value,type:ui.type.value,collectionId:ui.collectionFilter.value},matches=sortAssets(assets.filter(function(a){return matchesAsset(a,filter);}),ui.sort.value);
  ui.list.textContent='';ui.count.textContent=matches.length+' '+(matches.length===1?'item':'items');
  if(!matches.length){ui.list.appendChild(el('p','No references match this view. Import a file or change the filters.','cl-empty'));ui.more.hidden=true;return;}
  matches.slice(0,pageLimit).forEach(function(asset){
@@ -292,5 +302,5 @@ function open(appInstance){
 function suspend(){active=false;openGeneration++;if(ui&&ui.detail){var video=ui.detail.querySelector('video');if(video){try{video.pause();}catch(ignore){}}}releasePreview();}
 function close(){suspend();if(db){db.close();db=null;dbPromise=null;}}
 g.addEventListener('pagehide',suspend);
-g.CCCreativeLibrary=Object.freeze({open:open,openCatalog:openCatalog,listReferences:listReferences,listProfiles:listProfiles,listExperiments:listExperiments,saveExperiment:saveExperiment,deleteExperiment:deleteExperiment,suspend:suspend,close:close,test:Object.freeze({classifyFile:classifyFile,mimeFor:mimeFor,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,mergeAsset:mergeAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
+g.CCCreativeLibrary=Object.freeze({open:open,openCatalog:openCatalog,listReferences:listReferences,listProfiles:listProfiles,listExperiments:listExperiments,saveExperiment:saveExperiment,deleteExperiment:deleteExperiment,suspend:suspend,close:close,test:Object.freeze({classifyFile:classifyFile,mimeFor:mimeFor,validateFile:validateFile,normalizeTags:normalizeTags,matchesAsset:matchesAsset,sortAssets:sortAssets,mergeAsset:mergeAsset,formatBytes:formatBytes,limits:LIMITS,maxAssets:MAX_ASSETS,maxImportBatch:MAX_BATCH,maxTextAnalysis:MAX_ANALYSIS})});
 })(window);
