@@ -63,6 +63,8 @@ jobs:
         run: node scripts/test-stage-d-ui.mjs
       - name: Test Claude UI overhaul foundation
         run: node scripts/test-claude-ui-foundation.mjs
+      - name: Test Claude workspace accessibility landmarks
+        run: node scripts/test-claude-accessibility-landmarks.mjs
       - name: Test in-tab mini-app shell
         run: node scripts/test-inline-miniapps.mjs
       - name: Validate mini-app contracts
