@@ -50,51 +50,31 @@
   }
 
   /* ---------- files ---------- */
+  var collapsedFileDirs={};
   function renderFiles() {
-    var list = $('fileList');
-    list.textContent = '';
-    if (!files.length) {
-      list.appendChild(el('p', 'empty', 'No files yet. Press + to make one.'));
-      return;
+    var list=$('fileList');list.textContent='';
+    var query=($('fileTreeSearch')&&$('fileTreeSearch').value||'').trim().toLowerCase();
+    var visible=files.filter(function(f){return !query||f.name.toLowerCase().indexOf(query)>=0;});
+    if($('fileTreeCount'))$('fileTreeCount').textContent=visible.length+' / '+files.length;
+    if(!visible.length){list.appendChild(el('p','empty',files.length?'No matching files.':'No files yet. Press + to make one.'));return;}
+    var root={dirs:{},files:[]};
+    visible.forEach(function(f){var parts=String(f.name||'').split('/').filter(Boolean),cur=root;for(var i=0;i<parts.length-1;i++){var p=parts[i];if(!cur.dirs[p])cur.dirs[p]={dirs:{},files:[]};cur=cur.dirs[p];}cur.files.push({file:f,label:parts[parts.length-1]||f.name});});
+    function fileRow(item,depth){
+      var f=item.file,row=el('div','filerow'+(activeFile&&f.id===activeFile.id?' on':''));row.style.paddingLeft=(8+depth*13)+'px';row.title=f.name;
+      var att=el('button','fatt'+(f.attached!==false?' on':''),f.attached!==false?'◉':'○');att.type='button';att.title=f.attached!==false?'Included in chat — click to detach':'Not sent to the model — click to include';att.setAttribute('aria-pressed',f.attached!==false?'true':'false');att.addEventListener('click',function(e){e.stopPropagation();f.attached=f.attached===false;saveFiles();renderFiles();if($('contextStatus'))$('contextStatus').textContent=files.filter(function(x){return x.attached!==false;}).length+' files in context';});row.appendChild(att);
+      var ext=(item.label.match(/\.([^.]+)$/)||[])[1]||'',glyph={js:'JS',ts:'TS',tsx:'TSX',jsx:'JSX',json:'{}',md:'MD',html:'<>',css:'#',py:'PY',sql:'DB',csv:'CSV'}[ext.toLowerCase()]||'·';row.appendChild(el('span','file-glyph',glyph));row.appendChild(el('span','fname',item.label));
+      var del=el('button','fdel','×');del.type='button';del.title='Delete '+f.name;del.setAttribute('aria-label','Delete '+f.name);del.addEventListener('click',function(e){e.stopPropagation();if(!confirm('Delete '+f.name+'?'))return;files=files.filter(function(x){return x.id!==f.id;});if(activeFile&&activeFile.id===f.id){activeFile=files[0]||null;loadEditor();}saveFiles();renderFiles();});row.appendChild(del);
+      row.addEventListener('click',function(){activeFile=f;loadEditor();renderFiles();});list.appendChild(row);
     }
-    files.forEach(function (f) {
-      var row = el('div', 'filerow' + (activeFile && f.id === activeFile.id ? ' on' : ''));
-      /* attach toggle: a file that is not attached stays private to the app and
-         never travels with a message */
-      var att = el('button', 'fatt' + (f.attached !== false ? ' on' : ''), f.attached !== false ? '◉' : '○');
-      att.type = 'button';
-      att.title = (f.attached !== false ? 'Included in chat — click to detach' : 'Not sent to the model — click to include');
-      att.setAttribute('aria-pressed', f.attached !== false ? 'true' : 'false');
-      att.addEventListener('click', function (e) {
-        e.stopPropagation();
-        f.attached = f.attached === false;
-        saveFiles();
-        renderFiles();
-        if ($('contextStatus')) $('contextStatus').textContent = files.filter(function(x){return x.attached!==false;}).length+' files in context';
+    function renderNode(node,depth,path){
+      Object.keys(node.dirs).sort(function(x,y){return x.localeCompare(y);}).forEach(function(name){
+        var full=path?path+'/'+name:name,folder=el('button','file-folder'+(collapsedFileDirs[full]&&!query?' collapsed':''));folder.type='button';folder.style.paddingLeft=(8+depth*13)+'px';folder.setAttribute('aria-expanded',query?'true':collapsedFileDirs[full]?'false':'true');folder.textContent=(query?'▾':collapsedFileDirs[full]?'▸':'▾')+'  '+name+' /';folder.title=full;folder.addEventListener('click',function(){collapsedFileDirs[full]=!collapsedFileDirs[full];renderFiles();});list.appendChild(folder);
+        if(query||!collapsedFileDirs[full])renderNode(node.dirs[name],depth+1,full);
       });
-      row.appendChild(att);
-      row.appendChild(el('span', 'fname', f.name));
-      var del = el('button', 'fdel', '×');
-      del.type = 'button';
-      del.title = 'Delete ' + f.name;
-      del.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (!confirm('Delete ' + f.name + '?')) return;
-        files = files.filter(function (x) { return x.id !== f.id; });
-        if (activeFile && activeFile.id === f.id) { activeFile = files[0] || null; loadEditor(); }
-        saveFiles();
-        renderFiles();
-      });
-      row.appendChild(del);
-      row.addEventListener('click', function () {
-        activeFile = f;
-        loadEditor();
-        renderFiles();
-      });
-      list.appendChild(row);
-    });
+      node.files.sort(function(x,y){return x.label.localeCompare(y.label);}).forEach(function(item){fileRow(item,depth);});
+    }
+    renderNode(root,0,'');
   }
-
   function loadEditor() {
     $('editor').value = activeFile ? activeFile.content : '';
     $('tabName').textContent = activeFile ? activeFile.name : 'untitled';
@@ -121,6 +101,7 @@
     files=Array.isArray(data.files)?data.files.filter(function(f){return f&&typeof f.id==='string'&&typeof f.name==='string'&&typeof f.content==='string';}).slice(0,MAX_FILES):[];
     logs=Array.isArray(data.logs)?data.logs.slice(0,MAX_LOGS):[];
     activeFile=files[0]||null;activeLog=logs[0]||null;
+    if(typeof restoreDraft==='function')restoreDraft();
     renderProjects();renderFiles();loadEditor();renderLogs();renderChat();
     $('contextStatus').textContent=files.filter(function(f){return f.attached!==false;}).length+' files in context';
     chrome.storage.local.set({ccActiveProject:id});
@@ -264,6 +245,7 @@
     if (logs.length > MAX_LOGS) logs = logs.slice(0, MAX_LOGS);
     activeLog = l;
     persistLogs();
+    restoreDraft();
     renderLogs();
     renderChat();
     $('chatIn').focus();
@@ -708,19 +690,24 @@
   $('filePicker').addEventListener('change', function(){importLocalFiles('filePicker');});
   $('folderPicker').addEventListener('change', function(){importLocalFiles('folderPicker');});
   $('newFile').addEventListener('click', newFile);
+  if($('fileTreeSearch'))$('fileTreeSearch').addEventListener('input',renderFiles);
   $('newLog').addEventListener('click', newLog);
   $('delLog').addEventListener('click', function () {
     if (!activeLog) return;
     if (!confirm('Delete this conversation?')) return;
     logs = logs.filter(function (l) { return l.id !== activeLog.id; });
+    delete draftStore[activeProjectId+'::'+activeLog.id];
     activeLog = logs[0] || null;
     persistLogs();
+    chrome.storage.local.set({ccChatDrafts:draftStore});
+    restoreDraft();
     renderLogs();
     renderChat();
   });
   $('logSel').addEventListener('change', function () {
     var id = $('logSel').value;
     activeLog = logs.filter(function (l) { return l.id === id; })[0] || null;
+    restoreDraft();
     renderChat();
   });
 
@@ -776,12 +763,37 @@
   }
   $('chatIn').addEventListener('input',updateChatInputCount);
   $('chatIn').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();$('chatForm').requestSubmit();}});
+  var draftTimer=null, draftKey='', draftStore={};
+  function currentDraftKey(){return activeProjectId+'::'+(activeLog?activeLog.id:'__new__');}
+  function restoreDraft(){
+    var key=currentDraftKey();draftKey=key;
+    $('chatIn').value=(draftStore[key]||'');updateChatInputCount();
+    $('chatDraftStatus').textContent=draftStore[key]?'Draft restored':'Drafts save automatically';
+  }
+  function saveDraftNow(){
+    var key=currentDraftKey(),value=$('chatIn').value;
+    draftStore[key]=value;
+    chrome.storage.local.set({ccChatDrafts:draftStore},function(){
+      $('chatDraftStatus').textContent=chrome.runtime.lastError?'Draft save unavailable':'Draft saved';
+    });
+  }
+  function scheduleDraftSave(){
+    if(draftTimer)clearTimeout(draftTimer);
+    $('chatDraftStatus').textContent='Saving draft…';
+    draftTimer=setTimeout(function(){draftTimer=null;saveDraftNow();},400);
+  }
+  chrome.storage.local.get('ccChatDrafts',function(d){draftStore=d.ccChatDrafts&&typeof d.ccChatDrafts==='object'?d.ccChatDrafts:{};restoreDraft();});
+  $('chatIn').addEventListener('input',function(){scheduleDraftSave();});
   $('chatForm').addEventListener('submit', function (e) {
     e.preventDefault();
     var t = $('chatIn').value.trim();
     if (!t) return;
     if(t.length>MAX_INPUT_CHARS){cstat('Message is over the 20,000 character limit.',true);return;}
+    if (!(provider === 'brewkeg' ? ccKey : provider === 'openai' ? openAIKey : anthropicKey)) { cstat('Add the selected provider key in Settings before sending.',true); return; }
     $('chatIn').value = '';updateChatInputCount();
+    draftStore[currentDraftKey()]='';
+    if(draftTimer){clearTimeout(draftTimer);draftTimer=null;}
+    saveDraftNow();
     send(t);
   });
   updateChatInputCount();

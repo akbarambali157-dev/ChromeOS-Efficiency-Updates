@@ -421,3 +421,216 @@ body.workspace-open .workspace-card{overflow-wrap:anywhere}
  .chat-effort-row select{flex:0 1 135px;max-width:min(145px,55vw);height:30px}
  #sendBtn{padding:8px 12px;font-size:12px}
 }
+
+
+/* Claude UI overhaul — Phase 1 foundation tokens and shared component polish.
+   Kept CSS-only and Chrome 103 compatible; no added runtime or dependency. */
+body.cc{
+  --cc-surface-0:#0b1016;
+  --cc-surface-1:#0f151d;
+  --cc-surface-2:#141d27;
+  --cc-surface-3:#192431;
+  --cc-border:#273544;
+  --cc-border-soft:#1e2a36;
+  --cc-text:#e3edf7;
+  --cc-text-muted:#91a3b7;
+  --cc-text-dim:#718398;
+  --cc-accent:#86d6bf;
+  --cc-accent-strong:#a2e7d2;
+  --cc-danger:#f09b92;
+  --cc-radius-sm:7px;
+  --cc-radius-md:10px;
+  --cc-radius-lg:14px;
+  --cc-space-1:4px;
+  --cc-space-2:8px;
+  --cc-space-3:12px;
+  --cc-space-4:16px;
+  color:var(--cc-text);
+  background:var(--cc-surface-0);
+  color-scheme:dark;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+body.cc :focus-visible{outline:2px solid var(--cc-accent);outline-offset:2px}
+body.cc button,body.cc a,body.cc select{transition:background-color .12s ease,border-color .12s ease,color .12s ease,opacity .12s ease}
+body.cc .act{gap:5px;padding:9px 0;background:var(--cc-surface-0);border-color:var(--cc-border-soft)}
+body.cc .actbtn{border-radius:9px;color:var(--cc-text-muted)}
+body.cc .actbtn:hover{background:var(--cc-surface-2);color:var(--cc-text)}
+body.cc .actbtn.on{background:var(--cc-surface-3);color:var(--cc-accent);box-shadow:inset 2px 0 0 var(--cc-accent)}
+body.cc .side{background:var(--cc-surface-1);border-color:var(--cc-border-soft)}
+body.cc .sidehead{padding:11px 12px;color:var(--cc-text-muted);letter-spacing:.065em}
+body.cc .filelist{padding:2px 7px 12px}
+body.cc .filerow{min-height:34px;margin:1px 0;padding:6px 8px;border-radius:var(--cc-radius-sm);gap:7px}
+body.cc .filerow.on{background:var(--cc-surface-3);color:var(--cc-text);box-shadow:inset 2px 0 0 var(--cc-accent)}
+body.cc .main{background:var(--cc-surface-0)}
+body.cc .tabs{background:var(--cc-surface-1);border-color:var(--cc-border-soft)}
+body.cc .tab{background:var(--cc-surface-2);border:1px solid var(--cc-border-soft);color:var(--cc-text);border-radius:8px}
+body.cc .editor{background:var(--cc-surface-0);color:var(--cc-text);padding:18px 20px;font-size:13px;line-height:1.68;caret-color:var(--cc-accent)}
+body.cc .panel{background:var(--cc-surface-1);border-color:var(--cc-border-soft)}
+body.cc .panelhead{background:var(--cc-surface-1);border-color:var(--cc-border-soft);padding:8px 12px}
+body.cc .chatlog{padding:12px 14px;gap:10px}
+body.cc .msg{border-radius:12px;padding:10px 13px;font-size:13px;line-height:1.68}
+body.cc .msg.me{background:var(--cc-surface-3);border:1px solid var(--cc-border)}
+body.cc .msg.ai{background:var(--cc-surface-2);border-color:var(--cc-border-soft)}
+body.cc .chatrow{background:var(--cc-surface-1);border-color:var(--cc-border-soft);padding:10px 12px}
+body.cc .chatrow textarea{border-color:var(--cc-border);border-radius:var(--cc-radius-md);background:var(--cc-surface-0);color:var(--cc-text)}
+body.cc .mini,body.cc .ghost{border-color:var(--cc-border);border-radius:var(--cc-radius-sm)}
+body.cc .primary{background:var(--cc-accent);border-radius:var(--cc-radius-sm)}
+body.cc .primary:hover{background:var(--cc-accent-strong)}
+body.cc .workspace-head{border-color:var(--cc-border-soft)}
+body.cc .workspace-card,body.cc .project-box,body.cc .project-dashboard-head,body.cc .project-stat{border-color:var(--cc-border);border-radius:var(--cc-radius-md)}
+body.cc input,body.cc select,body.cc textarea{accent-color:var(--cc-accent)}
+body.cc :disabled{cursor:not-allowed}
+body.cc ::-webkit-scrollbar{width:8px;height:8px}
+body.cc ::-webkit-scrollbar-thumb{background:#314254;border-radius:8px}
+body.cc ::-webkit-scrollbar-track{background:transparent}
+@media(max-width:820px){
+  body.cc .act{gap:4px;padding:7px 0}
+  body.cc .actbtn{width:36px;height:36px}
+  body.cc .sidehead{padding:9px 8px}
+  body.cc .filerow{min-height:36px}
+  body.cc .editor{padding:13px 14px}
+  body.cc .chatlog{padding:9px}
+}
+@media(max-width:640px){
+  body.cc .actbtn{width:36px;height:36px}
+  body.cc .msg{max-width:96%;padding:9px 11px}
+  body.cc .tabs{padding:0 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.cc *,body.cc *::before,body.cc *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
+/* Theme-aware Phase 1 integration: the mini-app follows the launcher theme
+   instead of maintaining an unrelated hard-coded palette. */
+body.cc{
+  --cc-surface-0:rgba(var(--bg-rgb,13,17,23),1);
+  --cc-surface-1:rgba(var(--panel-rgb,15,21,28),1);
+  --cc-surface-2:rgba(var(--panel-hi-rgb,22,29,38),.72);
+  --cc-surface-3:rgba(var(--panel-hi-rgb,27,36,48),1);
+  --cc-border:rgba(var(--text-rgb,230,237,245),.14);
+  --cc-border-soft:rgba(var(--text-rgb,230,237,245),.09);
+  --cc-text:var(--text,#e3edf7);
+  --cc-text-muted:var(--muted,#91a3b7);
+  --cc-text-dim:var(--muted,#718398);
+  --cc-accent:rgb(var(--accent-rgb,127,209,185));
+  --cc-accent-strong:rgb(var(--accent2-rgb,162,231,210));
+  background:var(--cc-surface-0);
+}
+/* Light-theme borders need dark ink so they remain visible without overpowering. */
+:root[data-theme="dayblue"] body.cc,
+:root[data-theme="daygold"] body.cc,
+:root[data-theme="dayamber"] body.cc,
+:root[data-theme="dayviolet"] body.cc{
+  --cc-border:rgba(16,35,58,.18);
+  --cc-border-soft:rgba(16,35,58,.11);
+  --cc-text-dim:rgba(16,35,58,.58);
+}
+body.cc .side,body.cc .panel,body.cc .chatrow,body.cc .panelhead,
+body.cc .tabs,body.cc .act,body.cc .grip,body.cc .workspace-card,
+body.cc .project-box,body.cc .project-dashboard-head,body.cc .project-stat,
+body.cc .chatrow textarea,body.cc .mini,body.cc .ghost,body.cc .tab,
+body.cc .logsel,body.cc .chat-effort-row select,body.cc input,body.cc select{
+  border-color:var(--cc-border-soft);
+}
+body.cc .empty,body.cc .chat-effort-row label,body.cc .ptitle,
+body.cc .sidehead,body.cc .chat-effort-status{color:var(--cc-text-muted)}
+body.cc .filerow,body.cc .msg,body.cc .editor{color:var(--cc-text)}
+body.cc .chatrow textarea::placeholder,body.cc .editor::placeholder{color:var(--cc-text-dim)}
+body.cc .primary{color:var(--cc-surface-0)}
+body.cc .actbtn:focus-visible,body.cc .grip:focus-visible{outline-color:var(--cc-accent)}
+
+:root[data-theme="dayblue"] body.cc,
+:root[data-theme="daygold"] body.cc,
+:root[data-theme="dayamber"] body.cc,
+:root[data-theme="dayviolet"] body.cc{color-scheme:light}
+body.cc .workspace-input,body.cc .project-head select,body.cc .project-task-form input,
+body.cc .logsel,body.cc .chat-effort-row select,body.cc .v45 input,body.cc .v45 select,
+body.cc .v45 textarea,body.cc .context-item,body.cc .context-summary .project-stat,
+body.cc .v45-card,body.cc .v45-scene,body.cc .v45-character,body.cc .v45-logitem,
+body.cc .v45-plan div,body.cc .file-edit-dialog,body.cc .file-edit-heading,
+body.cc .context-dialog-head,body.cc .context-dialog-foot,body.cc .file-edit-diff{
+  background-color:var(--cc-surface-1);
+  color:var(--cc-text);
+}
+body.cc .workspace-input:focus,body.cc .chatrow textarea:focus,
+body.cc .v45 input:focus,body.cc .v45 select:focus,body.cc .v45 textarea:focus{
+  border-color:var(--cc-accent);
+}
+body.cc .v45-nav button.on{background:var(--cc-surface-3);border-color:var(--cc-accent);color:var(--cc-text)}
+body.cc .v45-plan strong,body.cc .v45-status,body.cc .context-status{color:var(--cc-accent)}
+body.cc .workspace-card a{color:var(--cc-accent)}
+body.cc .code-diff-line.add{background:rgba(30,130,85,.18);color:var(--cc-text)}
+body.cc .code-diff-line.del{background:rgba(180,65,65,.18);color:var(--cc-text)}
+body.cc .code-diff-line.context{color:var(--cc-text-muted)}
+
+/* Theme-complete shared chrome and dialogs. The existing HTML structure is retained. */
+body.cc .workspace-head,body.cc .context-dialog-head,body.cc .context-dialog-foot,
+body.cc .panelhead,body.cc .tabs,body.cc .sidehead,body.cc .v45-card,
+body.cc .diag-dialog,body.cc .code-review-grid,body.cc .file-edit-dialog,
+body.cc #dlgContext,body.cc #dlgCodeReview,body.cc #dlgFileEdits,
+body.cc #dlgProject,body.cc #dlgSet,body.cc #dlgPush,body.cc #dlgDiagnostics{
+  border-color:var(--cc-border);
+}
+body.cc .workspace-panel,body.cc .workspace-input,body.cc .project-head select,
+body.cc .project-task-form input,body.cc .chat-effort-row select,
+body.cc .v45-nav button,body.cc .v45-file,body.cc .logsel,
+body.cc .context-item,body.cc .context-summary .project-stat,
+body.cc .project-task,body.cc .project-note,body.cc .project-stat,
+body.cc .v45-logitem,body.cc .v45-plan div,body.cc .v45-scene,
+body.cc .v45-character,body.cc .v45-summary,body.cc .file-edit-heading{
+  border-color:var(--cc-border-soft);
+}
+body.cc .workspace-panel,body.cc .workspace-input,body.cc .project-head select,
+body.cc .project-task-form input,body.cc .chat-effort-row select,
+body.cc .v45-nav button,body.cc .v45-file,body.cc .logsel,
+body.cc .context-item,body.cc .context-summary .project-stat,
+body.cc .project-task,body.cc .project-note,body.cc .project-stat,
+body.cc .v45-logitem,body.cc .v45-plan div,body.cc .v45-scene,
+body.cc .v45-character,body.cc .v45-summary,body.cc .file-edit-heading{
+  background-color:var(--cc-surface-2);
+}
+body.cc .actbtn.home{margin-top:auto}
+body.cc button:not(.actbtn),body.cc .mini,body.cc .ghost,body.cc .primary,
+body.cc .project-task button,body.cc .workspace-panel button,
+body.cc .v45-actions button,body.cc .v45-scene button,body.cc .v45-character button{
+  border-radius:var(--cc-radius-sm);
+}
+body.cc button:disabled,body.cc input:disabled,body.cc textarea:disabled,body.cc select:disabled{opacity:.58}
+body.cc .workspace-card,body.cc .context-item,body.cc .v45-logitem,
+body.cc .v45-summary,body.cc .project-task,body.cc .project-note{overflow-wrap:anywhere}
+
+/* Phase 2 — composer clarity, draft status and compact responsive controls. */
+body.cc .chat-compose-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px}
+body.cc .draft-status{color:var(--cc-text-dim);font-size:10px}
+body.cc #chatCharCount{margin-left:auto;white-space:nowrap;font-variant-numeric:tabular-nums}
+body.cc #chatIn{min-height:46px;max-height:180px;resize:none;overflow-y:auto;line-height:1.55}
+@media(max-width:640px){body.cc .chat-compose-meta{gap:4px 7px}body.cc .draft-status{font-size:9px}body.cc #chatCharCount{margin-left:0}}
+
+/* Phase 4 — Ida activity centerpiece and expanded truthful status. */
+body.cc .activity-indicator{position:relative;gap:8px;max-width:56%;transition:border-color .18s ease,background .18s ease}
+body.cc .activity-indicator.continuing{border-color:var(--cc-accent,#7fd1b9)}
+body.cc .activity-indicator.agent-active{border-color:var(--cc-accent,#7fd1b9)}
+body.cc .ida-orb{width:19px;height:19px;flex:0 0 19px;position:relative;display:inline-block;border-radius:50%;background:radial-gradient(circle at 35% 30%,#d5fff3 0 13%,#7fd1b9 20%,#3a8e78 42%,#142b2a 72%);box-shadow:0 0 9px rgba(127,209,185,.36),inset 0 0 5px rgba(255,255,255,.24)}
+body.cc .ida-orb i{position:absolute;inset:-3px;border:1px solid rgba(127,209,185,.42);border-radius:50%;animation:ida-orbit 3.8s linear infinite}
+body.cc .ida-orb b{position:absolute;inset:6px;border:1px solid rgba(229,255,247,.65);border-radius:50%;animation:ida-breathe 1.8s ease-in-out infinite}
+body.cc .activity-expand{font-size:10px;padding:2px 6px;flex:0 0 auto}
+body.cc .activity-details{display:flex;flex-wrap:wrap;gap:8px;padding:6px 10px;background:var(--cc-surface-1,#111922);border-bottom:1px solid var(--cc-border,#243344);font-size:10px}
+body.cc .activity-details[hidden]{display:none}
+body.cc .activity-details>div{min-width:0;flex:1 1 120px;display:flex;flex-direction:column;gap:2px}
+body.cc .activity-details small{color:var(--cc-text-dim,#73859a);text-transform:uppercase;letter-spacing:.06em}
+body.cc .activity-details span{color:var(--cc-text,#c7e9df);overflow-wrap:anywhere}
+@keyframes ida-orbit{to{transform:rotate(360deg)}}
+@keyframes ida-breathe{50%{opacity:.35;transform:scale(.75)}}
+@media(max-width:640px){body.cc .activity-indicator{max-width:65%;gap:5px}body.cc .activity-expand{padding:2px 4px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){body.cc .ida-orb i,body.cc .ida-orb b{animation:none}}
+
+/* Phase 5 — searchable hierarchical project file list (virtual folders from imported paths). */
+body.cc .file-tree-search{padding:7px 8px 4px;display:flex;align-items:center;gap:7px}
+body.cc .file-tree-search input{min-width:0;width:100%;padding:6px 8px;border:1px solid var(--cc-border,#253241);border-radius:6px;background:var(--cc-surface-1,#111922);color:var(--cc-text,#c8d8e6);font-size:11px}
+body.cc #fileTreeCount{flex:0 0 auto;color:var(--cc-text-dim,#77899d);font-size:10px;white-space:nowrap}
+body.cc .file-folder{display:block;width:100%;border:0;background:transparent;color:var(--cc-text-muted,#8b9bb0);text-align:left;font-size:11px;line-height:1.4;font-family:inherit;padding-top:6px;padding-bottom:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.cc .file-folder:hover{background:var(--cc-surface-2,#161d26);color:var(--cc-text,#e6edf5)}
+body.cc .file-glyph{display:inline-flex;align-items:center;justify-content:center;flex:0 0 22px;min-width:22px;color:var(--cc-accent,#7fd1b9);font:9px/1 ui-monospace,monospace;opacity:.8}
+body.cc .filerow{min-width:0}
+body.cc .filerow .fname{min-width:0}
+@media(max-width:820px){body.cc .file-tree-search input{font-size:12px;padding:8px}}
