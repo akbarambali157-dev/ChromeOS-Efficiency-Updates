@@ -669,3 +669,14 @@ body.cc .file-preview .preview-note{color:var(--cc-text-muted,#9caec0);font-size
 body.cc #researchClear{min-height:30px;}
 body.cc #runResearch:disabled{opacity:.6;cursor:wait;}
 body.cc #researchOutput .workspace-card{overflow-wrap:anywhere;}
+
+/* Reference Lab — local, selectable context sources */
+body.cc .reference-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:8px;margin:12px 0;max-height:48vh;overflow:auto;}
+body.cc .reference-item{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--cc-border,#273544);border-radius:10px;background:var(--cc-surface-1,#0f151d);cursor:pointer;min-width:0;}
+body.cc .reference-item input{flex:0 0 auto;margin:3px 0 0;accent-color:var(--cc-accent,#86d6bf);}
+body.cc .reference-item span{display:flex;flex-direction:column;gap:3px;min-width:0;overflow-wrap:anywhere;}
+body.cc .reference-item small{font-size:11px;color:var(--cc-text-muted,#91a3b7);overflow-wrap:anywhere;}
+body.cc .reference-empty{color:var(--cc-text-muted,#91a3b7);padding:10px;}
+body.cc .reference-preview-text{white-space:pre-wrap;overflow-wrap:anywhere;}
+body.cc .reference-preview-count{font-size:11px;color:var(--cc-text-muted,#91a3b7);}
+@media(max-width:600px){body.cc .reference-list{grid-template-columns:1fr;max-height:42vh;}body.cc .reference-item{min-height:42px;}}
