@@ -69,6 +69,8 @@ jobs:
         run: node scripts/test-claude-workspace-presets.mjs
       - name: Validate Claude file preview
         run: node scripts/test-claude-file-preview.mjs
+      - name: Validate Claude research workspace
+        run: node scripts/test-claude-research-workspace.mjs
       - name: Test in-tab mini-app shell
         run: node scripts/test-inline-miniapps.mjs
       - name: Validate mini-app contracts

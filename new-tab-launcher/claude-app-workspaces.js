@@ -206,10 +206,24 @@
       dispatch({objective:objective,search_queries:queries.slice(0,3),mode:'fast',advanced_settings:{max_results:5}},false,null);
     });
   }
+  var researchBusy=false;
+  function clearResearch() {
+    researchContext='';$('researchOutput').textContent='';status('researchStatus','Research results cleared.');
+  }
+  function safeResearchUrl(value) {
+    try{var u=new URL(String(value||''));return u.protocol==='https:'||u.protocol==='http:'?u.href:'';}catch(e){return '';}
+  }
   function runResearch() {
     var q=$('researchQuery').value.trim();if(!q)return status('researchStatus','Enter a research question.',true);
-    $('researchOutput').textContent='Searching…';status('researchStatus','Searching web sources…');
-    search(q).then(function(r){var out=$('researchOutput');out.textContent='';researchContext=(r.results||[]).slice(0,6).map(function(x){return (x.title||x.url)+'\n'+(x.url||'')+'\n'+(x.excerpts||[]).map(function(e){return typeof e==='string'?e:e.text||'';}).join(' ').slice(0,800);}).join('\n\n');(r.results||[]).slice(0,6).forEach(function(x){out.appendChild(card(x.title||x.url,(x.excerpts||[]).map(function(e){return typeof e==='string'?e:e.text||'';}).join(' ').slice(0,1000),x.url));});status('researchStatus',(r.results||[]).length+' sources retrieved.');if(!(r.results||[]).length)out.appendChild(card('No results','Try a more specific query.'));}).catch(function(e){status('researchStatus',e.message,true);});
+    if(researchBusy)return;
+    researchBusy=true;$('runResearch').disabled=true;status('researchStatus','Searching web sources…');
+    search(q).then(function(r){
+      var out=$('researchOutput'),results=Array.isArray(r&&r.results)?r.results.slice(0,6):[];
+      out.textContent='';researchContext=results.map(function(x){var url=safeResearchUrl(x&&x.url),title=String(x&&x.title||url||'Untitled source').slice(0,240),excerpt=(x&&Array.isArray(x.excerpts)?x.excerpts:[]).map(function(e){return typeof e==='string'?e:e&&e.text||'';}).join(' ').slice(0,800);return title+'\n'+url+'\n'+excerpt;}).filter(Boolean).join('\n\n').slice(0,40000);
+      results.forEach(function(x){var url=safeResearchUrl(x&&x.url),title=String(x&&x.title||url||'Untitled source').slice(0,240),excerpt=(x&&Array.isArray(x.excerpts)?x.excerpts:[]).map(function(e){return typeof e==='string'?e:e&&e.text||'';}).join(' ').slice(0,1000);out.appendChild(card(title,excerpt,url));});
+      if(!results.length){researchContext='';out.appendChild(card('No results','Try a more specific query.'));status('researchStatus','Search completed · no sources returned.');}
+      else status('researchStatus',results.length+' sources retrieved · research context limited to 40,000 characters.');
+    }).catch(function(e){status('researchStatus','Search failed: '+(e&&e.message||'Unknown error'),true);}).then(function(){researchBusy=false;$('runResearch').disabled=false;},function(){researchBusy=false;$('runResearch').disabled=false;});
   }
   function ghRequest(token,path,options) { return GitHubApi.request(token,path,Object.assign({notFoundAsMissing:true},options||{})); }
   function loadGithub() {
@@ -328,7 +342,7 @@
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('teamTestLead').addEventListener('click',function(){testTeamRole('lead');});$('teamTestReviewer').addEventListener('click',function(){testTeamRole('reviewer');});$('teamTestWorker').addEventListener('click',function(){testTeamRole('worker');});
-    $('runResearch').addEventListener('click',runResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
+    $('runResearch').addEventListener('click',runResearch);$('researchClear').addEventListener('click',clearResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
     $('sbBrowse').addEventListener('click',browseSupabase);$('sbSave').addEventListener('click',saveSupabase);$('sbPAT').addEventListener('change',saveSupabaseManagementToken);$('sbListProjects').addEventListener('click',listSupabaseProjects);$('sbProjectDetails').addEventListener('click',getSupabaseProjectDetails);$('sbRunQuery').addEventListener('click',runSupabaseReadOnlyQuery);$('sbFunctions').addEventListener('click',listSupabaseFunctions);$('sbBuckets').addEventListener('click',listSupabaseBuckets);$('sbLogs').addEventListener('click',querySupabaseLogs);
     if($('dashboardOpenProject'))$('dashboardOpenProject').addEventListener('click',function(){var id=$('dashboardProjectSelect').value;if(app&&app.switchProject&&app.switchProject(id)){editorWorkspace();}});
     if($('ghDisconnect'))$('ghDisconnect').addEventListener('click',function(){if(!confirm('Disconnect GitHub from this extension?'))return;chrome.storage.local.remove('ghToken',function(){$('ghOutput').textContent='';status('ghStatus','GitHub disconnected.');});});
