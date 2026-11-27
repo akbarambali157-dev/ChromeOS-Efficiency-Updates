@@ -23,7 +23,7 @@ This preserves the recovered source and commits as a separate branch. It does **
 
 The approved original specification from PR #28 is copied into this branch as `CLAUDE-MINIAPP-UI-OVERHAUL-PLAN.md` to ensure the complete 31-item checklist and roadmap remain available.
 
-## Full master checklist (32 entries found in the approved specification)
+## Full master checklist (33 entries found in the approved specification)
 
 1. Foundation and design system
 2. App shell and navigation
