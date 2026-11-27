@@ -634,3 +634,9 @@ body.cc .file-glyph{display:inline-flex;align-items:center;justify-content:cente
 body.cc .filerow{min-width:0}
 body.cc .filerow .fname{min-width:0}
 @media(max-width:820px){body.cc .file-tree-search input{font-size:12px;padding:8px}}
+
+
+/* Accessibility recovery: skip navigation and a visually hidden workspace title. */
+body.cc .cc-skip-link{position:absolute;left:8px;top:8px;z-index:1000;transform:translateY(-160%);padding:9px 12px;border:2px solid var(--cc-accent,#7fd1b9);border-radius:8px;background:var(--cc-surface-2,#141d27);color:var(--cc-text,#e3edf7);font-weight:600;text-decoration:none}
+body.cc .cc-skip-link:focus{transform:translateY(0);outline:2px solid var(--cc-accent,#7fd1b9);outline-offset:3px}
+body.cc .cc-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}

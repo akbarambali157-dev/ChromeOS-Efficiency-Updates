@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="claude-app.css">
 <script src="theme.js"></script><script src="common.js"></script><script src="github-api.js"></script></head>
 <body class="cc" data-app="claude" data-nowall>
+<a class="cc-skip-link" href="#mainWorkspace">Skip to workspace</a>
 <div class="shell">
   <nav class="act" aria-label="Sections">
     <button type="button" class="actbtn on" id="paneProject" title="Project dashboard" aria-label="Project dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg></button><button type="button" class="actbtn" id="paneFiles" title="Files" aria-label="Files"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3h9l5 5v13H5z"/><path d="M14 3v5h5M8 13h8M8 17h8"/></svg></button>
@@ -24,7 +25,8 @@
     <div class="sidehead project-head"><label for="projectSel">Project</label><select id="projectSel" title="Switch project"></select><button type="button" class="mini" id="newProject" title="Create project">+</button><button type="button" class="mini" id="projectManage" title="Rename or delete current project">⋯</button></div><div class="sidehead"><span>Files</span><div><button type="button" class="mini" id="openFiles" title="Open local text files">↥</button><button type="button" class="mini" id="openFolder" title="Import a folder">▱</button><button type="button" class="mini" id="newFile" title="New file">+</button></div></div><input id="filePicker" type="file" multiple hidden accept=".txt,.md,.js,.json,.css,.html,.xml,.yaml,.yml,.py,.sql,.csv,.ts,.tsx,.jsx"><input id="folderPicker" type="file" webkitdirectory directory multiple hidden accept=".txt,.md,.js,.json,.css,.html,.xml,.yaml,.yml,.py,.sql,.csv,.ts,.tsx,.jsx">
     <div class="file-tree-search"><input id="fileTreeSearch" type="search" placeholder="Filter project files…" aria-label="Filter project files"><span id="fileTreeCount" aria-live="polite"></span></div><div id="fileList" class="filelist"></div>
   </aside>
-  <section class="main" id="mainWorkspace">
+  <main class="main" id="mainWorkspace" tabindex="-1" aria-label="AI development workspace">
+    <h1 class="cc-sr-only">AI Development Workspace</h1>
     <div class="limits"><span>Lightweight browser coding workspace. External tools require explicit connection and approval.</span><a href="https://github.com/codespaces" target="_blank" rel="noopener">Open a real Codespace →</a></div>
     <div class="tabs"><span id="tabName" class="tab">untitled</span><span id="dirty" class="dirty" hidden>●</span><span id="contextStatus" class="context-status">Editor context available</span></div>
     <textarea id="editor" class="editor" spellcheck="false" placeholder="Start typing, or pick a file on the left."></textarea>
@@ -75,7 +77,7 @@
         <div id="recreationLabRoot"><p class="hintline">Open Recreation Lab to plan structured creative experiments.</p></div>
       </section>
     </section>
-  </section>
+  </main>
   <section class="panel" id="chatPanel">
     <div class="grip" id="chatGrip" role="separator" aria-orientation="horizontal" tabindex="0" title="Drag to resize the chat, double-click to expand"></div>
     <div class="panelhead"><span class="ptitle">Chat</span><div id="activityIndicator" class="activity-indicator" role="status" aria-live="polite" hidden><span class="ida-orb" aria-hidden="true"><i></i><b></b></span><span class="activity-copy"><strong id="activityTitle">Thinking…</strong><small id="activityDetail"></small></span><span id="activityTime" class="activity-time">0s</span><button type="button" class="mini activity-expand" id="activityExpand" hidden aria-expanded="false" aria-controls="activityDetails" >Details</button></div><div id="activityDetails" class="activity-details" hidden><div><small>Task</small><span id="activityTaskDetail"></span></div><div><small>Activity</small><span id="activityStateDetail"></span></div><div><small>Elapsed</small><span id="activityElapsedDetail"></span></div></div><span id="chatStatus" class="chatstatus"></span><button type="button" class="mini" id="contextManager" title="Choose which project files are included in AI context">Context</button><label class="webchk planchk" title="Use /plan before a request to ask for a plan first" hidden><input type="checkbox" id="planMode"> Plan</label><button type="button" class="mini" id="insertCode" title="Review proposed file changes or generated code before applying" disabled>Review code</button><button type="button" class="mini" id="undoCodeApply" title="Undo the last reviewed code insertion or replacement" disabled hidden>Undo apply</button><select id="logSel" class="logsel" title="Conversations"></select><label class="webchk" title="AI can request web research when the Parallel key is saved" hidden><input type="checkbox" id="webOn"> Web</label><button type="button" class="mini" id="newLog" hidden>New</button><button type="button" class="mini" id="delLog">Delete</button><button type="button" class="mini" id="chatGrow" title="Expand chat" aria-label="Expand chat">⤢</button></div>
