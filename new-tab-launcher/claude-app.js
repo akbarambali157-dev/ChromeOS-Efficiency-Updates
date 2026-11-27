@@ -80,6 +80,7 @@
     $('tabName').textContent = activeFile ? activeFile.name : 'untitled';
     setDirty(false);
   }
+  window.dispatchEvent(new CustomEvent('claude-file-changed', { detail: { name: activeFile ? activeFile.name : 'untitled', content: $('editor').value } }));
 
   function setDirty(on) {
     $('dirty').hidden = !on;
