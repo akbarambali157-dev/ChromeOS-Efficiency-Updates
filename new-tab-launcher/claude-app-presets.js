@@ -19,7 +19,7 @@
   });
   var grip=document.getElementById('chatGrip');
   if(grip){
-    grip.addEventListener('pointerup',setCustom);
+    grip.addEventListener('pointerup',setCustom);grip.addEventListener('pointercancel',setCustom);
     grip.addEventListener('keydown',function(event){if(event.key==='ArrowUp'||event.key==='ArrowDown')setCustom();});
   }
   chrome.storage.local.get(['ccWorkspacePreset'],function(data){
