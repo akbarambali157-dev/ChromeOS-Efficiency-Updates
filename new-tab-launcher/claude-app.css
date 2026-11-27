@@ -664,3 +664,8 @@ body.cc .file-preview blockquote{margin:.6em 0;padding:6px 12px;border-left:3px 
 body.cc .file-preview table{border-collapse:collapse;width:max-content;max-width:100%;font-size:12px;}body.cc .file-preview th,body.cc .file-preview td{border:1px solid var(--cc-border,#273341);padding:5px 8px;vertical-align:top;}body.cc .file-preview th{background:var(--cc-surface-2,#151c24);text-align:left;}
 body.cc .file-preview a{color:var(--cc-accent,#7fd1b9);text-decoration:underline;}
 body.cc .file-preview .preview-note{color:var(--cc-text-muted,#9caec0);font-size:11px;margin:0 0 10px;}
+
+/* Research workspace: safe result management and bounded status feedback */
+body.cc #researchClear{min-height:30px;}
+body.cc #runResearch:disabled{opacity:.6;cursor:wait;}
+body.cc #researchOutput .workspace-card{overflow-wrap:anywhere;}
