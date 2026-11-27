@@ -28,6 +28,11 @@ assert.equal(Array.from(t.normalizeTags(Array.from({length:20},(_,i)=>'tag'+i)))
 assert.equal(t.matchesAsset({name:'Poster Study',description:'Warm palette',tags:['cinematic'],analysis:''},{query:'cinematic'}),true);
 assert.equal(t.matchesAsset({name:'Poster Study',description:'Warm palette',tags:[],analysis:''},{type:'video'}),false);
 assert.equal(t.matchesAsset({name:'Poster Study',description:'Warm palette',tags:[],analysis:''},{collectionId:'other'}),false);
+const sample=[{id:'c',name:'Zulu',size:10,createdAt:5},{id:'b',name:'alpha',size:50,createdAt:10},{id:'a',name:'Beta',size:50,createdAt:10}];
+assert.deepEqual(Array.from(t.sortAssets(sample,'recent').map(x=>x.id)),['a','b','c'],'recent sorting uses descending date with deterministic name/id ties');
+assert.deepEqual(Array.from(t.sortAssets(sample,'name').map(x=>x.id)),['b','a','c'],'name sorting is case-insensitive with deterministic ties');
+assert.deepEqual(Array.from(t.sortAssets(sample,'largest').map(x=>x.id)),['a','b','c'],'largest-first sorting uses size and stable ties');
+assert.deepEqual(Array.from(sample.map(x=>x.id)),['c','b','a'],'sorting must not mutate stored library order');
 const merged=t.mergeAsset({id:'a',projectIds:['p1'],analysis:'saved'},{description:'updated'});
 assert.deepEqual(JSON.parse(JSON.stringify(merged)),{id:'a',projectIds:['p1'],analysis:'saved',description:'updated'});
 assert.equal(t.formatBytes(0),'0 B');
