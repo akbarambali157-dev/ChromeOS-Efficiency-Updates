@@ -10,7 +10,7 @@
     if(!height)return;
     var max=Math.max(180,window.innerHeight-170);
     height=Math.max(120,Math.min(max,height));
-    window.dispatchEvent(new CustomEvent('cc-workspace-preset-change',{detail:{height:height}});
+    window.dispatchEvent(new CustomEvent('cc-workspace-preset-change',{detail:{height:height}}));
     if(save)chrome.storage.local.set({ccWorkspacePreset:value});
   }
   select.addEventListener('change',function(){
