@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+
+const html=fs.readFileSync('new-tab-launcher/claude-app.html','utf8');
+const css=fs.readFileSync('new-tab-launcher/claude-app.css','utf8');
+const script=fs.readFileSync('new-tab-launcher/claude-app-focus.js','utf8');
+assert.match(html,/id="ccFocusMode"[^>]*aria-pressed="false"/,'focus button must expose pressed state');
+assert.match(html,/<script src="claude-app-focus\.js"><\/script>/,'focus behavior must be included before app startup');
+assert.match(css,/body\.cc\.cc-focus-mode \.shell\{[^}]*grid-template-columns:minmax\(0,1fr\)/,'focus mode must fill the shell');
+assert.match(css,/body\.cc\.cc-focus-mode #chatPanel\{[^}]*height:100vh/,'chat must fill viewport in focus mode');
+assert.match(css,/prefers-reduced-motion:reduce/,'focus-mode styling must honor reduced motion');
+
+const handlers={};const attrs={};let focused='';let textContent='Focus';let title='Focus on chat';
+const button={setAttribute(k,v){attrs[k]=v;},addEventListener(k,fn){handlers['button:'+k]=fn;},focus(){focused='button';}};
+const input={focus(){focused='input';}};
+const classes=new Set();
+const body={classList:{toggle(k,on){if(on)classes.add(k);else classes.delete(k);},contains(k){return classes.has(k);}}};
+const document={body,getElementById(id){return id==='ccFocusMode'?button:id==='chatIn'?input:null;},addEventListener(k,fn){handlers['document:'+k]=fn;}};
+Object.defineProperty(button,'textContent',{get(){return textContent;},set(v){textContent=v;}});
+Object.defineProperty(button,'title',{get(){return title;},set(v){title=v;}});
+vm.runInNewContext(script,{document});
+handlers['button:click']();
+assert.equal(body.classList.contains('cc-focus-mode'),true);
+assert.equal(attrs['aria-pressed'],'true');assert.equal(attrs['aria-label'],'Exit focus mode');assert.equal(textContent,'Exit focus');assert.equal(focused,'input');
+let prevented=false;
+handlers['document:keydown']({key:'Escape',preventDefault(){prevented=true;}});
+assert.equal(prevented,true);
+assert.equal(body.classList.contains('cc-focus-mode'),false);
+assert.equal(attrs['aria-pressed'],'false');assert.equal(attrs['aria-label'],'Enter focus mode');assert.equal(textContent,'Focus');assert.equal(focused,'button');
+handlers['button:click']();assert.equal(body.classList.contains('cc-focus-mode'),true);
+handlers['button:click']();assert.equal(body.classList.contains('cc-focus-mode'),false);
+console.log('Claude focus mode markup, styles, click toggle, Escape recovery and accessibility state tests passed.');
