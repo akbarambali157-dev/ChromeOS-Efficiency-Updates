@@ -1,15 +1,14 @@
 # Claude Mini App UI Overhaul — Implementation Checkpoint
 
-**Active branch:** `claude-ui-overhaul-phase1-foundation`
 **Base:** `main`
-**Current stage:** Phases 1–5 implementation pass complete; awaiting user visual feedback before proceeding.
-**Implementation PR:** #29 — https://github.com/akbarambali157-dev/ChromeOS-Efficiency-Updates/pull/29 (open, not merged).
+**Current stage:** Original features 1–5 plus features 30–32 are implemented and merged; full 33-feature scope remains active.
+**Latest merged feature PRs:** #32 Focus Mode, #33 Workspace Presets, #34 Safe File Preview. PR #29 (original 1–5 implementation) is merged.
 
-## Master feature tally (31 checklist items)
-- **Completed (implementation): 5 / 31** — Foundation/design system, chat experience, composer, Ida activity experience, and coding/file workspace.
-- **In progress: 0 / 31** — Feature implementations are complete; visual QA remains blocked by browser availability.
-- **Not started: 26 / 31.**
-- **Visual QA checkpoint reached:** 5 features implemented. Attempted desktop QA in a Vercel sandbox; no browser binary available (Chromium wrapper requires Snap, which could not be installed in this environment). Do not proceed with feature 6 until user feedback or browser screenshots/visual QA are available.
+## Master feature tally (33 checklist items)
+- **Completed (implementation): 8 / 33** — Foundation/design system, chat experience, composer, Ida activity experience, coding/file workspace, Focus Mode (#30), Workspace Presets (#31), and File Preview (#32).
+- **In progress: 0 / 33** — All eight counted items are implemented and merged; next Phase 6 batch is being started.
+- **Not started: 25 / 33.**
+- **Visual QA:** User previously checked the original five-feature pass. New features 30–32 have passed automated checks but still need visual/device inspection; no browser screenshots or Chromebook/mobile QA are claimed.
 
 ## Phase 1 — Foundation & visual system (implementation done)
 - Created mini-app-scoped design tokens for surface levels, border levels, text hierarchy, accent/danger colors, radii, and spacing.
@@ -70,9 +69,8 @@
 
 
 ## Next-session resume instructions
-1. Await user feedback on Phases 1–5 and/or browser screenshots to perform the visual QA checkpoint.
-2. Once visual QA is possible, inspect desktop, mobile, and Chromebook-sized layouts, including chat/composer, Ida details, and the virtual file tree.
-3. Fix QA findings and re-run the full validation suite before starting feature 6.
-4. Continue with the approved master plan only after feedback/QA.
-5. Keep changes reviewable and do not merge to `main` without explicit user authorization.
-
+1. Visually inspect Focus Mode, Workspace Presets, and File Preview on desktop, mobile, and Chromebook-sized layouts when browser access is available.
+2. Keep the 33-feature scope and approved eight-phase plan intact; do not treat out-of-order features 30–32 as a reason to skip phases.
+3. Proceed with Phase 6 (AI Teams, Research, and Creative) after the visual checkpoint or continue the code audit where it can be safely verified.
+4. For each feature, use an isolated PR, local sandbox tests, and GitHub Actions; merge only after checks are green.
+5. Report feature counts, test results, merged PRs, unresolved issues, and the next exact task.
