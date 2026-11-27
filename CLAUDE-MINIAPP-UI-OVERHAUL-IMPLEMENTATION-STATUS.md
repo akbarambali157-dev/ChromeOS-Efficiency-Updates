@@ -1,14 +1,14 @@
 # Claude Mini App UI Overhaul — Implementation Checkpoint
 
 **Base:** `main`
-**Current stage:** Original features 1–5 plus features 30–32 are implemented and merged; full 33-feature scope remains active.
-**Latest merged feature PRs:** #32 Focus Mode, #33 Workspace Presets, #34 Safe File Preview. PR #29 (original 1–5 implementation) is merged.
+**Current stage:** Original features 1–5, features 30–32, and Phase 6 follow-up enhancements (Research safeguards, Creative Library sorting, Reference Lab) are implemented and merged; full 33-feature scope remains active.
+**Latest merged feature PRs:** #32 Focus Mode, #33 Workspace Presets, #34 Safe File Preview, #36 Research safeguards, #37 Creative Library sorting, #38 Reference Lab. PR #29 (original 1–5) is merged.
 
 ## Master feature tally (33 checklist items)
-- **Completed (implementation): 8 / 33** — Foundation/design system, chat experience, composer, Ida activity experience, coding/file workspace, Focus Mode (#30), Workspace Presets (#31), and File Preview (#32).
-- **In progress: 0 / 33** — All eight counted items are implemented and merged; next Phase 6 batch is being started.
-- **Not started: 25 / 33.**
-- **Visual QA:** User previously checked the original five-feature pass. New features 30–32 have passed automated checks but still need visual/device inspection; no browser screenshots or Chromebook/mobile QA are claimed.
+- **Completed (implementation): 11 / 33** — Foundation/design system, chat experience, composer, Ida activity experience, coding/file workspace, Focus Mode (#30), Workspace Presets (#31), File Preview (#32), Research workspace safeguards, Creative Library sorting, and Reference Lab local context.
+- **In progress: 0 / 33** — The 11 completed capabilities are merged; continuing with remaining scope.
+- **Not started: 22 / 33.**
+- **Visual QA:** User previously checked the original five-feature pass. New work has automated tests, but browser/device visual inspection of these additions remains pending; no screenshots or Chromebook/mobile QA are claimed.
 
 ## Phase 1 — Foundation & visual system (implementation done)
 - Created mini-app-scoped design tokens for surface levels, border levels, text hierarchy, accent/danger colors, radii, and spacing.
@@ -68,9 +68,15 @@
 - PR remains open and unmerged. Do not merge without explicit authorization.
 
 
+## Phase 6 progress — latest merged enhancements
+- Research workspace: clear results also clear attached context, safe HTTP(S) links only, bounded 40,000-character research context, six-source limit, duplicate-search guard, loading/empty/error states; PR #36 merged after full CI success.
+- Creative Library: sort by Recently added, Name A–Z, Largest first, stable tie ordering and non-mutating sort; PR #37 merged after full CI success.
+- Reference Lab: dedicated workspace, lazy local Creative Library loading, local filter, max six selections, explicit context attach/clear, metadata-only context bounded to 4,000 characters; PR #38 merged after full CI success.
+- Latest complete sandbox suite: all JS syntax checks, all scripts/test-*.mjs, mini-app validation, and diff whitespace check passed for the Reference Lab branch.
+- Visual QA remains outstanding for the three new work areas.
+
 ## Next-session resume instructions
-1. Visually inspect Focus Mode, Workspace Presets, and File Preview on desktop, mobile, and Chromebook-sized layouts when browser access is available.
-2. Keep the 33-feature scope and approved eight-phase plan intact; do not treat out-of-order features 30–32 as a reason to skip phases.
-3. Proceed with Phase 6 (AI Teams, Research, and Creative) after the visual checkpoint or continue the code audit where it can be safely verified.
-4. For each feature, use an isolated PR, local sandbox tests, and GitHub Actions; merge only after checks are green.
-5. Report feature counts, test results, merged PRs, unresolved issues, and the next exact task.
+1. Inspect Research, Creative Library sort controls, and Reference Lab on desktop, mobile, and Chromebook-sized layouts when browser access is available.
+2. Continue auditing AI Team workflows and Creative Lab rather than assuming their existing panels are fully complete.
+3. Follow the approved 33-feature checklist and eight-phase sequence; keep each code batch isolated, test it, and merge only after GitHub Actions is green.
+4. Keep work reviewable, preserve existing data/paths, and report exact feature counts, test outcomes, merges, unresolved issues, and the next task.
