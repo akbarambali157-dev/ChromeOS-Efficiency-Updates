@@ -65,6 +65,8 @@ jobs:
         run: node scripts/test-claude-ui-foundation.mjs
       - name: Validate Claude focus mode
         run: node scripts/test-claude-focus-mode.mjs
+      - name: Validate Claude workspace presets
+        run: node scripts/test-claude-workspace-presets.mjs
       - name: Test in-tab mini-app shell
         run: node scripts/test-inline-miniapps.mjs
       - name: Validate mini-app contracts

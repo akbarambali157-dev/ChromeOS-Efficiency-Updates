@@ -642,3 +642,13 @@ body.cc.cc-focus-mode #chatPanel{grid-column:1!important;grid-row:1!important;di
 body.cc.cc-focus-mode #chatLog{flex:1;min-height:0;}
 body.cc.cc-focus-mode #ccFocusMode[aria-pressed="true"]{color:var(--cc-accent,#7fd1b9);border-color:var(--cc-accent,#7fd1b9);}
 @media (prefers-reduced-motion:reduce){body.cc.cc-focus-mode *{transition:none!important;animation:none!important;}}
+
+/* Feature 31: compact workspace preset selector */
+body.cc .workspace-preset{max-width:116px;height:26px;padding:3px 6px;border:1px solid var(--cc-border,#273341);border-radius:7px;background:var(--cc-surface-2,#151c24);color:var(--cc-text,#e5edf6);font-size:11px;flex:0 0 auto;}
+body.cc .workspace-preset:focus-visible{outline:2px solid var(--cc-accent,#7fd1b9);outline-offset:2px;}
+@media(max-width:520px){body.cc .workspace-preset{max-width:92px;font-size:10px;}}
+
+/* Feature 31: compact workspace preset selector */
+body.cc .workspace-preset{max-width:116px;height:26px;padding:3px 6px;border:1px solid var(--cc-border,#273341);border-radius:7px;background:var(--cc-surface-2,#151c24);color:var(--cc-text,#e5edf6);font-size:11px;flex:0 0 auto;margin-left:auto;}
+body.cc .workspace-preset:focus-visible{outline:2px solid var(--cc-accent,#7fd1b9);outline-offset:2px;}
+@media(max-width:520px){body.cc .workspace-preset{max-width:92px;font-size:10px;}}

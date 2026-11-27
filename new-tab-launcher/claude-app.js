@@ -820,6 +820,14 @@
   function applyChatH() {
     document.documentElement.style.setProperty('--chat-h', chatH + 'px');
   }
+  window.addEventListener('cc-workspace-preset-change', function (event) {
+    var requested = parseInt(event.detail && event.detail.height, 10);
+    if (!Number.isFinite(requested)) return;
+    var max = Math.max(180, window.innerHeight - 170);
+    chatH = Math.max(120, Math.min(max, requested));
+    applyChatH();
+    chrome.storage.local.set({ ccChatH: chatH });
+  });
   var grip = $('chatGrip');
   if (grip) {
     var drag = null;
