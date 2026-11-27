@@ -23,7 +23,7 @@ This preserves the recovered source and commits as a separate branch. It does **
 
 The approved original specification from PR #28 is copied into this branch as `CLAUDE-MINIAPP-UI-OVERHAUL-PLAN.md` to ensure the complete 31-item checklist and roadmap remain available.
 
-## Full master checklist (31 items)
+## Full master checklist (32 entries found in the approved specification)
 
 1. Foundation and design system
 2. App shell and navigation
@@ -55,9 +55,11 @@ The approved original specification from PR #28 is copied into this branch as `C
 28. Intelligent output layouts
 29. Quality/review panel
 30. Focus mode
-31. Workspace presets and file previews
+31. Workspace presets
+32. File previews
+33. Regression and release QA
 
-Note: Items 30 and 31 are grouped above to fit the original numbered checklist; the approved plan separately lists Focus Mode, Workspace Presets, and File Previews. For final progress reporting, count these as **31 total** only after the list is normalized to exactly one feature per checklist item; do not inflate or compress the count. The original plan remains the authoritative list.
+**Correction:** Counted directly from the 587-line original plan, there are 33 checklist bullets if all above are treated separately. Earlier “31” appears to have been a count mismatch. Track all 33 specification bullets to avoid omissions until the user approves a normalized count.
 
 ## Eight-phase delivery plan
 
