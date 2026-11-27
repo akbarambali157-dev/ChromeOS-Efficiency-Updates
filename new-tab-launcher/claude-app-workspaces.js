@@ -4,10 +4,11 @@
   'use strict';
   var $ = function (id) { return document.getElementById(id); }, app = null, current = 'project', cancelRun = false, creativeLoadPromise = null, recreationLoadPromise = null, initialized = false;
   var scenes = [], anim = 0, recorder = null, chunks = [], videoNotes = '', videoProductionNotes = '', videoProjectId = '', videoStream = null, videoTimer = null, videoCancelled = false, researchContext = '', supabaseRowsContext = '', supabaseQueryContext = '', projectNotesTimer = null;
+  var referenceAssets=[], referenceSelected=[], referenceContext='', referenceLoaded=false, referenceLoading=false;
   function node(tag, text, cls) { var e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (cls) e.className = cls; return e; }
   function card(title, body, url) { var c=node('article',undefined,'workspace-card'); if(title)c.appendChild(node('h3',title)); c.appendChild(node('div',body)); if(url){var a=node('a','Open source');a.href=url;a.target='_blank';a.rel='noopener noreferrer';c.appendChild(a);} return c; }
   function status(id, text, err) { var e=$(id); if(e){e.textContent=text||'';e.className='status'+(err?' err':'');} }
-  function context() { var base=app&&app.getContext?app.getContext().slice(0,48000):''; if($('researchAttach')&&$('researchAttach').checked&&researchContext)base+='\n\n--- Web research context ---\n'+researchContext; if($('sbAttachRows')&&$('sbAttachRows').checked&&supabaseRowsContext)base+='\n\n--- Supabase table rows ---\n'+supabaseRowsContext; if($('sbAttachQuery')&&$('sbAttachQuery').checked&&supabaseQueryContext)base+='\n\n--- Supabase read-only SQL results ---\n'+supabaseQueryContext; return base.slice(0,48000); }
+  function context() { var base=app&&app.getContext?app.getContext().slice(0,48000):''; if(referenceContext)base+='\n\n--- Selected Reference Lab context ---\n'+referenceContext; if($('researchAttach')&&$('researchAttach').checked&&researchContext)base+='\n\n--- Web research context ---\n'+researchContext; if($('sbAttachRows')&&$('sbAttachRows').checked&&supabaseRowsContext)base+='\n\n--- Supabase table rows ---\n'+supabaseRowsContext; if($('sbAttachQuery')&&$('sbAttachQuery').checked&&supabaseQueryContext)base+='\n\n--- Supabase read-only SQL results ---\n'+supabaseQueryContext; return base.slice(0,48000); }
   function settings() { return CCProviders.readSettings(); }
   function reqText(provider, model, messages, tokens, keys) {
     var turns=0,thread=messages.slice();
@@ -213,6 +214,39 @@
   function safeResearchUrl(value) {
     try{var u=new URL(String(value||''));return u.protocol==='https:'||u.protocol==='http:'?u.href:'';}catch(e){return '';}
   }
+  function buildReferenceContext(selected) {
+    return (Array.isArray(selected)?selected.slice(0,6):[]).map(function(a,i){
+      var name=String(a&&a.name||'Reference '+(i+1)).slice(0,120),type=String(a&&a.type||'file').slice(0,24),tags=Array.isArray(a&&a.tags)?a.tags.slice(0,8).map(function(t){return String(t).slice(0,60);}):[],desc=String(a&&a.description||'').slice(0,350),analysis=String(a&&a.analysis||'').slice(0,450);
+      return ['['+(i+1)+'] '+name,'Type: '+type,tags.length?'Tags: '+tags.join(', '):'',desc?'Description: '+desc:'',analysis?'Analysis: '+analysis:''].filter(Boolean).join('\n');
+    }).join('\n\n').slice(0,4000);
+  }
+  function renderReferenceLab() {
+    var list=$('referenceList'),query=String($('referenceSearch').value||'').trim().toLowerCase();if(!list)return;
+    list.textContent='';
+    var filtered=referenceAssets.filter(function(a){return !query||[a.name,a.description,a.analysis,(a.tags||[]).join(' ')].join(' ').toLowerCase().indexOf(query)>=0;});
+    if(!filtered.length){list.appendChild(node('p',referenceAssets.length?'No matching local references.':'No local references available. Open Creative Library and import items first.','reference-empty'));return;}
+    filtered.slice(0,80).forEach(function(a){var row=node('label',undefined,'reference-item'),cb=document.createElement('input'),meta=node('span');
+      cb.type='checkbox';cb.checked=referenceSelected.indexOf(a.id)>=0;cb.setAttribute('aria-label','Select '+a.name);
+      meta.appendChild(node('strong',a.name));meta.appendChild(node('small',(a.type||'file').toUpperCase()+' · '+(a.tags||[]).join(', ')));
+      row.appendChild(cb);row.appendChild(meta);
+      cb.addEventListener('change',function(){var has=referenceSelected.indexOf(a.id)>=0;if(cb.checked&&!has){if(referenceSelected.length>=6){cb.checked=false;status('referenceStatus','Select up to six references.',true);return;}referenceSelected.push(a.id);}else if(!cb.checked&&has)referenceSelected=referenceSelected.filter(function(id){return id!==a.id;});updateReferenceCount();});
+      list.appendChild(row);
+    });
+    updateReferenceCount();
+  }
+  function updateReferenceCount(){var e=$('referenceSelectedCount');if(e)e.textContent=referenceSelected.length+' of 6 selected';}
+  function loadReferenceLibrary(force) {
+    if(referenceLoading||referenceLoaded&&!force)return;
+    if(!g.CCCreativeLibrary||typeof g.CCCreativeLibrary.listReferences!=='function'){status('referenceStatus','Creative Library is unavailable. Reload the extension.',true);return;}
+    referenceLoading=true;status('referenceStatus','Loading local references…');
+    g.CCCreativeLibrary.listReferences().then(function(items){referenceAssets=Array.isArray(items)?items.slice(0,500):[];referenceLoaded=true;renderReferenceLab();status('referenceStatus',referenceAssets.length+' local references available.');}).catch(function(e){status('referenceStatus','Could not load references: '+(e&&e.message||'Unknown error'),true);}).then(function(){referenceLoading=false;},function(){referenceLoading=false;});
+  }
+  function attachReferences() {
+    var chosen=referenceAssets.filter(function(a){return referenceSelected.indexOf(a.id)>=0;});
+    referenceContext=buildReferenceContext(chosen);var preview=$('referencePreview');if(preview){preview.textContent='';preview.appendChild(node('p',referenceContext||'No references selected.','reference-preview-text'));preview.appendChild(node('p',referenceContext.length+' / 4,000 characters attached to AI Team context.','reference-preview-count'));}
+    status('referenceStatus',chosen.length+' selected reference(s) attached to AI Team context.');
+  }
+  function clearReferences(){referenceSelected=[];referenceContext='';$('referencePreview').textContent='';updateReferenceCount();renderReferenceLab();status('referenceStatus','Reference selection and attached context cleared.');}
   function runResearch() {
     var q=$('researchQuery').value.trim();if(!q)return status('researchStatus','Enter a research question.',true);
     if(researchBusy)return;
@@ -335,14 +369,14 @@
     $('paneProject').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('projectTaskForm').addEventListener('submit',addProjectTask);
     $('projectNotes').addEventListener('input',function(){if(projectNotesTimer)clearTimeout(projectNotesTimer);projectNotesTimer=setTimeout(saveProjectNotes,500);});
-    ['paneTeam','paneResearch','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation'].forEach(function(id){$(id).addEventListener('click',function(){var name={paneTeam:'team',paneResearch:'research',paneGitHub:'github',paneSupabase:'supabase',paneVideo:'video',paneCreative:'creative',paneRecreation:'recreation'}[id];setWorkspace(name);});});
+    ['paneTeam','paneResearch','paneReference','paneGitHub','paneSupabase','paneVideo','paneCreative','paneRecreation'].forEach(function(id){$(id).addEventListener('click',function(){var name={paneTeam:'team',paneResearch:'research',paneReference:'reference',paneGitHub:'github',paneSupabase:'supabase',paneVideo:'video',paneCreative:'creative',paneRecreation:'recreation'}[id];setWorkspace(name);});});
     $('teamProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('teamModel'),$('teamProvider').value,s.model);});});
     $('reviewProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('reviewModel'),$('reviewProvider').value,s.model);});});
     $('workerProvider').addEventListener('change',function(){settings().then(function(s){modelOpts($('workerModel'),$('workerProvider').value,$('workerProvider').value==='brewkeg'?'claude-haiku-5-5':s.model);});});
     $('paneFiles').addEventListener('click',editorWorkspace);$('workspaceBack').addEventListener('click',function(){setWorkspace('project');refreshProject();});
     $('runTeam').addEventListener('click',runTeam);$('cancelTeam').addEventListener('click',function(){cancelRun=true;status('teamStatus','Cancellation requested.');});
     $('teamTestLead').addEventListener('click',function(){testTeamRole('lead');});$('teamTestReviewer').addEventListener('click',function(){testTeamRole('reviewer');});$('teamTestWorker').addEventListener('click',function(){testTeamRole('worker');});
-    $('runResearch').addEventListener('click',runResearch);$('researchClear').addEventListener('click',clearResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
+    $('runResearch').addEventListener('click',runResearch);$('paneReference').addEventListener('click',function(){loadReferenceLibrary(false);});$('referenceSearch').addEventListener('input',renderReferenceLab);$('referenceRefresh').addEventListener('click',function(){loadReferenceLibrary(true);});$('referenceClear').addEventListener('click',clearReferences);$('referenceAttach').addEventListener('click',attachReferences);$('researchClear').addEventListener('click',clearResearch);$('ghLoad').addEventListener('click',loadGithub);$('ghSearch').addEventListener('click',searchGithub);$('ghCreateBranch').addEventListener('click',createGithubBranch);$('ghCreatePR').addEventListener('click',createGithubPR);
     $('sbBrowse').addEventListener('click',browseSupabase);$('sbSave').addEventListener('click',saveSupabase);$('sbPAT').addEventListener('change',saveSupabaseManagementToken);$('sbListProjects').addEventListener('click',listSupabaseProjects);$('sbProjectDetails').addEventListener('click',getSupabaseProjectDetails);$('sbRunQuery').addEventListener('click',runSupabaseReadOnlyQuery);$('sbFunctions').addEventListener('click',listSupabaseFunctions);$('sbBuckets').addEventListener('click',listSupabaseBuckets);$('sbLogs').addEventListener('click',querySupabaseLogs);
     if($('dashboardOpenProject'))$('dashboardOpenProject').addEventListener('click',function(){var id=$('dashboardProjectSelect').value;if(app&&app.switchProject&&app.switchProject(id)){editorWorkspace();}});
     if($('ghDisconnect'))$('ghDisconnect').addEventListener('click',function(){if(!confirm('Disconnect GitHub from this extension?'))return;chrome.storage.local.remove('ghToken',function(){$('ghOutput').textContent='';status('ghStatus','GitHub disconnected.');});});
@@ -352,5 +386,5 @@
     initialized=true;
     g.addEventListener('pagehide',saveProjectNotes);
   }
-  g.CCWorkspaces=Object.freeze({init:init,setApp:function(value){app=value||null;},setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject,flushProjectNotes:saveProjectNotes});
+  g.CCWorkspaces=Object.freeze({init:init,setApp:function(value){app=value||null;},setWorkspace:setWorkspace,editorWorkspace:editorWorkspace,search:search,drawVideo:drawVideo,refreshProject:refreshProject,flushProjectNotes:saveProjectNotes,test:Object.freeze({buildReferenceContext:buildReferenceContext})});
 })(window);
